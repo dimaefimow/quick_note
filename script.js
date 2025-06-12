@@ -1,15 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Текущий месяц и год
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
   
+  // Названия месяцев
   const monthNames = [
     'Январь', 'Февраль', 'Март', 'Апрель', 
     'Май', 'Июнь', 'Июль', 'Август', 
     'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
+  // Данные приложения
   let financeData = JSON.parse(localStorage.getItem('financeData')) || {};
   
+  // Инициализация данных для года
   function initYearData(year) {
     if (!financeData[year]) {
       financeData[year] = {};
@@ -25,8 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Инициализация текущего года
   initYearData(currentYear);
   
+  // Данные бюджета
   let budgetData = JSON.parse(localStorage.getItem('budgetData')) || {
     totalAmount: 0,
     days: 0,
@@ -35,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dailyHistory: {}
   };
 
+  // Данные накоплений
   let savingsData = JSON.parse(localStorage.getItem('savingsData')) || {
     enabled: false,
     name: '',
@@ -42,10 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
     current: 0
   };
 
+  // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
   let miniCapitalChart, miniExpenseChart;
   let trendCharts = {};
 
+  // Цвета для категорий
   const categoryColors = [
     '#e74c3c', '#3498db', '#2ecc71', '#f39c12', 
     '#9b59b6', '#1abc9c', '#d35400', '#34495e',
@@ -53,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     '#f1c40f', '#e67e22', '#c0392b'
   ];
 
+  // DOM элементы
   const elements = {
     incomeInput: document.getElementById('income-input'),
     incomeDisplay: document.getElementById('income'),
@@ -118,18 +128,28 @@ document.addEventListener('DOMContentLoaded', function() {
     currentYearDisplay: document.getElementById('current-year-display'),
     trendsScroll: document.getElementById('trends-scroll'),
     totalIncome: document.getElementById('total-income'),
-    totalExpense: document.getElementById('total-expense')
+    totalExpense: document.getElementById('total-expense'),
+    tutorialOverlay: document.getElementById('tutorial-overlay'),
+    tutorialBox: document.getElementById('tutorial-box'),
+    tutorialTitle: document.getElementById('tutorial-title'),
+    tutorialText: document.getElementById('tutorial-text'),
+    tutorialPrev: document.getElementById('tutorial-prev'),
+    tutorialNext: document.getElementById('tutorial-next'),
+    tutorialClose: document.getElementById('tutorial-close')
   };
 
+  // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
     updateCategoriesList();
   }
 
+  // Форматирование валюты
   function formatCurrency(amount) {
     return amount.toLocaleString('ru-RU') + ' ₽';
   }
 
+  // Обновление списка категорий
   function updateCategoriesList() {
     elements.categoriesList.innerHTML = '';
     const monthData = financeData[currentYear][currentMonth];
@@ -146,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.categoriesList.appendChild(categoryItem);
     });
 
+    // Добавляем обработчики для новых кнопок удаления
     document.querySelectorAll('.delete-category-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
@@ -154,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Удаление категории
   function deleteCategory(category) {
     if (confirm(`Удалить категорию "${category}"? Все связанные расходы будут потеряны.`)) {
       const monthData = financeData[currentYear][currentMonth];
@@ -167,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Обновление финансовых показателей
   function updateFinancialMetrics() {
     let totalIncome = 0;
     let totalExpense = 0;
@@ -203,9 +226,11 @@ document.addEventListener('DOMContentLoaded', function() {
     renderTopCategoriesReport();
   }
 
+  // Отображение самых затратных категорий
   function renderTopCategoriesReport() {
     elements.topCategoriesList.innerHTML = '';
     
+    // Сортируем месяцы от текущего к прошлому
     const sortedMonths = [];
     for (let i = 0; i < 12; i++) {
       const monthIndex = (currentMonth - i + 12) % 12;
@@ -217,14 +242,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const categories = Object.entries(monthData.categories);
       
       if (categories.length > 0) {
+        // Сортируем категории по убыванию расходов
         categories.sort((a, b) => b[1] - a[1]);
         
         const monthElement = document.createElement('div');
         monthElement.className = 'month-categories';
         monthElement.innerHTML = `<h5>${monthNames[monthIndex]}</h5>`;
         
+        // Берем топ-3 категории или все, если их меньше 3
         const topCategories = categories.slice(0, 3);
         
+        // Добавляем общую сумму расходов за месяц
         const totalExpense = categories.reduce((sum, [_, amount]) => sum + amount, 0);
         const totalElement = document.createElement('div');
         totalElement.className = 'category-item total';
@@ -256,6 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Отрисовка мини-графиков
   function renderMiniCharts() {
     const labels = monthNames.map(name => name.substring(0, 3));
     const capitalData = [];
@@ -267,6 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
       expenseData.push(monthData.expense);
     }
     
+    // График капитализации
     if (miniCapitalChart) miniCapitalChart.destroy();
     const capitalCtx = elements.miniCapitalChart?.getContext('2d');
     if (capitalCtx) {
@@ -287,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // График расходов
     if (miniExpenseChart) miniExpenseChart.destroy();
     const expenseCtx = elements.miniExpenseChart?.getContext('2d');
     if (expenseCtx) {
@@ -306,6 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Настройки графиков
   function getChartOptions(title) {
     return {
       responsive: true,
@@ -353,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
+  // Обновление интерфейса
   function updateUI() {
     const monthData = financeData[currentYear][currentMonth] || { income: 0, expense: 0, categories: {} };
     const capital = monthData.capital || 0;
@@ -361,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.expenseDisplay.textContent = formatCurrency(monthData.expense);
     elements.currentYearDisplay.textContent = `Год: ${currentYear}`;
     
+    // Расчет процента остатка
     const remaining = monthData.income - monthData.expense;
     const percentage = monthData.income > 0 
         ? Math.round((remaining / monthData.income) * 100)
@@ -376,15 +410,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     elements.capitalDisplay.textContent = formatCurrency(capital);
+    
+    // Обновление виджета бюджета
     updateBudgetWidget();
+    
+    // Обновление финансовых показателей
     updateFinancialMetrics();
+    
+    // Отрисовка всех графиков
     renderAllCharts();
+
+    // Отрисовка виджетов категорий
     renderWidgets();
+
+    // Отрисовка виджета накоплений
     renderSavingsWidget();
+    
+    // Отрисовка истории трат
     renderExpenseHistory();
+    
+    // Отрисовка графиков динамики категорий
     renderCategoryTrends();
   }
 
+  // Отрисовка всех графиков
   function renderAllCharts() {
     renderChart();
     renderCapitalChart();
@@ -394,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Отрисовка виджетов категорий
   function renderWidgets() {
     elements.widgetsContainer.innerHTML = '';
     const monthData = financeData[currentYear][currentMonth];
@@ -419,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.widgetsContainer.appendChild(widget);
     });
 
+    // Добавляем обработчики для новых кнопок
     document.querySelectorAll('.delete-widget-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
@@ -434,6 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Отрисовка виджета накоплений
   function renderSavingsWidget() {
     if (!savingsData.enabled) return;
     
@@ -458,10 +510,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     elements.widgetsContainer.prepend(widget);
 
+    // Добавляем обработчики для кнопок виджета накоплений
     document.getElementById('disable-savings-btn')?.addEventListener('click', disableSavings);
     document.getElementById('add-to-savings-btn')?.addEventListener('click', addToSavings);
   }
 
+  // Удаление виджета категории
   function deleteWidget(category) {
     if (confirm(`Удалить категорию "${category}" только для текущего месяца?`)) {
       const monthData = financeData[currentYear][currentMonth];
@@ -475,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Добавление расхода к категории
   function addExpenseToCategory(category) {
     const input = document.getElementById(`expense-${category}`);
     const expenseVal = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
@@ -484,6 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
       monthData.expense += expenseVal;
       monthData.categories[category] = (monthData.categories[category] || 0) + expenseVal;
       
+      // Добавляем в историю
       monthData.expensesHistory.push({
         category: category,
         amount: expenseVal,
@@ -494,6 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       saveData();
       
+      // Обновляем дневные траты в бюджете
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       
@@ -510,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Отключение накоплений
   function disableSavings() {
     if (confirm('Отключить виджет накоплений?')) {
       savingsData.enabled = false;
@@ -518,6 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Добавление к накоплениям
   function addToSavings() {
     const input = document.getElementById('savings-amount');
     const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
@@ -534,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Отрисовка основного графика расходов
   function renderChart() {
     const ctx = document.getElementById('barChart')?.getContext('2d');
     if (!ctx) return;
@@ -569,6 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Отрисовка графика капитализации
   function renderCapitalChart() {
     const ctx = document.getElementById('capitalChart')?.getContext('2d');
     if (!ctx) return;
@@ -598,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Отрисовка годовых графиков
   function renderYearCharts() {
     const labels = monthNames;
     const incomeData = [];
@@ -611,6 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
       capitalData.push(monthData.capital);
     }
     
+    // График доходов
     const incomeCtx = document.getElementById('yearIncomeChart')?.getContext('2d');
     if (incomeCtx) {
       if (yearIncomeChart) yearIncomeChart.destroy();
@@ -633,6 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // График расходов
     const expenseCtx = document.getElementById('yearExpenseChart')?.getContext('2d');
     if (expenseCtx) {
       if (yearExpenseChart) yearExpenseChart.destroy();
@@ -655,6 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // График капитализации
     const capitalCtx = document.getElementById('yearCapitalChart')?.getContext('2d');
     if (capitalCtx) {
       if (yearCapitalChart) yearCapitalChart.destroy();
@@ -681,6 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
+  // Настройки годовых графиков
   function getYearChartOptions(title) {
     const options = getChartOptions(title);
     options.plugins.title.display = true;
@@ -688,6 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return options;
   }
 
+  // Затемнение цвета
   function shadeColor(color, percent) {
     let R = parseInt(color.substring(1,3), 16);
     let G = parseInt(color.substring(3,5), 16);
@@ -708,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return "#"+RR+GG+BB;
   }
 
+  // Показать сообщение об успехе
   function showSuccessMessage(message) {
     const successMsg = document.createElement('div');
     successMsg.className = 'success-message';
@@ -719,6 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000);
   }
 
+  // Функция обновления виджета бюджета
   function updateBudgetWidget() {
     if (!budgetData.startDate) {
       elements.dailyBudgetAmount.textContent = formatCurrency(0);
@@ -734,6 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDate = new Date(budgetData.startDate);
     const todayStr = today.toISOString().split('T')[0];
     
+    // Проверяем, что бюджет в текущем месяце
     if (today.getMonth() !== startDate.getMonth() || 
         today.getFullYear() !== startDate.getFullYear()) {
       elements.dailyBudgetAmount.textContent = formatCurrency(0);
@@ -745,6 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // Рассчитываем прошедшие дни (включая текущий)
     const elapsedDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
     const remainingDays = Math.max(0, budgetData.days - elapsedDays + 1);
     
@@ -758,6 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // Рассчитываем остаток бюджета с учетом перерасходов/экономии
     let remainingAmount = budgetData.totalAmount;
     let totalSpent = 0;
     
@@ -784,12 +856,14 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // Рассчитываем дневной бюджет с учетом остатка
     const dailyBudget = remainingAmount / remainingDays;
     
     elements.dailyBudgetAmount.textContent = formatCurrency(dailyBudget);
     elements.budgetProgress.textContent = 
         `Остаток: ${formatCurrency(remainingAmount)} | ${remainingDays} дн.`;
     
+    // Обновляем прогресс-бары (реверсивные)
     const daysProgress = 100 - (elapsedDays / budgetData.days * 100);
     const fundsProgress = 100 - (totalSpent / budgetData.totalAmount * 100);
     
@@ -798,6 +872,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (elements.daysProgressValue) elements.daysProgressValue.textContent = `${Math.round(Math.max(0, daysProgress))}%`;
     if (elements.fundsProgressValue) elements.fundsProgressValue.textContent = `${Math.round(Math.max(0, fundsProgress))}%`;
     
+    // Обновляем историю трат
     if (!budgetData.dailyHistory[todayStr]) {
       budgetData.dailyHistory[todayStr] = {
         date: todayStr,
@@ -808,11 +883,13 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('budgetData', JSON.stringify(budgetData));
   }
 
+  // Просмотр истории трат
   function renderExpenseHistory() {
     elements.historyList.innerHTML = '';
     const monthData = financeData[currentYear][currentMonth];
     const history = monthData.expensesHistory || [];
     
+    // Сортируем от последних к старым
     const sortedHistory = [...history].reverse();
     
     sortedHistory.forEach(item => {
@@ -826,9 +903,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Выбор года
   function renderYearSelection() {
     elements.yearsList.innerHTML = '';
     
+    // Получаем все доступные годы
     const years = Object.keys(financeData).sort((a, b) => b - a);
     
     years.forEach(year => {
@@ -844,6 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Добавление нового года
   function addNewYear() {
   const newYear = currentYear + 1;
   if (!financeData[newYear]) {
@@ -856,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 }
 
+  // Отрисовка графиков динамики категорий
   function renderCategoryTrends() {
   elements.trendsScroll.innerHTML = '';
   
@@ -865,6 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
   categories.forEach(category => {
     const trendData = [];
     
+    // Собираем данные по категории за все месяцы года
     for (let i = 0; i < 12; i++) {
       const monthCatData = financeData[currentYear][i].categories || {};
       trendData.push(monthCatData[category] || 0);
@@ -903,7 +985,95 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 }
 
+  // Режим обучения
+  function initTutorial() {
+    const tutorialSteps = [
+      {
+        title: "Добавление дохода",
+        text: "Введите сумму дохода и нажмите кнопку '+' для добавления. Эта сумма будет учтена в текущем месяце."
+      },
+      {
+        title: "Категории расходов",
+        text: "Используйте кнопку 'Категории' для управления категориями. Добавляйте расходы по категориям через виджеты."
+      },
+      {
+        title: "Капитализация",
+        text: "Кнопка 'Капитализация' позволяет установить общую сумму активов. Эта информация отображается в разделе 'Капитал'."
+      },
+      {
+        title: "Отчёты",
+        text: "В разделе 'Отчёты' вы найдете аналитику по вашим финансам: средние значения, лучший месяц и графики."
+      },
+      {
+        title: "Дневной бюджет",
+        text: "Установите бюджет на определенное количество дней. Система рассчитает дневной лимит и отследит ваши траты."
+      },
+      {
+        title: "Накопления",
+        text: "Включите виджет накоплений через меню (☰) и установите финансовую цель. Отслеживайте прогресс в виджете."
+      },
+      {
+        title: "Графики",
+        text: "Основной график показывает распределение расходов по категориям. Ниже представлена динамика трат по категориям за год."
+      }
+    ];
+    
+    let currentStep = 0;
+    
+    function showTutorialStep(step) {
+      elements.tutorialTitle.textContent = tutorialSteps[step].title;
+      elements.tutorialText.textContent = tutorialSteps[step].text;
+      elements.tutorialOverlay.style.display = 'block';
+    }
+    
+    elements.tutorialNext.addEventListener('click', () => {
+      currentStep++;
+      if (currentStep >= tutorialSteps.length) {
+        elements.tutorialOverlay.style.display = 'none';
+      } else {
+        showTutorialStep(currentStep);
+      }
+    });
+    
+    elements.tutorialPrev.addEventListener('click', () => {
+      if (currentStep > 0) {
+        currentStep--;
+        showTutorialStep(currentStep);
+      }
+    });
+    
+    elements.tutorialClose.addEventListener('click', () => {
+      elements.tutorialOverlay.style.display = 'none';
+    });
+    
+    // Показываем обучение при первом запуске
+    if (!localStorage.getItem('tutorialShown')) {
+      showTutorialStep(0);
+      localStorage.setItem('tutorialShown', 'true');
+    }
+  }
+
+  // Функция для переключения меню
+  function toggleMenu(menuElement) {
+    // Скрываем все другие меню
+    document.querySelectorAll('.neumorphic-menu').forEach(menu => {
+      if (menu !== menuElement) menu.classList.remove('show');
+    });
+    
+    // Переключаем текущее меню
+    menuElement.classList.toggle('show');
+    
+    // Позиционируем меню по центру экрана
+    if (menuElement.classList.contains('show')) {
+      menuElement.style.top = '50%';
+      menuElement.style.left = '50%';
+      menuElement.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+
+  // Настройка обработчиков событий
   function setupEventHandlers() {
+    // Добавление дохода
     elements.addIncomeBtn.addEventListener('click', () => {
       const incomeVal = parseFloat(elements.incomeInput.value.replace(/\s+/g, '').replace(',', '.'));
       const monthData = financeData[currentYear][currentMonth];
@@ -919,9 +1089,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    // Добавление категории
     elements.addCategoryBtn.addEventListener('click', () => {
       const categoryName = elements.newCategoryInput.value.trim();
       if (categoryName) {
+        // Добавляем категорию во все месяцы текущего года
         for (let i = 0; i < 12; i++) {
           const monthData = financeData[currentYear][i];
           if (!monthData.categories[categoryName]) {
@@ -934,6 +1106,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    // Меню категорий
     elements.categoryBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       elements.categoryMenu.classList.toggle('show');
@@ -941,23 +1114,15 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.moreMenu.classList.remove('show');
     });
 
+    // Закрытие виджета категорий
     elements.closeCategoryWidget.addEventListener('click', () => {
       elements.categoryMenu.classList.remove('show');
     });
 
+    // Капитализация
     elements.capitalizationBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      elements.categoryMenu.classList.remove('show');
-      elements.settingsMenu.classList.remove('show');
-      elements.moreMenu.classList.remove('show');
-
-      const wasVisible = elements.capitalizationMenu.classList.contains('show');
-      elements.capitalizationMenu.classList.toggle('show', !wasVisible);
-
-      if (!wasVisible) {
-        elements.capitalInput.value = financeData[currentYear][currentMonth].capital || '';
-        elements.capitalInput.focus();
-      }
+      toggleMenu(elements.capitalizationMenu);
     });
 
     elements.saveCapitalBtn.addEventListener('click', () => {
@@ -974,21 +1139,20 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.capitalizationMenu.classList.remove('show');
     });
 
+    // Настройки/отчеты
     elements.settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      elements.settingsMenu.classList.toggle('show');
-      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.settingsMenu);
     });
 
     elements.closeReportsBtn.addEventListener('click', () => {
       elements.settingsMenu.classList.remove('show');
     });
 
+    // Бюджет
     elements.budgetSettingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      elements.setBudgetModal.classList.add('show');
-      elements.budgetAmount.value = '';
-      elements.budgetDays.value = '';
+      toggleMenu(elements.setBudgetModal);
     });
 
     elements.saveBudgetBtn.addEventListener('click', () => {
@@ -1022,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.setBudgetModal.classList.remove('show');
     });
 
+    // Дополнительное меню
     elements.moreBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       elements.moreMenu.classList.toggle('show');
@@ -1029,16 +1194,10 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.categoryMenu.classList.remove('show');
     });
 
+    // Виджет накоплений
     elements.enableSavingsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      elements.savingsModal.classList.add('show');
-      elements.savingsName.value = savingsData.name || '';
-      elements.savingsGoal.value = savingsData.goal || '';
-
-      elements.enableSavingsBtn.classList.add('pulse');
-      setTimeout(() => {
-        elements.enableSavingsBtn.classList.remove('pulse');
-      }, 500);
+      toggleMenu(elements.savingsModal);
     });
 
     elements.saveSavingsBtn.addEventListener('click', () => {
@@ -1064,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.savingsModal.classList.remove('show');
     });
 
+    // Переключение месяцев
     elements.monthTabs.forEach(tab => {
       tab.addEventListener('click', () => {
         elements.monthTabs.forEach(t => t.classList.remove('active'));
@@ -1073,9 +1233,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
+    // Выбор года
     elements.yearSelectBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      elements.yearSelectModal.classList.add('show');
+      toggleMenu(elements.yearSelectModal);
       renderYearSelection();
     });
 
@@ -1085,49 +1246,57 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.yearSelectModal.classList.remove('show');
     });
 
+    // История трат
     elements.historyBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      elements.historyModal.classList.add('show');
+      toggleMenu(elements.historyModal);
     });
     
     elements.closeHistory.addEventListener('click', () => {
       elements.historyModal.classList.remove('show');
     });
 
+    // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
-      if (!elements.categoryMenu.contains(e.target) && e.target !== elements.categoryBtn) {
-        elements.categoryMenu.classList.remove('show');
-      }
-      if (!elements.capitalizationMenu.contains(e.target) && e.target !== elements.capitalizationBtn) {
-        elements.capitalizationMenu.classList.remove('show');
-      }
-      if (!elements.settingsMenu.contains(e.target) && e.target !== elements.settingsBtn) {
-        elements.settingsMenu.classList.remove('show');
-      }
-      if (!elements.yearSummary.contains(e.target) && e.target !== elements.settingsBtn) {
-        elements.yearSummary.classList.remove('show');
-      }
-      if (!elements.setBudgetModal.contains(e.target) && e.target !== elements.budgetSettingsBtn) {
-        elements.setBudgetModal.classList.remove('show');
-      }
-      if (!elements.moreMenu.contains(e.target) && e.target !== elements.moreBtn) {
-        elements.moreMenu.classList.remove('show');
-      }
-      if (!elements.savingsModal.contains(e.target) && e.target !== elements.enableSavingsBtn) {
-        elements.savingsModal.classList.remove('show');
-      }
-      if (!elements.yearSelectModal.contains(e.target) && e.target !== elements.yearSelectBtn) {
-        elements.yearSelectModal.classList.remove('show');
-      }
-      if (!elements.historyModal.contains(e.target) && e.target !== elements.historyBtn) {
-        elements.historyModal.classList.remove('show');
+      // Список всех меню
+      const menus = [
+        elements.categoryMenu,
+        elements.capitalizationMenu,
+        elements.settingsMenu,
+        elements.setBudgetModal,
+        elements.moreMenu,
+        elements.savingsModal,
+        elements.yearSelectModal,
+        elements.historyModal
+      ];
+      
+      // Проверяем, был ли клик вне меню
+      const clickOutside = !menus.some(menu => menu.contains(e.target));
+      
+      // Проверяем, была ли нажата кнопка меню
+      const isMenuButton = [
+        elements.categoryBtn,
+        elements.capitalizationBtn,
+        elements.settingsBtn,
+        elements.budgetSettingsBtn,
+        elements.moreBtn,
+        elements.enableSavingsBtn,
+        elements.yearSelectBtn,
+        elements.historyBtn
+      ].some(button => button.contains(e.target));
+      
+      // Закрываем все меню, если клик был вне меню и не по кнопке меню
+      if (clickOutside && !isMenuButton) {
+        menus.forEach(menu => menu.classList.remove('show'));
       }
     });
 
+    // Запрет масштабирования
     document.addEventListener('gesturestart', function(e) {
       e.preventDefault();
     });
 
+    // Обработчики ввода по Enter
     const enterHandlers = [
       { element: elements.incomeInput, handler: elements.addIncomeBtn },
       { element: elements.newCategoryInput, handler: elements.addCategoryBtn },
@@ -1147,9 +1316,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Инициализация приложения
   function initializeApp() {
+    // Установка активного месяца
     elements.monthTabs[currentMonth].classList.add('active');
     
+    // Проверка бюджета
     if (budgetData.startDate) {
       const today = new Date();
       const lastBudgetDate = new Date(budgetData.startDate);
@@ -1161,12 +1333,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
+    // Настройка темы
     if (localStorage.getItem('darkTheme') === 'true') {
       document.body.classList.add('dark');
       const icon = elements.themeToggleBtn.querySelector('.theme-icon');
       icon.textContent = '☀️';
     }
     
+    // Обработчик переключения темы
     elements.themeToggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       localStorage.setItem('darkTheme', document.body.classList.contains('dark'));
@@ -1181,9 +1355,16 @@ document.addEventListener('DOMContentLoaded', function() {
       renderAllCharts();
     });
     
+    // Настройка обработчиков событий
     setupEventHandlers();
+    
+    // Первоначальное обновление UI
     updateUI();
+    
+    // Инициализация обучения
+    initTutorial();
   }
 
+  // Запуск приложения
   initializeApp();
 });
