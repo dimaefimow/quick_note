@@ -30,19 +30,11 @@ body {
   position: relative;
 }
 
-/* Обновленные стили для header */
+/* Header styles */
 header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: var(--bg);
-  padding: 15px 0;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-body.dark header {
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  padding-top: 32px;
+  margin-bottom: 22px;
+  position: relative;
 }
 
 .header-container {
@@ -50,9 +42,7 @@ body.dark header {
   flex-direction: column;
   gap: 15px;
   min-height: 90px;
-  padding-top: 10px;
-  position: relative;
-  z-index: 1001;
+  padding-top: 20px;
 }
 
 .header-title {
@@ -65,16 +55,11 @@ body.dark header {
   align-items: center;
   flex-wrap: wrap;
   padding-bottom: 5px;
-  margin-top: 15px;
+  margin-top: 22px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   position: relative;
-  z-index: 1002;
-}
-
-.header-buttons button {
-  position: relative;
-  z-index: 1003;
+  z-index: 100;
 }
 
 .header-buttons::-webkit-scrollbar {
@@ -204,7 +189,7 @@ body.dark header {
   padding: 15px;
   box-shadow: 8px 8px 20px var(--shadow-dark), 
               -8px -8px 20px var(--shadow-light);
-  z-index: 1100;
+  z-index: 1000;
   min-width: 200px;
   max-width: 90vw;
   max-height: 80vh;
@@ -216,6 +201,14 @@ body.dark header {
   transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.neumorphic-menu.show {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+
+/* Стили для меню (☰) */
 #more-menu {
   width: 250px;
   padding: 15px;
@@ -237,27 +230,10 @@ body.dark header {
   opacity: 1;
   transform: none;
 }
- 
+
 #more-menu .neumorphic-btn {
   width: 100%;
   margin: 0;
-}
-
-.menu-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.category-menu, 
-.budget-settings-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 8px;
-  max-height: 60vh;
-  transform: none;
 }
 
 /* Стили для виджета категорий */
@@ -270,7 +246,7 @@ body.dark header {
   border-radius: var(--border-radius) var(--border-radius) 0 0;
   box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
   padding: 15px;
-  z-index: 1100;
+  z-index: 1000;
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   max-height: 70vh;
   overflow-y: auto;
@@ -318,13 +294,6 @@ body.dark header {
 .year-summary {
   width: 95%;
   max-width: 800px;
-}
-
-.neumorphic-menu.show {
-  display: block;
-  opacity: 1;
-  transform: translate(-50%, -50%);
-  animation: none;
 }
 
 /* Summary section */
@@ -529,14 +498,15 @@ body.dark .budget-progress-container {
 
 /* Month selector */
 .month-selector {
-  position: relative;
-  z-index: 999;
   margin-bottom: 15px;
   background: var(--bg);
   padding: 10px;
   border-radius: var(--border-radius);
   box-shadow: 3px 3px 6px var(--shadow-dark), 
               -3px -3px 6px var(--shadow-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .month-tabs {
@@ -667,7 +637,7 @@ canvas {
   height: 200px !important;
 }
 
-/* Categories report */
+/* Categories report - горизонтальный скролл */
 .top-categories-report {
   background: var(--bg);
   border-radius: var(--border-radius);
@@ -676,6 +646,7 @@ canvas {
   box-shadow: 3px 3px 6px var(--shadow-dark), 
               -3px -3px 6px var(--shadow-light);
   width: 100%;
+  overflow: hidden;
 }
 
 .top-categories-report h4 {
@@ -685,12 +656,31 @@ canvas {
   color: var(--primary);
 }
 
-.categories-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+.categories-scroll-container {
+  display: flex;
+  overflow-x: auto;
   gap: 15px;
-  max-height: 400px;
-  overflow-y: auto;
+  padding-bottom: 15px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.categories-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.categories-list {
+  display: flex;
+  gap: 15px;
   padding: 10px;
 }
 
@@ -700,6 +690,8 @@ canvas {
   padding: 15px;
   box-shadow: 3px 3px 6px var(--shadow-dark), 
               -3px -3px 6px var(--shadow-light);
+  min-width: 280px;
+  flex-shrink: 0;
 }
 
 .month-categories h5 {
@@ -742,18 +734,57 @@ canvas {
   line-height: 1;
 }
 
-.categories-list::-webkit-scrollbar {
-  width: 8px;
+/* Динамика трат по категориям - горизонтальный скролл */
+.category-trends {
+  margin-top: 20px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  overflow: hidden;
 }
 
-.categories-list::-webkit-scrollbar-track {
+.trends-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.trends-scroll {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 15px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trends-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.trends-scroll::-webkit-scrollbar-track {
   background: rgba(0,0,0,0.05);
   border-radius: 4px;
 }
 
-.categories-list::-webkit-scrollbar-thumb {
+.trends-scroll::-webkit-scrollbar-thumb {
   background: var(--primary);
   border-radius: 4px;
+}
+
+.trend-chart-container {
+  flex: 0 0 auto;
+  width: 280px;
+  height: 280px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  scroll-snap-align: start;
 }
 
 /* Budget widget */
@@ -842,11 +873,6 @@ canvas {
 }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -893,223 +919,6 @@ body.dark .savings-progress-container {
 
 body.dark .theme-icon {
   transform: rotate(180deg);
-}
-
-/* Новые стили для мобильной адаптации */
-.mini-charts-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  width: 100%;
-  padding-bottom: 10px;
-}
-
-.categories-scroll-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  width: 100%;
-}
-
-/* Новые стили для истории трат */
-.history-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.history-date {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* Стили для выбора года */
-#year-select-modal {
-  width: 90%;
-  max-width: 350px;
-  padding: 20px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  box-shadow: 8px 8px 20px var(--shadow-dark), 
-              -8px -8px 20px var(--shadow-light);
-}
-
-#year-select-modal h3 {
-  margin-top: 0;
-  text-align: center;
-  color: var(--primary);
-  margin-bottom: 15px;
-}
-
-#years-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 15px 0;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.year-btn {
-  padding: 10px;
-  border: none;
-  border-radius: var(--border-radius);
-  background: var(--bg);
-  color: var(--text);
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-  transition: var(--transition);
-  text-align: center;
-}
-
-.year-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 5px 5px 10px var(--shadow-dark), 
-              -5px -5px 10px var(--shadow-light);
-}
-
-.year-btn:active {
-  transform: translateY(0);
-  box-shadow: inset 2px 2px 4px var(--shadow-dark), 
-              inset -2px -2px 4px var(--shadow-light);
-}
-
-/* Стили для кнопок в меню выбора года */
-#year-select-modal .button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  justify-content: space-between;
-}
-
-#year-select-modal .button-group .neumorphic-btn {
-  flex: 1;
-}
-
-/* Стили для динамики категорий */
-.category-trends {
-  margin-top: 20px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-}
-
-.category-trends h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  text-align: center;
-  color: var(--primary);
-}
-
-/* ИЗМЕНЕНО: Горизонтальная прокрутка для динамики трат */
-.trends-container {
-  display: flex;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 15px;
-  gap: 15px;
-  width: 100%;
-  scrollbar-width: thin;
-}
-
-.trends-scroll {
-  display: flex;
-  gap: 15px;
-  min-width: min-content;
-}
-
-.trend-chart-container {
-  flex: 0 0 auto;
-  width: 280px;
-  height: 280px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-}
-
-.trend-chart-container h4 {
-  margin: 0 0 10px 0;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.trend-chart-container canvas {
-  width: 100% !important;
-  height: calc(100% - 20px) !important;
-}
-
-/* Скрытие текущего года на главном экране */
-.year-display {
-  display: none;
-}
-
-/* Обновленные стили для истории трат */
-#history-modal {
-  width: 90%;
-  max-width: 350px;
-  padding: 20px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  box-shadow: 5px 5px 15px var(--shadow-dark), 
-              -5px -5px 15px var(--shadow-light);
-}
-
-#history-modal h3 {
-  margin-top: 0;
-  text-align: center;
-  color: var(--primary);
-  margin-bottom: 15px;
-}
-
-#history-list {
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 15px;
-}
-
-/* Обновленные стили для меню (☰) */
-#more-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 15px;
-  width: 250px;
-  right: 10px;
-  left: auto;
-  transform: none;
-  top: 60px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  box-shadow: 5px 5px 15px var(--shadow-dark), 
-              -5px -5px 15px var(--shadow-light);
-}
-
-#more-menu.show {
-  display: flex;
-  opacity: 1;
-  transform: none;
-}
-
-/* Отступ между кнопками в меню */
-#history-btn {
-  margin-top: 10px;
-  order: 3; /* Перемещаем вниз */
-}
-
-/* ДОБАВЛЕНО: Белый текст для полей ввода в темной теме */
-body.dark .neumorphic-input,
-body.dark .widget-input,
-body.dark .neumorphic-btn {
-  color: white !important;
-}
-
-body.dark ::placeholder {
-  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Tablet adaptation */
@@ -1198,11 +1007,6 @@ body.dark ::placeholder {
   .month-categories h5 {
     font-size: 1.1rem;
   }
-  
-  #top-categories-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
 }
 
 /* Desktop adaptation */
@@ -1222,16 +1026,14 @@ body.dark ::placeholder {
   .financial-chart-container canvas {
     height: 200px !important;
   }
-  
-  .categories-list {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
 }
 
 /* Mobile adaptation */
 @media (max-width: 767px) {
   header {
-    padding: 10px 0;
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 15px;
   }
   
   .header-buttons {
@@ -1278,13 +1080,6 @@ body.dark ::placeholder {
     height: 250px !important;
   }
   
-  #top-categories-list {
-    min-width: 500px;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 15px;
-  }
-  
   .month-categories {
     min-width: 250px;
     flex-shrink: 0;
@@ -1306,10 +1101,9 @@ body.dark ::placeholder {
     font-size: 1.2rem;
   }
   
-  /* Адаптация графиков динамики для мобильных */
   .trend-chart-container {
-    width: 250px;
-    height: 250px;
+    width: 260px;
+    height: 260px;
   }
 }
 
@@ -1351,11 +1145,12 @@ body.dark ::placeholder {
     min-width: 240px;
   }
   
-  #top-categories-list {
-    min-width: 400px;
-  }
-  
   .month-categories {
     min-width: 200px;
+  }
+  
+  .trend-chart-container {
+    width: 240px;
+    height: 240px;
   }
 }
