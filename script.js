@@ -313,7 +313,50 @@ document.addEventListener('DOMContentLoaded', function() {
             fill: true
           }]
         },
-        options: getChartOptions('Капитализация')
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return (value / 1000).toFixed(0) + 'k ₽';
+                },
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              },
+              grid: {
+                color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              }
+            }
+          },
+          layout: {
+            padding: {
+              left: 10,
+              right: 10,
+              top: 10,
+              bottom: 10
+            }
+          }
+        }
       });
     }
     
@@ -332,57 +375,52 @@ document.addEventListener('DOMContentLoaded', function() {
             borderWidth: 1
           }]
         },
-        options: getChartOptions('Расходы')
-      });
-    }
-  }
-
-  // Настройки графиков
-  function getChartOptions(title) {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return (value / 1000).toFixed(0) + 'k ₽';
+                },
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              },
+              grid: {
+                color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              }
+            }
+          },
+          layout: {
+            padding: {
+              left: 10,
+              right: 10,
+              top: 10,
+              bottom: 10
             }
           }
-        },
-        title: {
-          display: false,
-          text: title
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return (value / 1000).toFixed(0) + 'k ₽';
-            },
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
-          },
-          grid: {
-            color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
-          }
-        }
-      },
-      animation: {
-        duration: 1000,
-        easing: 'easeOutQuart'
-      }
-    };
+      });
+    }
   }
 
   // Обновление интерфейса
@@ -925,65 +963,104 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Добавление нового года
   function addNewYear() {
-  const newYear = currentYear + 1;
-  if (!financeData[newYear]) {
-    initYearData(newYear);
-    localStorage.setItem('financeData', JSON.stringify(financeData));
-    renderYearSelection();
-    showSuccessMessage(`Год ${newYear} добавлен!`);
-  } else {
-    showSuccessMessage(`Год ${newYear} уже существует!`);
+    const newYear = currentYear + 1;
+    if (!financeData[newYear]) {
+      initYearData(newYear);
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      renderYearSelection();
+      showSuccessMessage(`Год ${newYear} добавлен!`);
+    } else {
+      showSuccessMessage(`Год ${newYear} уже существует!`);
+    }
   }
-}
 
   // Отрисовка графиков динамики категорий
   function renderCategoryTrends() {
-  elements.trendsScroll.innerHTML = '';
-  
-  const monthData = financeData[currentYear][currentMonth];
-  const categories = Object.keys(monthData.categories);
-  
-  categories.forEach(category => {
-    const trendData = [];
+    elements.trendsScroll.innerHTML = '';
     
-    // Собираем данные по категории за все месяцы года
-    for (let i = 0; i < 12; i++) {
-      const monthCatData = financeData[currentYear][i].categories || {};
-      trendData.push(monthCatData[category] || 0);
-    }
+    const monthData = financeData[currentYear][currentMonth];
+    const categories = Object.keys(monthData.categories);
     
-    const container = document.createElement('div');
-    container.className = 'trend-chart-container';
-    container.innerHTML = `<h4>${category}</h4><canvas id="trend-${category}"></canvas>`;
-    elements.trendsScroll.appendChild(container);
-    
-    const ctx = document.getElementById(`trend-${category}`).getContext('2d');
-    const color = categoryColors[categories.indexOf(category) % categoryColors.length];
-    
-    if (trendCharts[category]) trendCharts[category].destroy();
-    
-    trendCharts[category] = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: monthNames.map(name => name.substring(0, 3)),
-        datasets: [{
-          label: category,
-          data: trendData,
-          borderColor: color,
-          backgroundColor: `${color}33`,
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true
-        }]
-      },
-      options: {
-        ...getChartOptions(category),
-        aspectRatio: 1,
-        maintainAspectRatio: true
+    categories.forEach(category => {
+      const trendData = [];
+      
+      // Собираем данные по категории за все месяцы года
+      for (let i = 0; i < 12; i++) {
+        const monthCatData = financeData[currentYear][i].categories || {};
+        trendData.push(monthCatData[category] || 0);
       }
+      
+      const container = document.createElement('div');
+      container.className = 'trend-chart-container';
+      container.innerHTML = `<h4>${category}</h4><canvas id="trend-${category}"></canvas>`;
+      elements.trendsScroll.appendChild(container);
+      
+      const ctx = document.getElementById(`trend-${category}`).getContext('2d');
+      const color = categoryColors[categories.indexOf(category) % categoryColors.length];
+      
+      if (trendCharts[category]) trendCharts[category].destroy();
+      
+      trendCharts[category] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: monthNames.map(name => name.substring(0, 3)),
+          datasets: [{
+            label: category,
+            data: trendData,
+            borderColor: color,
+            backgroundColor: `${color}33`,
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return (value / 1000).toFixed(0) + 'k ₽';
+                },
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              },
+              grid: {
+                color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: document.body.classList.contains('dark') ? '#eee' : '#333'
+              }
+            }
+          },
+          layout: {
+            padding: {
+              left: 10,
+              right: 10,
+              top: 10,
+              bottom: 10
+            }
+          }
+        }
+      });
     });
-  });
-}
+  }
 
   // Режим обучения
   function initTutorial() {
