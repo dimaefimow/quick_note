@@ -921,6 +921,29 @@ body.dark .theme-icon {
   transform: rotate(180deg);
 }
 
+/* Исправление для мобильных графиков */
+.mini-charts-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 15px;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: calc(100% + 20px);
+}
+
+.financial-charts {
+  display: flex;
+  min-width: max-content;
+  gap: 15px;
+}
+
+.financial-chart-container {
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
 /* Tablet adaptation */
 @media (min-width: 768px) {
   .app {
@@ -1066,9 +1089,8 @@ body.dark .theme-icon {
   
   .financial-charts {
     display: flex;
-    flex-wrap: nowrap;
+    min-width: max-content;
     gap: 15px;
-    min-width: 600px;
   }
   
   .financial-chart-container {
@@ -1104,6 +1126,29 @@ body.dark .theme-icon {
   .trend-chart-container {
     width: 260px;
     height: 260px;
+  }
+  
+  /* Исправление для мобильных графиков */
+  .mini-charts-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 15px;
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: calc(100% + 20px);
+  }
+  
+  .financial-charts {
+    display: flex;
+    min-width: max-content;
+    gap: 15px;
+  }
+  
+  .financial-chart-container {
+    min-width: 280px;
+    flex-shrink: 0;
   }
 }
 
