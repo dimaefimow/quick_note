@@ -1363,6 +1363,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализация обучения
     initTutorial();
+    
+    // Обработчик изменения размера окна
+    const handleResize = () => {
+      renderMiniCharts();
+      if (elements.yearSummary.classList.contains('show')) {
+        renderYearCharts();
+      }
+    };
+    
+    // Оптимизация обработчика изменения размера
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 250);
+    });
   }
 
   // Запуск приложения
