@@ -313,11 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fill: true
           }]
         },
-        options: {
-          ...getChartOptions('Капитализация'),
-          maintainAspectRatio: false,
-          responsive: true
-        }
+        options: getChartOptions('Капитализация')
       });
     }
     
@@ -336,11 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
             borderWidth: 1
           }]
         },
-        options: {
-          ...getChartOptions('Расходы'),
-          maintainAspectRatio: false,
-          responsive: true
-        }
+        options: getChartOptions('Расходы')
       });
     }
   }
@@ -389,6 +381,15 @@ document.addEventListener('DOMContentLoaded', function() {
       animation: {
         duration: 1000,
         easing: 'easeOutQuart'
+      },
+      devicePixelRatio: 1, // Фиксируем соотношение пикселей
+      layout: {
+        padding: {
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 10
+        }
       }
     };
   }
@@ -1083,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function setupEventHandlers() {
     // Добавление дохода
     elements.addIncomeBtn.addEventListener('click', () => {
-      const incomeVal = parseFloat(elements.incomeInput.value.replace(/\s+/g, '').replace(',', '.')));
+      const incomeVal = parseFloat(elements.incomeInput.value.replace(/\s+/g, '').replace(',', '.'));
       const monthData = financeData[currentYear][currentMonth];
 
       if (!isNaN(incomeVal)) {
@@ -1134,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     elements.saveCapitalBtn.addEventListener('click', () => {
-      const capitalVal = parseFloat(elements.capitalInput.value.replace(/\s+/g, '').replace(',', '.')));
+      const capitalVal = parseFloat(elements.capitalInput.value.replace(/\s+/g, '').replace(',', '.'));
       if (!isNaN(capitalVal)) {
         financeData[currentYear][currentMonth].capital = capitalVal;
         saveData();
@@ -1164,7 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     elements.saveBudgetBtn.addEventListener('click', () => {
-      const amount = parseFloat(elements.budgetAmount.value.replace(/\s+/g, '').replace(',', '.')));
+      const amount = parseFloat(elements.budgetAmount.value.replace(/\s+/g, '').replace(',', '.'));
       const days = parseInt(elements.budgetDays.value);
       
       if (!isNaN(amount) && !isNaN(days) && days > 0) {
@@ -1210,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     elements.saveSavingsBtn.addEventListener('click', () => {
       const name = elements.savingsName.value.trim();
-      const goal = parseFloat(elements.savingsGoal.value.replace(/\s+/g, '').replace(',', '.')));
+      const goal = parseFloat(elements.savingsGoal.value.replace(/\s+/g, '').replace(',', '.'));
       
       if (name && !isNaN(goal) && goal > 0) {
         savingsData = {
@@ -1361,6 +1362,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       renderAllCharts();
+    });
+    
+    // Обработчик изменения ориентации устройства
+    window.addEventListener('orientationchange', function() {
+      setTimeout(function() {
+        renderAllCharts();
+      }, 500);
     });
     
     // Настройка обработчиков событий
