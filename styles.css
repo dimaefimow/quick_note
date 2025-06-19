@@ -563,6 +563,18 @@ body.dark .budget-progress-container {
               -3px -3px 6px var(--shadow-light);
   padding: 10px;
   box-sizing: border-box;
+  overflow: hidden;
+  contain: content;
+}
+
+body.dark .chart-container,
+body.dark .financial-chart-container,
+body.dark .trend-chart-container {
+  background: #1e1e1e;
+}
+
+body.dark canvas {
+  filter: brightness(0.9);
 }
 
 canvas {
@@ -609,47 +621,6 @@ canvas {
   word-break: break-word;
 }
 
-/* Исправление для мини-графиков в финансовых отчетах */
-.mini-charts-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 15px;
-  margin: 0 -10px;
-  padding: 0 10px;
-  width: calc(100% + 20px);
-}
-
-.financial-charts {
-  display: flex;
-  min-width: max-content;
-  gap: 15px;
-  padding-bottom: 10px;
-}
-
-.financial-chart-container {
-  min-width: 280px;
-  flex-shrink: 0;
-  height: 220px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-}
-
-.financial-chart-container h4 {
-  margin: 0 0 5px 0;
-  font-size: 0.9rem;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.financial-chart-container canvas {
-  width: 100% !important;
-  height: 180px !important;
-  min-height: 180px;
-}
-
 /* Financial charts */
 .financial-charts {
   display: flex;
@@ -665,6 +636,8 @@ canvas {
               -3px -3px 6px var(--shadow-light);
   min-width: 280px;
   flex-shrink: 0;
+  overflow: hidden;
+  contain: content;
 }
 
 .financial-chart-container h4 {
@@ -743,6 +716,10 @@ canvas {
   border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
+body.dark .month-categories h5 {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
 .category-item {
   display: flex;
   justify-content: space-between;
@@ -754,9 +731,17 @@ canvas {
   transition: var(--transition);
 }
 
+body.dark .category-item {
+  background: rgba(255,255,255,0.05);
+}
+
 .category-item.total {
   background: rgba(52, 152, 219, 0.1);
   font-weight: bold;
+}
+
+body.dark .category-item.total {
+  background: rgba(52, 152, 219, 0.2);
 }
 
 .category-item:hover {
@@ -826,6 +811,8 @@ canvas {
   box-shadow: 3px 3px 6px var(--shadow-dark), 
               -3px -3px 6px var(--shadow-light);
   scroll-snap-align: start;
+  overflow: hidden;
+  contain: content;
 }
 
 /* Budget widget */
@@ -938,26 +925,6 @@ body.dark {
   --primary-hover: #3498db;
 }
 
-body.dark .category-item {
-  background: rgba(255,255,255,0.05);
-}
-
-body.dark .category-item.total {
-  background: rgba(52, 152, 219, 0.2);
-}
-
-body.dark .month-categories h5 {
-  border-bottom-color: rgba(255,255,255,0.1);
-}
-
-body.dark .budget-progress-container {
-  border-top-color: rgba(255,255,255,0.1);
-}
-
-body.dark .savings-progress-container {
-  background: rgba(255,255,255,0.1);
-}
-
 body.dark .theme-icon {
   transform: rotate(180deg);
 }
@@ -1001,6 +968,121 @@ body.dark .theme-icon {
 .financial-chart-container canvas {
   width: 100% !important;
   height: 180px !important;
+}
+
+/* Success message */
+.success-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(46, 204, 113, 0.9);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+}
+
+/* History items */
+.history-item {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.dark .history-item {
+  background: rgba(255,255,255,0.05);
+}
+
+.history-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+body.dark .history-date {
+  color: #aaa;
+}
+
+/* Year selection */
+.year-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.year-btn {
+  padding: 10px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+}
+
+.year-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Tutorial overlay */
+#tutorial-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+#tutorial-box {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  max-width: 90%;
+  width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#tutorial-title {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+#tutorial-text {
+  margin-bottom: 20px;
+}
+
+.tutorial-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tutorial-buttons button {
+  padding: 8px 16px;
 }
 
 /* Tablet adaptation */
@@ -1240,125 +1322,4 @@ body.dark .theme-icon {
     width: 240px;
     height: 240px;
   }
-
-  /* Улучшение для очень маленьких экранов */
-  .financial-chart-container {
-    min-width: 260px;
-    height: 200px;
-  }
-  
-  .financial-chart-container canvas {
-    height: 160px !important;
-  }
-}
-
-/* Success message */
-.success-message {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(46, 204, 113, 0.9);
-  color: white;
-  padding: 10px 20px;
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  z-index: 1000;
-  animation: fadeInOut 3s ease-in-out;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  90% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-}
-
-/* History items */
-.history-item {
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.03);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.history-date {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-body.dark .history-date {
-  color: #aaa;
-}
-
-/* Year selection */
-.year-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 15px;
-}
-
-.year-btn {
-  padding: 10px;
-  border: none;
-  border-radius: var(--border-radius);
-  background: var(--bg);
-  color: var(--text);
-  cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-  transition: var(--transition);
-}
-
-.year-btn:hover {
-  background: var(--primary);
-  color: white;
-}
-
-/* Tutorial overlay */
-#tutorial-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-  justify-content: center;
-  align-items: center;
-}
-
-#tutorial-box {
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  max-width: 90%;
-  width: 500px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-#tutorial-title {
-  margin-top: 0;
-  color: var(--primary);
-}
-
-#tutorial-text {
-  margin-bottom: 20px;
-}
-
-.tutorial-buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-.tutorial-buttons button {
-  padding: 8px 16px;
 }
