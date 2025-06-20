@@ -23,11 +23,20 @@ body {
   touch-action: manipulation;
 }
 
+html, body {
+  overscroll-behavior: contain;
+  height: 100%;
+  overflow: hidden;
+}
+
 .app {
   max-width: 1200px;
   margin: 0 auto;
   padding: 10px;
   position: relative;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Header styles */
@@ -154,6 +163,15 @@ header {
   width: 100%;
   box-sizing: border-box;
   appearance: none;
+}
+
+body.dark input.neumorphic-input,
+body.dark .widget-input {
+  color: white !important;
+}
+
+body.dark input.neumorphic-input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .neumorphic-input:focus {
@@ -578,8 +596,10 @@ body.dark canvas {
 }
 
 canvas {
+  display: block;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16/9;
 }
 
 /* Financial cards */
@@ -900,6 +920,55 @@ body.dark .category-item.total {
   flex: 1;
 }
 
+/* Fund modal */
+#fund-modal {
+  width: 90%;
+  max-width: 350px;
+}
+
+#fund-modal .neumorphic-input {
+  margin-bottom: 15px;
+}
+
+#fund-modal .button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#fund-modal .button-group .neumorphic-btn {
+  flex: 1;
+}
+
+/* Fund widget preview */
+.fund-widget-preview {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.fund-widget-preview h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  color: #e74c3c;
+}
+
+.fund-widget-preview:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+  transition: var(--transition);
+}
+
+/* Fund widget */
+.fund-widget {
+  --widget-color: #e74c3c;
+}
+
 /* Animations */
 @keyframes pulse {
   0% { transform: scale(1); }
@@ -913,61 +982,6 @@ body.dark .category-item.total {
 
 .negative {
   color: #e74c3c !important;
-}
-
-/* Dark theme */
-body.dark {
-  --bg: #1a1a1a;
-  --text: #f0f0f0;
-  --shadow-light: #2a2a2a;
-  --shadow-dark: #0a0a0a;
-  --primary: #2980b9;
-  --primary-hover: #3498db;
-}
-
-body.dark .theme-icon {
-  transform: rotate(180deg);
-}
-
-/* Исправление для мобильных графиков */
-.mini-charts-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 15px;
-  margin-left: -10px;
-  margin-right: -10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  width: calc(100% + 20px);
-}
-
-.financial-charts {
-  display: flex;
-  min-width: max-content;
-  gap: 15px;
-}
-
-.financial-chart-container {
-  min-width: 280px;
-  flex-shrink: 0;
-  height: 220px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-}
-
-.financial-chart-container h4 {
-  margin: 0 0 5px 0;
-  font-size: 0.9rem;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.financial-chart-container canvas {
-  width: 100% !important;
-  height: 180px !important;
 }
 
 /* Success message */
@@ -1083,6 +1097,61 @@ body.dark .history-date {
 
 .tutorial-buttons button {
   padding: 8px 16px;
+}
+
+/* Dark theme */
+body.dark {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --shadow-light: #2a2a2a;
+  --shadow-dark: #0a0a0a;
+  --primary: #2980b9;
+  --primary-hover: #3498db;
+}
+
+body.dark .theme-icon {
+  transform: rotate(180deg);
+}
+
+/* Исправление для мобильных графиков */
+.mini-charts-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 15px;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: calc(100% + 20px);
+}
+
+.financial-charts {
+  display: flex;
+  min-width: max-content;
+  gap: 15px;
+}
+
+.financial-chart-container {
+  min-width: 280px;
+  flex-shrink: 0;
+  height: 220px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+}
+
+.financial-chart-container h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.financial-chart-container canvas {
+  width: 100% !important;
+  height: 180px !important;
 }
 
 /* Tablet adaptation */
