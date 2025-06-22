@@ -1,254 +1,1413 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Финансовая аналитика</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+:root {
+  --bg: #f0f4f8;
+  --text: #333;
+  --shadow-light: #ffffff;
+  --shadow-dark: #c8d0e7;
+  --primary: #3498db;
+  --primary-hover: #2980b9;
+  --widget-color: #3498db;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --border-radius: 12px;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  transition: var(--transition);
+  min-height: 100vh;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px;
+  position: relative;
+}
+
+/* Header styles */
+header {
+  padding-top: 32px;
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 90px;
+  padding-top: 20px;
+}
+
+.header-title {
+  height: 30px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 5px;
+  margin-top: 22px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: relative;
+  z-index: 100;
+}
+
+.header-buttons::-webkit-scrollbar {
+  display: none;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  min-width: 40px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.theme-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+/* Inputs and buttons */
+.inputs, .summary, .widgets, .charts, .analytics {
+  margin: 15px 0;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.neumorphic-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.neumorphic-btn.small {
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  min-width: 60px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neumorphic-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+}
+
+.neumorphic-btn:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), 
+              inset -3px -3px 6px var(--shadow-light);
+}
+
+.neumorphic-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.neumorphic-btn.primary:hover {
+  background: var(--primary-hover);
+}
+
+.neumorphic-input {
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), 
+              inset -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.neumorphic-input:focus {
+  outline: none;
+  box-shadow: inset 5px 5px 10px var(--shadow-dark), 
+              inset -5px -5px 10px var(--shadow-light);
+}
+
+/* Cards */
+.neumorphic-card {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  margin: 5px;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  transition: var(--transition);
+  position: relative;
+}
+
+.neumorphic-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+}
+
+/* Menus */
+.neumorphic-menu {
+  display: none;
+  position: fixed;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 8px 8px 20px var(--shadow-dark), 
+              -8px -8px 20px var(--shadow-light);
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.neumorphic-menu.show {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+
+/* Стили для меню (☰) */
+#more-menu {
+  width: 250px;
+  padding: 15px;
+  right: 10px;
+  left: auto;
+  transform: none;
+  top: 60px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+  display: none;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#more-menu.show {
+  display: flex;
+  opacity: 1;
+  transform: none;
+}
+
+#more-menu .neumorphic-btn {
+  width: 100%;
+  margin: 0;
+}
+
+/* Стили для виджета категорий */
+.category-widget {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  background: var(--bg);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+  padding: 15px;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  max-height: 70vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+}
+
+.category-widget.show {
+  transform: translateY(0);
+  bottom: 0;
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.widget-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
+.widget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.financial-menu {
+  overflow-x: hidden;   
+  width: 95%;
+  max-width: 350px;
+  padding: 15px;
+}
+
+#capitalization-menu {
+  width: 95%;
+  max-width: 500px;
+}
+
+.year-summary {
+  width: 95%;
+  max-width: 800px;
+}
+
+/* Summary section */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.summary .neumorphic-card {
+  text-align: center;
+  padding: 15px 10px;
+}
+
+.summary h2 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.summary p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Widgets */
+.widgets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.widget {
+  position: relative;
+  transition: var(--transition), box-shadow 0.3s ease;
+  --widget-color: #3498db;
+  padding: 10px;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+}
+
+.widget::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 15px 5px var(--widget-color);
+  opacity: 0.4;
+  z-index: -1;
+}
+
+.widget h3 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.widget p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.delete-widget-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(231, 76, 60, 0.2);
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #e74c3c;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.delete-widget-btn:hover {
+  background: rgba(231, 76, 60, 0.3);
+  transform: scale(1.1);
+}
+
+.widget-input-group {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.widget-input {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+}
+
+/* Savings widget */
+.savings-progress-container {
+  height: 10px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 5px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.savings-progress-bar {
+  height: 100%;
+  background: #2ecc71;
+  border-radius: 5px;
+  transition: width 3.5s ease;
+}
+
+/* Стили для виджета бюджета с прогресс-барами */
+.budget-progress-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+body.dark .budget-progress-container {
+  border-top-color: rgba(255,255,255,0.1);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.budget-progress-container .savings-progress-container {
+  margin-bottom: 12px;
+}
+
+/* Градиент для прогресс-бара дней */
+.days-progress {
+  background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+/* Градиент для прогресс-бара средств */
+.funds-progress {
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+/* Добавление анимации */
+.savings-progress-bar {
+  transition: width 0.5s ease, background-color 0.3s ease;
+}
+
+.savings-progress-container:hover .funds-progress {
+  background: #27ae60;
+}
+.funds-progress {
+  background: #2ecc71;
+}
+
+/* Стиль для превью виджета накоплений */
+.savings-widget-preview {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.savings-widget-preview h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  color: #2ecc71;
+}
+
+/* Анимация при наведении */
+.savings-widget-preview:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+  transition: var(--transition);
+}
+
+/* Кнопка в стиле виджета */
+#enable-savings-btn {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* Month selector */
+.month-selector {
+  margin-bottom: 15px;
+  background: var(--bg);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.month-tabs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.month-tab {
+  padding: 6px 8px;
+  min-width: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+  text-align: center;
+}
+
+.month-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+}
+
+.month-tab:active {
+  transform: translateY(0);
+  box-shadow: inset 2px 2px 4px var(--shadow-dark), 
+              inset -2px -2px 4px var(--shadow-light);
+}
+
+.month-tab.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2), 
+              inset -2px -2px 4px rgba(255,255,255,0.1);
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+  margin-top: 15px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  contain: content;
+}
+
+body.dark .chart-container,
+body.dark .financial-chart-container,
+body.dark .trend-chart-container {
+  background: #1e1e1e;
+}
+
+body.dark canvas {
+  filter: brightness(0.9);
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Financial cards */
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.financial-card {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  text-align: center;
+  transition: var(--transition);
+}
+
+.financial-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+}
+
+.financial-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.financial-value {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--primary);
+  word-break: break-word;
+}
+
+/* Financial charts */
+.financial-charts {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.financial-chart-container {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  min-width: 280px;
+  flex-shrink: 0;
+  overflow: hidden;
+  contain: content;
+}
+
+.financial-chart-container h4 {
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.financial-chart-container canvas {
+  width: 100% !important;
+  height: 200px !important;
+}
+
+/* Categories report - горизонтальный скролл */
+.top-categories-report {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  width: 100%;
+  overflow: hidden;
+}
+
+.top-categories-report h4 {
+  margin: 0 0 20px 0;
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
+.categories-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 15px;
+  padding-bottom: 15px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.categories-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.categories-list {
+  display: flex;
+  gap: 15px;
+  padding: 10px;
+}
+
+.month-categories {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
+.month-categories h5 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: var(--primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.dark .month-categories h5 {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.03);
+  transition: var(--transition);
+}
+
+body.dark .category-item {
+  background: rgba(255,255,255,0.05);
+}
+
+.category-item.total {
+  background: rgba(52, 152, 219, 0.1);
+  font-weight: bold;
+}
+
+body.dark .category-item.total {
+  background: rgba(52, 152, 219, 0.2);
+}
+
+.category-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.delete-category-btn {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 5px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Динамика трат по категориям - горизонтальный скролл */
+.category-trends {
+  margin-top: 20px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  overflow: hidden;
+}
+
+.trends-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.trends-scroll {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 15px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trends-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.trends-scroll::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}
+
+.trends-scroll::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.trend-chart-container {
+  flex: 0 0 auto;
+  width: 280px;
+  height: 280px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  scroll-snap-align: start;
+  overflow: hidden;
+  contain: content;
+}
+
+/* Budget widget */
+.daily-budget-widget {
+  margin: 15px 0;
+  position: relative;
+}
+
+.daily-budget-widget .neumorphic-card {
+  padding: 12px;
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.budget-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+#daily-budget-amount {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 5px 0;
+  color: var(--primary);
+}
+
+#budget-progress {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+#set-budget-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 350px;
+  padding: 15px;
+}
+
+#set-budget-modal h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+#set-budget-modal .neumorphic-input {
+  margin-bottom: 15px;
+}
+
+#set-budget-modal .button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#set-budget-modal .button-group .neumorphic-btn {
+  flex: 1;
+}
+
+/* Savings modal */
+#savings-modal {
+  width: 90%;
+  max-width: 350px;
+}
+
+#savings-modal .neumorphic-input {
+  margin-bottom: 15px;
+}
+
+#savings-modal .button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#savings-modal .button-group .neumorphic-btn {
+  flex: 1;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.5s ease;
+}
+
+.negative {
+  color: #e74c3c !important;
+}
+
+/* Dark theme */
+body.dark {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --shadow-light: #2a2a2a;
+  --shadow-dark: #0a0a0a;
+  --primary: #2980b9;
+  --primary-hover: #3498db;
+}
+
+body.dark .theme-icon {
+  transform: rotate(180deg);
+}
+
+/* Исправление для мобильных графиков */
+.mini-charts-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 15px;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: calc(100% + 20px);
+}
+
+.financial-charts {
+  display: flex;
+  min-width: max-content;
+  gap: 15px;
+}
+
+.financial-chart-container {
+  min-width: 280px;
+  flex-shrink: 0;
+  height: 220px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+}
+
+.financial-chart-container h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.financial-chart-container canvas {
+  width: 100% !important;
+  height: 180px !important;
+}
+
+/* Success message */
+.success-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(46, 204, 113, 0.9);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+}
+
+/* History items */
+.history-item {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.dark .history-item {
+  background: rgba(255,255,255,0.05);
+}
+
+.history-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+body.dark .history-date {
+  color: #aaa;
+}
+
+/* Year selection */
+.year-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.year-btn {
+  padding: 10px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+}
+
+.year-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Tutorial overlay */
+#tutorial-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+#tutorial-box {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  max-width: 90%;
+  width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#tutorial-title {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+#tutorial-text {
+  margin-bottom: 20px;
+}
+
+.tutorial-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tutorial-buttons button {
+  padding: 8px 16px;
+}
+
+/* Achievements */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  background: rgba(0,0,0,0.03);
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+body.dark .achievement-item {
+  background: rgba(255,255,255,0.05);
+}
+
+.achievement-item.unlocked {
+  opacity: 1;
+  background: rgba(46, 204, 113, 0.1);
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+}
+
+body.dark .achievement-item.unlocked {
+  background: rgba(46, 204, 113, 0.2);
+}
+
+.medal-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.achievement-item.unlocked .medal-icon {
+  color: #f1c40f;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-info strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.achievement-info div {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.achievement-unlocked {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.achievement-unlocked.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.achievement-unlocked strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #f1c40f;
+}
+
+/* Tablet adaptation */
+@media (min-width: 768px) {
+  .app {
+    padding: 20px;
+  }
   
+  .header-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header-buttons {
+    overflow-x: visible;
+    justify-content: flex-end;
+    flex: 1;
+    margin-top: 0;
+  }
+  
+  .header-title {
+    height: auto;
+    flex: 0 0 auto;
+    margin-right: 20px;
+  }
+  
+  .summary {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  
+  .widgets {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  .neumorphic-btn {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+  
+  .neumorphic-btn.small {
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
+  
+  .neumorphic-card {
+    padding: 15px;
+  }
+  
+  .month-tabs {
+    gap: 8px;
+  }
+  
+  .month-tab {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .financial-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .financial-charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    min-width: auto;
+  }
+  
+  .financial-chart-container {
+    min-width: auto;
+    height: auto;
+  }
+  
+  .financial-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .financial-value {
+    font-size: 1.6rem;
+  }
+  
+  .financial-chart-container h4 {
+    font-size: 1rem;
+  }
+  
+  .top-categories-report h4 {
+    font-size: 1.3rem;
+  }
+  
+  .month-categories h5 {
+    font-size: 1.1rem;
+  }
+}
 
-  <div class="app">
-   <div id="achievements-modal" class="neumorphic-menu">
-      <h3>Достижения</h3>
-      <div id="achievements-list" class="achievements-grid"></div>
-      <button id="close-achievements" class="neumorphic-btn">Закрыть</button>
-    </div>
-    <header>
-      <div class="header-container">
-        <div class="header-title"></div>
-        <div class="header-buttons">
-          <button id="capitalization-btn" class="neumorphic-btn small">Капитализация</button>
-          <button id="category-btn" class="neumorphic-btn small">Категории ▼</button>
-          <button id="settings-btn" class="neumorphic-btn small">Отчёты</button>
-          <button id="theme-toggle-btn" class="neumorphic-btn small theme-toggle">
-            <span class="theme-icon">🌙</span>
-          </button>
-          <button id="more-btn" class="neumorphic-btn small">☰</button>
-        </div>
-      </div>
-      
-      <div id="more-menu" class="neumorphic-menu">
-        <div class="widget savings-widget-preview">
-          <h3 style="color: #2ecc71">Накопления</h3>
-          <button id="enable-savings-btn" class="neumorphic-btn primary">Включить виджет</button>
-        </div>
-        <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
-        <button id="history-btn" class="neumorphic-btn primary">История трат</button>
-      </div>
-      
-      <div id="year-select-modal" class="neumorphic-menu">
-  <h3>Выберите год</h3>
-  <div id="years-list" class="year-list"></div>
-  <div class="button-group">
-    <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
-    <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
-  </div>
-</div>
-      
-      <div id="history-modal" class="neumorphic-menu">
-        <h3>История трат</h3>
-        <div id="history-list"></div>
-        <button id="close-history" class="neumorphic-btn">Закрыть</button>
-      </div>
-      
-      <div id="settings-menu" class="neumorphic-menu financial-menu">
-        <div class="financial-grid">
-          <div class="financial-card">
-            <h3>Средний доход</h3>
-            <p id="avg-income" class="financial-value">0 ₽</p>
-          </div>
-          <div class="financial-card">
-            <h3>Средний расход</h3>
-            <p id="avg-expense" class="financial-value">0 ₽</p>
-          </div>
-          <div class="financial-card">
-            <h3>Лучший месяц</h3>
-            <p id="best-month" class="financial-value">Нет данных</p>
-          </div>
-          <div class="financial-card">
-            <h3>Общий доход</h3>
-            <p id="total-income" class="financial-value">0 ₽</p>
-          </div>
-          <div class="financial-card">
-            <h3>Общий расход</h3>
-            <p id="total-expense" class="financial-value">0 ₽</p>
-          </div>
-        </div>
-        
-        <div class="mini-charts-container">
-          <div class="financial-charts">
-            <div class="financial-chart-container">
-              <h4>Капитализация по месяцам</h4>
-              <canvas id="miniCapitalChart"></canvas>
-            </div>
-            <div class="financial-chart-container">
-              <h4>Расходы по месяцам</h4>
-              <canvas id="miniExpenseChart"></canvas>
-            </div>
-          </div>
-        </div>
-        
-        <div class="top-categories-report">
-          <h4>Топ трат категории</h4>
-          <div class="categories-scroll-container">
-            <div id="top-categories-list" class="categories-list"></div>
-          </div>
-        </div>
-        
-        <button id="close-reports-btn" class="neumorphic-btn primary">Закрыть</button>
-      </div>
-    </header>
+/* Desktop adaptation */
+@media (min-width: 992px) {
+  .widgets {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .chart-container {
+    height: 400px;
+  }
+  
+  .financial-menu {
+    max-width: 800px;
+  }
+  
+  .financial-chart-container canvas {
+    height: 200px !important;
+  }
+}
 
-    <div id="category-menu" class="category-widget">
-      <div class="widget-header">
-        <h3>Категории</h3>
-        <button id="close-category-widget" class="neumorphic-btn small">×</button>
-      </div>
-      <div class="widget-content">
-        <input type="text" id="new-category-input" placeholder="Новая категория" class="neumorphic-input" />
-        <button id="add-category-btn" class="neumorphic-btn small">+ Добавить</button>
-        <div id="categories-list" class="categories-list"></div>
-      </div>
-    </div>
+/* Mobile adaptation */
+@media (max-width: 767px) {
+  header {
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 15px;
+  }
+  
+  .header-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .neumorphic-menu {
+    width: 95vw;
+    padding: 10px;
+  }
+  
+  .financial-menu, 
+  #capitalization-menu,
+  .year-summary {
+    width: 95vw;
+    max-width: none;
+  }
+  
+  .category-menu, 
+  .budget-settings-menu {
+    width: 100vw;
+    left: -10px;
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .financial-charts {
+    display: flex;
+    min-width: max-content;
+    gap: 15px;
+  }
+  
+  .financial-chart-container {
+    min-width: 280px;
+    flex-shrink: 0;
+  }
+  
+  .financial-chart-container canvas {
+    height: 180px !important;
+  }
+  
+  .month-categories {
+    min-width: 250px;
+    flex-shrink: 0;
+  }
+  
+  .top-categories-report {
+    padding: 15px;
+  }
+  
+  .month-categories {
+    padding: 12px;
+  }
+  
+  .financial-card {
+    padding: 12px;
+  }
+  
+  .financial-value {
+    font-size: 1.2rem;
+  }
+  
+  .trend-chart-container {
+    width: 260px;
+    height: 260px;
+  }
+}
 
-    <div id="capitalization-menu" class="neumorphic-menu">
-      <h3>Капитализация</h3>
-      <input type="number" id="capital-input" placeholder="Сумма активов" class="neumorphic-input" />
-      <div class="button-group">
-        <button id="save-capital-btn" class="neumorphic-btn primary">Сохранить</button>
-        <button id="cancel-capital-btn" class="neumorphic-btn">Отмена</button>
-      </div>
-      <div class="chart-container">
-        <canvas id="capitalChart"></canvas>
-      </div>
-    </div>
-
-    <div id="savings-modal" class="neumorphic-menu">
-      <h3>Цель накоплений</h3>
-      <input type="text" id="savings-name" placeholder="Название цели" class="neumorphic-input" />
-      <input type="number" id="savings-goal" placeholder="Целевая сумма (₽)" class="neumorphic-input" />
-      <div class="button-group">
-        <button id="save-savings-btn" class="neumorphic-btn primary">Сохранить</button>
-        <button id="cancel-savings-btn" class="neumorphic-btn">Отмена</button>
-      </div>
-    </div>
-
-    <section class="month-selector">
-      <div class="month-tabs">
-        <button class="month-tab neumorphic-btn" data-month="0">Янв</button>
-        <button class="month-tab neumorphic-btn" data-month="1">Фев</button>
-        <button class="month-tab neumorphic-btn" data-month="2">Мар</button>
-        <button class="month-tab neumorphic-btn" data-month="3">Апр</button>
-        <button class="month-tab neumorphic-btn" data-month="4">Май</button>
-        <button class="month-tab neumorphic-btn" data-month="5">Июн</button>
-        <button class="month-tab neumorphic-btn" data-month="6">Июл</button>
-        <button class="month-tab neumorphic-btn" data-month="7">Авг</button>
-        <button class="month-tab neumorphic-btn" data-month="8">Сен</button>
-        <button class="month-tab neumorphic-btn" data-month="9">Окт</button>
-        <button class="month-tab neumorphic-btn" data-month="10">Ноя</button>
-        <button class="month-tab neumorphic-btn" data-month="11">Дек</button>
-      </div>
-      <div id="current-year-display" class="year-display" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
-    </section>
-
-    <section class="inputs">
-      <div class="input-group">
-        <input type="number" id="income-input" placeholder="Доход ₽" class="neumorphic-input" />
-        <button id="add-income-btn" class="neumorphic-btn">+</button>
-      </div>
-    </section>
-
-    <section class="daily-budget-widget">
-      <div class="neumorphic-card">
-        <div class="budget-header">
-          <h3>Дневной бюджет</h3>
-          <button id="budget-settings-btn" class="neumorphic-btn small">⚙️</button>
-        </div>
-        <p id="daily-budget-amount">0 ₽</p>
-        <p id="budget-progress">Не задано</p>
-        
-        <div class="budget-progress-container">
-          <div class="progress-info">
-            <span>Дни: </span>
-            <span id="days-progress-value">0%</span>
-          </div>
-          <div class="savings-progress-container">
-            <div class="savings-progress-bar days-progress" style="width: 0%"></div>
-          </div>
-          
-          <div class="progress-info">
-            <span>Средства: </span>
-            <span id="funds-progress-value">0%</span>
-          </div>
-          <div class="savings-progress-container">
-            <div class="savings-progress-bar funds-progress" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div id="set-budget-modal" class="neumorphic-menu">
-        <h3>Установить бюджет</h3>
-        <input type="number" id="budget-amount" placeholder="Общая сумма" class="neumorphic-input" />
-        <input type="number" id="budget-days" placeholder="Количество дней" class="neumorphic-input" />
-        <div class="button-group">
-          <button id="save-budget-btn" class="neumorphic-btn primary">Сохранить</button>
-          <button id="cancel-budget-btn" class="neumorphic-btn">Отмена</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="summary">
-      <div class="neumorphic-card"><h2>Доход</h2><p id="income">0 ₽</p></div>
-      <div class="neumorphic-card"><h2>Расход</h2><p id="expense">0 ₽</p></div>
-      <div class="neumorphic-card"><h2>Остаток</h2><p id="percent">0%</p></div>
-      <div class="neumorphic-card"><h2>Капитал</h2><p id="capital-display">0 ₽</p></div>
-    </section>
-    
-    <section class="widgets" id="widgets"></section>
-    
-    <section class="charts">
-      <div class="chart-container">
-        <canvas id="barChart"></canvas>
-      </div>
-    </section>
-    
-    <section class="category-trends">
-      <h3>Динамика трат по категориям</h3>
-      <div class="trends-container">
-        <div class="trends-scroll" id="trends-scroll"></div>
-      </div>
-    </section>
-
-    <div id="year-summary" class="neumorphic-menu year-summary">
-      <h2>Годовой отчёт</h2>
-      <div class="chart-container">
-        <canvas id="yearIncomeChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="yearExpenseChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="yearCapitalChart"></canvas>
-      </div>
-      <button id="close-year-summary" class="neumorphic-btn">Закрыть</button>
-    </div>
-  </div>
-
-  <div id="tutorial-overlay">
-    <div id="tutorial-box" class="neumorphic-card">
-      <h2 id="tutorial-title">Добро пожаловать</h2>
-      <p id="tutorial-text">Это руководство поможет вам освоить приложение</p>
-      <div class="tutorial-buttons">
-        <button id="tutorial-prev" class="neumorphic-btn">Назад</button>
-        <button id="tutorial-next" class="neumorphic-btn primary">Далее</button>
-        <button id="tutorial-close" class="neumorphic-btn">Пропустить</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
-</body>
-</html>
+/* Small mobile devices */
+@media (max-width: 400px) {
+  .widgets {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .month-tabs {
+    gap: 3px;
+  }
+  
+  .month-tab {
+    min-width: 30px;
+    padding: 4px 6px;
+    font-size: 0.7rem;
+  }
+  
+  .neumorphic-btn.small {
+    min-width: 60px;
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .financial-charts {
+    min-width: 500px;
+  }
+  
+  .financial-chart-container {
+    min-width: 240px;
+  }
+  
+  .month-categories {
+    min-width: 200px;
+  }
+  
+  .trend-chart-container {
+    width: 240px;
+    height: 240px;
+  }
+}
