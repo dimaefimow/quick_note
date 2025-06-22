@@ -10,6 +10,21 @@
   --border-radius: 12px;
 }
 
+/* Telegram WebApp specific variables */
+body.telegram-webapp {
+  --bg: #ffffff;
+  --text: #000000;
+  --shadow-light: #f0f0f0;
+  --shadow-dark: #d0d0d0;
+}
+
+body.telegram-webapp.dark {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --shadow-light: #2a2a2a;
+  --shadow-dark: #0a0a0a;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg);
@@ -21,6 +36,15 @@ body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+/* Prevent swipe-to-close in Telegram WebView */
+html.telegram-webview, 
+html.telegram-webview body {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app {
@@ -1410,4 +1434,19 @@ body.dark .achievement-item.unlocked {
     width: 240px;
     height: 240px;
   }
+}
+
+/* Telegram WebApp specific styles */
+@media (max-height: 600px) {
+  .app {
+    padding-bottom: 60px; /* Чтобы контент не обрезался */
+  }
+}
+
+/* Prevent swipe-to-close in Telegram WebView */
+.telegram-webview {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  overflow: hidden;
 }
