@@ -194,7 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Настройка Telegram WebApp
   function setupTelegramWebApp() {
     if (isTelegramWebView) {
-      const WebApp = window.Telegram.WebApp;
+      document.documentElement.classList.add('telegram-webview');
+}
       
       // Расширяем окно на весь экран
       WebApp.expand();
