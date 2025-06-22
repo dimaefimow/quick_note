@@ -1,4 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Ранняя инициализация для блокировки свайпа
+  if (window.Telegram && window.Telegram.WebApp) {
+    document.documentElement.classList.add('telegram-webapp');
+    window.Telegram.WebApp.expand();
+    window.Telegram.WebApp.enableClosingConfirmation();
+  }
+
+  // Блокировка свайпа вниз
+  let startY;
+  document.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    const y = e.touches[0].clientY;
+    // Если пытаемся свайпнуть вниз от самого верха
+    if (y > startY && window.scrollY <= 0) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
   // Текущий месяц и год
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
@@ -51,48 +72,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Данные достижений
   const achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
-    // Экономия
     saver: { unlocked: false, title: "Эконом", description: "Потратить <50% дохода" },
     superSaver: { unlocked: false, title: "Супер-эконом", description: "Потратить <30% дохода" },
-    
-    // Доходы
     earner: { unlocked: false, title: "Заработок", description: "Заработать >50k за месяц" },
     superEarner: { unlocked: false, title: "Супер-заработок", description: "Заработать >100k за месяц" },
-    
-    // Капитал
     investor: { unlocked: false, title: "Инвестор", description: "Капитал >100k" },
-    
-    // Бюджет
     budgetKeeper: { unlocked: false, title: "Бюджетник", description: "Уложиться в бюджет" },
-    
-    // Накопления
     saverGoal: { unlocked: false, title: "Накопитель", description: "Достичь цели накоплений" },
-    
-    // Категории
     categoryMaster: { unlocked: false, title: "Категорийный", description: "Иметь 5+ категорий" },
-    
-    // Время
     earlyBird: { unlocked: false, title: "Ранняя пташка", description: "Ввести доход до 9 утра" },
     nightOwl: { unlocked: false, title: "Сова", description: "Ввести доход после 11 вечера" },
-    
-    // Постоянство
     consistent: { unlocked: false, title: "Постоянный", description: "Использовать 30 дней подряд" },
-    
-    // Особые
     firstIncome: { unlocked: false, title: "Первый шаг", description: "Ввести первый доход" },
     firstExpense: { unlocked: false, title: "Первая трата", description: "Ввести первую трату" },
-    
-    // Годовые
     yearComplete: { unlocked: false, title: "Годовой план", description: "Заполнить все месяцы года" },
-    
-    // Прочее
     balanced: { unlocked: false, title: "Баланс", description: "Доходы = Расходам" },
     zeroWaste: { unlocked: false, title: "Без отходов", description: "0 трат за день" },
-    
-    // Специальные
     weekendWarrior: { unlocked: false, title: "Выходной", description: "Ввести доход в выходной" },
-    
-    // Долгосрочные
     marathoner: { unlocked: false, title: "Марафонец", description: "Использовать 100 дней" }
   };
 
@@ -194,22 +190,25 @@ document.addEventListener('DOMContentLoaded', function() {
   // Настройка Telegram WebApp
   function setupTelegramWebApp() {
     if (isTelegramWebView) {
-      document.documentElement.classList.add('telegram-webview');
-}
+      const WebApp = window.Telegram.WebApp;
       
       // Расширяем окно на весь экран
       WebApp.expand();
       
-      // Включаем подтверждение при закрытии
+      // Явно отключаем свайп-жесты
       WebApp.enableClosingConfirmation();
-      
-      // Обработка изменения viewport (предотвращаем закрытие при свайпе)
-      WebApp.onEvent('viewportChanged', (event) => {
-        if (event.isStateStable && event.height > 0) {
-          WebApp.enableClosingConfirmation();
-        }
+      WebApp.MainButton.show();
+      WebApp.MainButton.setParams({
+        is_visible: false // Скрываем кнопку, но она блокирует свайп
       });
-      
+
+      // Дополнительная защита от свайпа
+      document.addEventListener('touchmove', function(e) {
+        if (window.scrollY <= 0) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
       // Настройка кнопки "Назад"
       WebApp.BackButton.onClick(() => {
         closeAllMenus();
