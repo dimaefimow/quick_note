@@ -188,6 +188,60 @@ document.addEventListener('DOMContentLoaded', function() {
     closeAchievements: document.getElementById('close-achievements')
   };
 
+  // Проверка, что мы в Telegram WebView
+  const isTelegramWebView = window.Telegram && window.Telegram.WebApp;
+  
+  // Настройка Telegram WebApp
+  function setupTelegramWebApp() {
+    if (isTelegramWebView) {
+      const WebApp = window.Telegram.WebApp;
+      
+      // Расширяем окно на весь экран
+      WebApp.expand();
+      
+      // Включаем подтверждение при закрытии
+      WebApp.enableClosingConfirmation();
+      
+      // Обработка изменения viewport (предотвращаем закрытие при свайпе)
+      WebApp.onEvent('viewportChanged', (event) => {
+        if (event.isStateStable && event.height > 0) {
+          WebApp.enableClosingConfirmation();
+        }
+      });
+      
+      // Настройка кнопки "Назад"
+      WebApp.BackButton.onClick(() => {
+        closeAllMenus();
+        WebApp.close();
+      });
+      
+      // Применяем тему Telegram
+      applyTelegramTheme(WebApp);
+    }
+  }
+  
+  // Применение темы Telegram
+  function applyTelegramTheme(WebApp) {
+    if (WebApp.colorScheme === 'dark') {
+      document.body.classList.add('dark');
+      document.body.classList.add('telegram-webapp');
+      const icon = elements.themeToggleBtn.querySelector('.theme-icon');
+      icon.textContent = '☀️';
+    } else {
+      document.body.classList.remove('dark');
+      document.body.classList.add('telegram-webapp');
+      const icon = elements.themeToggleBtn.querySelector('.theme-icon');
+      icon.textContent = '🌙';
+    }
+  }
+  
+  // Закрытие всех меню
+  function closeAllMenus() {
+    document.querySelectorAll('.neumorphic-menu').forEach(menu => {
+      menu.classList.remove('show');
+    });
+  }
+
   // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
@@ -1621,6 +1675,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       renderAllCharts();
     });
+    
+    // Настройка Telegram WebApp
+    setupTelegramWebApp();
     
     // Обработчик изменения ориентации устройства
     window.addEventListener('orientationchange', function() {
