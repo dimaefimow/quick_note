@@ -2,6 +2,24 @@ document.addEventListener('DOMContentLoaded', function() {
   // Текущий месяц и год
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
+
+
+// Запрет закрытия приложения при свайпе вниз
+document.addEventListener('DOMContentLoaded', function() {
+  let startY;
+  
+  document.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+  }, { passive: false });
+  
+  document.addEventListener('touchmove', function(e) {
+    const currentY = e.touches[0].clientY;
+    
+    // Если свайп вниз и находимся в самом верху страницы
+    if (currentY > startY && window.scrollY <= 0) {
+      e.preventDefault();
+    }
+  }, { passive: false });
   
   // Названия месяцев
   const monthNames = [
