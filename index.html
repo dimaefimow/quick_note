@@ -7,7 +7,14 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  
+
   <div class="app">
+   <div id="achievements-modal" class="neumorphic-menu">
+      <h3>Достижения</h3>
+      <div id="achievements-list" class="achievements-grid"></div>
+      <button id="close-achievements" class="neumorphic-btn">Закрыть</button>
+    </div>
     <header>
       <div class="header-container">
         <div class="header-title"></div>
@@ -27,22 +34,18 @@
           <h3 style="color: #2ecc71">Накопления</h3>
           <button id="enable-savings-btn" class="neumorphic-btn primary">Включить виджет</button>
         </div>
-        <div class="widget fund-widget-preview">
-          <h3 style="color: #e74c3c">Фонд</h3>
-          <button id="enable-fund-btn" class="neumorphic-btn primary">Включить виджет</button>
-        </div>
         <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
         <button id="history-btn" class="neumorphic-btn primary">История трат</button>
       </div>
       
       <div id="year-select-modal" class="neumorphic-menu">
-        <h3>Выберите год</h3>
-        <div id="years-list" class="year-list"></div>
-        <div class="button-group">
-          <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
-          <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
-        </div>
-      </div>
+  <h3>Выберите год</h3>
+  <div id="years-list" class="year-list"></div>
+  <div class="button-group">
+    <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
+    <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
+  </div>
+</div>
       
       <div id="history-modal" class="neumorphic-menu">
         <h3>История трат</h3>
@@ -129,16 +132,6 @@
       <div class="button-group">
         <button id="save-savings-btn" class="neumorphic-btn primary">Сохранить</button>
         <button id="cancel-savings-btn" class="neumorphic-btn">Отмена</button>
-      </div>
-    </div>
-
-    <div id="fund-modal" class="neumorphic-menu">
-      <h3>Создать фонд</h3>
-      <input type="text" id="fund-name" placeholder="Название фонда" class="neumorphic-input" />
-      <input type="number" id="fund-total" placeholder="Общая сумма (₽)" class="neumorphic-input" />
-      <div class="button-group">
-        <button id="save-fund-btn" class="neumorphic-btn primary">Сохранить</button>
-        <button id="cancel-fund-btn" class="neumorphic-btn">Отмена</button>
       </div>
     </div>
 
@@ -257,14 +250,5 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
-  <script>
-    // Проверка поддержки localStorage
-    try {
-      localStorage.setItem('test', 'test');
-      localStorage.removeItem('test');
-    } catch (e) {
-      alert('Ошибка: localStorage не поддерживается в вашем браузере. Некоторые функции могут не работать.');
-    }
-  </script>
 </body>
 </html>
