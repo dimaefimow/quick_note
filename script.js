@@ -49,6 +49,53 @@ document.addEventListener('DOMContentLoaded', function() {
     current: 0
   };
 
+  // Данные достижений
+  const achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
+    // Экономия
+    saver: { unlocked: false, title: "Эконом", description: "Потратить <50% дохода" },
+    superSaver: { unlocked: false, title: "Супер-эконом", description: "Потратить <30% дохода" },
+    
+    // Доходы
+    earner: { unlocked: false, title: "Заработок", description: "Заработать >50k за месяц" },
+    superEarner: { unlocked: false, title: "Супер-заработок", description: "Заработать >100k за месяц" },
+    
+    // Капитал
+    investor: { unlocked: false, title: "Инвестор", description: "Капитал >100k" },
+    
+    // Бюджет
+    budgetKeeper: { unlocked: false, title: "Бюджетник", description: "Уложиться в бюджет" },
+    
+    // Накопления
+    saverGoal: { unlocked: false, title: "Накопитель", description: "Достичь цели накоплений" },
+    
+    // Категории
+    categoryMaster: { unlocked: false, title: "Категорийный", description: "Иметь 5+ категорий" },
+    
+    // Время
+    earlyBird: { unlocked: false, title: "Ранняя пташка", description: "Ввести доход до 9 утра" },
+    nightOwl: { unlocked: false, title: "Сова", description: "Ввести доход после 11 вечера" },
+    
+    // Постоянство
+    consistent: { unlocked: false, title: "Постоянный", description: "Использовать 30 дней подряд" },
+    
+    // Особые
+    firstIncome: { unlocked: false, title: "Первый шаг", description: "Ввести первый доход" },
+    firstExpense: { unlocked: false, title: "Первая трата", description: "Ввести первую трату" },
+    
+    // Годовые
+    yearComplete: { unlocked: false, title: "Годовой план", description: "Заполнить все месяцы года" },
+    
+    // Прочее
+    balanced: { unlocked: false, title: "Баланс", description: "Доходы = Расходам" },
+    zeroWaste: { unlocked: false, title: "Без отходов", description: "0 трат за день" },
+    
+    // Специальные
+    weekendWarrior: { unlocked: false, title: "Выходной", description: "Ввести доход в выходной" },
+    
+    // Долгосрочные
+    marathoner: { unlocked: false, title: "Марафонец", description: "Использовать 100 дней" }
+  };
+
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
   let miniCapitalChart, miniExpenseChart;
@@ -135,12 +182,18 @@ document.addEventListener('DOMContentLoaded', function() {
     tutorialText: document.getElementById('tutorial-text'),
     tutorialPrev: document.getElementById('tutorial-prev'),
     tutorialNext: document.getElementById('tutorial-next'),
-    tutorialClose: document.getElementById('tutorial-close')
+    tutorialClose: document.getElementById('tutorial-close'),
+    achievementsModal: document.getElementById('achievements-modal'),
+    achievementsList: document.getElementById('achievements-list'),
+    closeAchievements: document.getElementById('close-achievements')
   };
 
   // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
+    localStorage.setItem('budgetData', JSON.stringify(budgetData));
+    localStorage.setItem('savingsData', JSON.stringify(savingsData));
+    localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
     updateCategoriesList();
   }
 
@@ -339,12 +392,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Настройки графиков
   function getChartOptions(title) {
+    const isMobile = window.innerWidth < 768;
     return {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { 
+          display: false,
+          labels: {
+            font: {
+              size: isMobile ? 10 : 12
+            }
+          }
+        },
         tooltip: {
+          bodyFont: {
+            size: isMobile ? 12 : 14
+          },
           callbacks: {
             label: function(context) {
               return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
@@ -352,8 +416,11 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         },
         title: {
-          display: false,
-          text: title
+          display: !!title,
+          text: title,
+          font: {
+            size: isMobile ? 14 : 16
+          }
         }
       },
       scales: {
@@ -361,9 +428,12 @@ document.addEventListener('DOMContentLoaded', function() {
           beginAtZero: true,
           ticks: {
             callback: function(value) {
-              return (value / 1000).toFixed(0) + 'k ₽';
+              return (value / 1000).toFixed(value >= 10000 ? 0 : 1) + 'k ₽';
             },
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
+            color: document.body.classList.contains('dark') ? '#eee' : '#333',
+            font: {
+              size: isMobile ? 10 : 12
+            }
           },
           grid: {
             color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
@@ -374,7 +444,10 @@ document.addEventListener('DOMContentLoaded', function() {
             display: false
           },
           ticks: {
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
+            color: document.body.classList.contains('dark') ? '#eee' : '#333',
+            font: {
+              size: isMobile ? 10 : 12
+            }
           }
         }
       },
@@ -382,13 +455,19 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 1000,
         easing: 'easeOutQuart'
       },
-      devicePixelRatio: 1, // Фиксируем соотношение пикселей
-      layout: {
-        padding: {
-          left: 10,
-          right: 10,
-          top: 10,
-          bottom: 10
+      devicePixelRatio: 2,
+      elements: {
+        bar: {
+          borderRadius: 6,
+          borderWidth: 0
+        },
+        line: {
+          tension: 0.3,
+          borderWidth: 3
+        },
+        point: {
+          radius: 4,
+          hoverRadius: 6
         }
       }
     };
@@ -440,6 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Отрисовка графиков динамики категорий
     renderCategoryTrends();
+    
+    // Проверка достижений
+    checkAchievements();
   }
 
   // Отрисовка всех графиков
@@ -599,6 +681,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const btn = input.nextElementSibling;
       btn.classList.add('pulse');
       setTimeout(() => btn.classList.remove('pulse'), 500);
+      
+      // Проверка достижения цели накоплений
+      if (savingsData.goal > 0 && savingsData.current >= savingsData.goal && 
+          !achievementsData.saverGoal.unlocked) {
+        achievementsData.saverGoal.unlocked = true;
+        showAchievementUnlocked(achievementsData.saverGoal.title);
+        saveData();
+      }
     }
   }
 
@@ -890,6 +980,13 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
     localStorage.setItem('budgetData', JSON.stringify(budgetData));
+    
+    // Проверяем достижение "Бюджетник"
+    if (remainingAmount > 0 && remainingDays > 0 && !achievementsData.budgetKeeper.unlocked) {
+      achievementsData.budgetKeeper.unlocked = true;
+      showAchievementUnlocked(achievementsData.budgetKeeper.title);
+      saveData();
+    }
   }
 
   // Просмотр истории трат
@@ -994,6 +1091,145 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Проверка достижений
+  function checkAchievements() {
+    const monthData = financeData[currentYear][currentMonth];
+    const income = monthData.income || 0;
+    const expense = monthData.expense || 0;
+    const capital = monthData.capital || 0;
+    const categoriesCount = Object.keys(monthData.categories || {}).length;
+    const now = new Date();
+    const hours = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 - воскресенье, 6 - суббота
+    
+    // Проверяем достижения
+    if (income > 0 && !achievementsData.firstIncome.unlocked) {
+      achievementsData.firstIncome.unlocked = true;
+      showAchievementUnlocked(achievementsData.firstIncome.title);
+    }
+    
+    if (expense > 0 && !achievementsData.firstExpense.unlocked) {
+      achievementsData.firstExpense.unlocked = true;
+      showAchievementUnlocked(achievementsData.firstExpense.title);
+    }
+    
+    if (income > 0 && expense/income < 0.5 && !achievementsData.saver.unlocked) {
+      achievementsData.saver.unlocked = true;
+      showAchievementUnlocked(achievementsData.saver.title);
+    }
+    
+    if (income > 0 && expense/income < 0.3 && !achievementsData.superSaver.unlocked) {
+      achievementsData.superSaver.unlocked = true;
+      showAchievementUnlocked(achievementsData.superSaver.title);
+    }
+    
+    if (income > 50000 && !achievementsData.earner.unlocked) {
+      achievementsData.earner.unlocked = true;
+      showAchievementUnlocked(achievementsData.earner.title);
+    }
+    
+    if (income > 100000 && !achievementsData.superEarner.unlocked) {
+      achievementsData.superEarner.unlocked = true;
+      showAchievementUnlocked(achievementsData.superEarner.title);
+    }
+    
+    if (capital > 100000 && !achievementsData.investor.unlocked) {
+      achievementsData.investor.unlocked = true;
+      showAchievementUnlocked(achievementsData.investor.title);
+    }
+    
+    if (categoriesCount >= 5 && !achievementsData.categoryMaster.unlocked) {
+      achievementsData.categoryMaster.unlocked = true;
+      showAchievementUnlocked(achievementsData.categoryMaster.title);
+    }
+    
+    if (hours < 9 && !achievementsData.earlyBird.unlocked) {
+      achievementsData.earlyBird.unlocked = true;
+      showAchievementUnlocked(achievementsData.earlyBird.title);
+    }
+    
+    if (hours >= 23 && !achievementsData.nightOwl.unlocked) {
+      achievementsData.nightOwl.unlocked = true;
+      showAchievementUnlocked(achievementsData.nightOwl.title);
+    }
+    
+    if (income === expense && income > 0 && !achievementsData.balanced.unlocked) {
+      achievementsData.balanced.unlocked = true;
+      showAchievementUnlocked(achievementsData.balanced.title);
+    }
+    
+    if (expense === 0 && income > 0 && !achievementsData.zeroWaste.unlocked) {
+      achievementsData.zeroWaste.unlocked = true;
+      showAchievementUnlocked(achievementsData.zeroWaste.title);
+    }
+    
+    // Проверка на выходной день
+    if ((dayOfWeek === 0 || dayOfWeek === 6) && !achievementsData.weekendWarrior.unlocked) {
+      achievementsData.weekendWarrior.unlocked = true;
+      showAchievementUnlocked(achievementsData.weekendWarrior.title);
+    }
+    
+    // Проверяем заполнение всех месяцев года
+    let allMonthsFilled = true;
+    for (let i = 0; i < 12; i++) {
+      if (financeData[currentYear][i].income === 0 && financeData[currentYear][i].expense === 0) {
+        allMonthsFilled = false;
+        break;
+      }
+    }
+    
+    if (allMonthsFilled && !achievementsData.yearComplete.unlocked) {
+      achievementsData.yearComplete.unlocked = true;
+      showAchievementUnlocked(achievementsData.yearComplete.title);
+    }
+    
+    saveData();
+  }
+
+  // Показать уведомление о разблокированном достижении
+  function showAchievementUnlocked(title) {
+    const msg = document.createElement('div');
+    msg.className = 'achievement-unlocked';
+    msg.innerHTML = `
+      <div class="medal-icon">🏆</div>
+      <div>
+        <strong>Достижение разблокировано!</strong>
+        <div>${title}</div>
+      </div>
+    `;
+    document.body.appendChild(msg);
+    
+    setTimeout(() => {
+      msg.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      msg.classList.remove('show');
+      setTimeout(() => document.body.removeChild(msg), 500);
+    }, 3000);
+  }
+
+  // Отрисовка списка достижений
+  function renderAchievements() {
+    const container = document.getElementById('achievements-list');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    Object.entries(achievementsData).forEach(([key, achievement]) => {
+      const achievementEl = document.createElement('div');
+      achievementEl.className = `achievement-item ${achievement.unlocked ? 'unlocked' : ''}`;
+      achievementEl.innerHTML = `
+        <div class="medal-icon">${achievement.unlocked ? '🏆' : '🏅'}</div>
+        <div class="achievement-info">
+          <strong>${achievement.title}</strong>
+          <div>${achievement.description}</div>
+        </div>
+      `;
+      container.appendChild(achievementEl);
+    });
+  }
+
   // Режим обучения
   function initTutorial() {
     const tutorialSteps = [
@@ -1022,6 +1258,10 @@ document.addEventListener('DOMContentLoaded', function() {
         text: "Включите виджет накоплений через меню (☰) и установите финансовую цель. Отслеживайте прогресс в виджете."
       },
       {
+        title: "Достижения",
+        text: "Зарабатывайте медали за выполнение финансовых задач. Просматривайте их в разделе 'Награды'."
+      },
+      {
         title: "Графики",
         text: "Основной график показывает распределение расходов по категориям. Ниже представлена динамика трат по категориям за год."
       }
@@ -1032,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showTutorialStep(step) {
       elements.tutorialTitle.textContent = tutorialSteps[step].title;
       elements.tutorialText.textContent = tutorialSteps[step].text;
-      elements.tutorialOverlay.style.display = 'block';
+      elements.tutorialOverlay.style.display = 'flex';
     }
     
     elements.tutorialNext.addEventListener('click', () => {
@@ -1265,6 +1505,22 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.historyModal.classList.remove('show');
     });
 
+    // Достижения
+    const achievementsBtn = document.createElement('button');
+    achievementsBtn.className = 'neumorphic-btn primary';
+    achievementsBtn.textContent = 'Награды';
+    achievementsBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.achievementsModal);
+      renderAchievements();
+    });
+    
+    elements.moreMenu.insertBefore(achievementsBtn, elements.moreMenu.firstChild);
+    
+    elements.closeAchievements.addEventListener('click', () => {
+      elements.achievementsModal.classList.remove('show');
+    });
+
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
       // Список всех меню
@@ -1276,7 +1532,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.moreMenu,
         elements.savingsModal,
         elements.yearSelectModal,
-        elements.historyModal
+        elements.historyModal,
+        elements.achievementsModal
       ];
       
       // Проверяем, был ли клик вне меню
@@ -1291,7 +1548,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.moreBtn,
         elements.enableSavingsBtn,
         elements.yearSelectBtn,
-        elements.historyBtn
+        elements.historyBtn,
+        achievementsBtn
       ].some(button => button.contains(e.target));
       
       // Закрываем все меню, если клик был вне меню и не по кнопке меню
