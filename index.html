@@ -2,19 +2,198 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
   <title>Финансовая аналитика</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Дополнительные стили для темной темы */
+    body.dark .neumorphic-input {
+      color: white !important;
+    }
+
+    body.dark input::placeholder {
+      color: #aaa !important;
+      opacity: 1;
+    }
+
+    /* Стили для виджета фонда */
+    .fund-widget {
+      --widget-color: #e74c3c;
+    }
+
+    /* Стили для достижений */
+    .achievement-widget {
+      background: var(--bg);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: 3px 3px 6px var(--shadow-dark), 
+                  -3px -3px 6px var(--shadow-light);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+
+    body.dark .achievement-widget {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .achievement-widget.unlocked {
+      opacity: 1;
+      background: rgba(46, 204, 113, 0.1);
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+    }
+
+    body.dark .achievement-widget.unlocked {
+      background: rgba(46, 204, 113, 0.2);
+    }
+
+    .achievement-widget.locked {
+      filter: grayscale(80%);
+    }
+
+    .achievement-widget .medal-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .achievement-widget.unlocked .medal-icon {
+      color: #f1c40f;
+    }
+
+    .achievement-content {
+      flex: 1;
+    }
+
+    .achievement-content h4 {
+      margin: 0 0 5px 0;
+      font-size: 1rem;
+    }
+
+    .achievement-content p {
+      margin: 0;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      padding: 10px;
+    }
+
+    /* Стили для кнопки добавления фонда */
+    .fund-widget-preview {
+      background: var(--bg);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: 5px 5px 10px var(--shadow-dark), 
+                  -5px -5px 10px var(--shadow-light);
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .fund-widget-preview h3 {
+      margin: 0 0 15px 0;
+      font-size: 1.1rem;
+      color: #e74c3c;
+    }
+
+    #enable-fund-btn {
+      width: 100%;
+      padding: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+      background: #e74c3c;
+      color: white;
+    }
+
+    /* Анимации */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .pulse {
+      animation: pulse 0.5s ease;
+    }
+
+    /* Сообщение о разблокированном достижении */
+    .achievement-unlocked {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .achievement-unlocked.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .achievement-unlocked strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #f1c40f;
+    }
+
+    /* Сообщение об успехе */
+    .success-message {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(46, 204, 113, 0.9);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+      animation: fadeInOut 3s ease-in-out;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+  </style>
 </head>
 <body>
-  
-
   <div class="app">
-   <div id="achievements-modal" class="neumorphic-menu">
+    <!-- Модальное окно достижений -->
+    <div id="achievements-modal" class="neumorphic-menu">
       <h3>Достижения</h3>
       <div id="achievements-list" class="achievements-grid"></div>
       <button id="close-achievements" class="neumorphic-btn">Закрыть</button>
     </div>
+    
+    <!-- Модальное окно создания фонда -->
+    <div id="fund-modal" class="neumorphic-menu">
+      <h3>Создать фонд</h3>
+      <input type="text" id="fund-name" placeholder="Название фонда" class="neumorphic-input" />
+      <input type="number" id="fund-total" placeholder="Общая сумма (₽)" class="neumorphic-input" />
+      <div class="button-group">
+        <button id="save-fund-btn" class="neumorphic-btn primary">Сохранить</button>
+        <button id="cancel-fund-btn" class="neumorphic-btn">Отмена</button>
+      </div>
+    </div>
+
     <header>
       <div class="header-container">
         <div class="header-title"></div>
@@ -29,30 +208,39 @@
         </div>
       </div>
       
+      <!-- Дополнительное меню -->
       <div id="more-menu" class="neumorphic-menu">
+        <button id="achievements-btn" class="neumorphic-btn primary">Награды</button>
         <div class="widget savings-widget-preview">
           <h3 style="color: #2ecc71">Накопления</h3>
           <button id="enable-savings-btn" class="neumorphic-btn primary">Включить виджет</button>
+        </div>
+        <div class="widget fund-widget-preview">
+          <h3 style="color: #e74c3c">Фонд</h3>
+          <button id="enable-fund-btn" class="neumorphic-btn primary">Включить виджет</button>
         </div>
         <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
         <button id="history-btn" class="neumorphic-btn primary">История трат</button>
       </div>
       
+      <!-- Модальное окно выбора года -->
       <div id="year-select-modal" class="neumorphic-menu">
-  <h3>Выберите год</h3>
-  <div id="years-list" class="year-list"></div>
-  <div class="button-group">
-    <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
-    <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
-  </div>
-</div>
+        <h3>Выберите год</h3>
+        <div id="years-list" class="year-list"></div>
+        <div class="button-group">
+          <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
+          <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
+        </div>
+      </div>
       
+      <!-- Модальное окно истории трат -->
       <div id="history-modal" class="neumorphic-menu">
         <h3>История трат</h3>
         <div id="history-list"></div>
         <button id="close-history" class="neumorphic-btn">Закрыть</button>
       </div>
       
+      <!-- Меню отчетов -->
       <div id="settings-menu" class="neumorphic-menu financial-menu">
         <div class="financial-grid">
           <div class="financial-card">
@@ -101,6 +289,7 @@
       </div>
     </header>
 
+    <!-- Виджет категорий -->
     <div id="category-menu" class="category-widget">
       <div class="widget-header">
         <h3>Категории</h3>
@@ -113,6 +302,7 @@
       </div>
     </div>
 
+    <!-- Меню капитализации -->
     <div id="capitalization-menu" class="neumorphic-menu">
       <h3>Капитализация</h3>
       <input type="number" id="capital-input" placeholder="Сумма активов" class="neumorphic-input" />
@@ -125,6 +315,7 @@
       </div>
     </div>
 
+    <!-- Модальное окно накоплений -->
     <div id="savings-modal" class="neumorphic-menu">
       <h3>Цель накоплений</h3>
       <input type="text" id="savings-name" placeholder="Название цели" class="neumorphic-input" />
@@ -135,6 +326,7 @@
       </div>
     </div>
 
+    <!-- Выбор месяца -->
     <section class="month-selector">
       <div class="month-tabs">
         <button class="month-tab neumorphic-btn" data-month="0">Янв</button>
@@ -153,6 +345,7 @@
       <div id="current-year-display" class="year-display" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
     </section>
 
+    <!-- Ввод дохода -->
     <section class="inputs">
       <div class="input-group">
         <input type="number" id="income-input" placeholder="Доход ₽" class="neumorphic-input" />
@@ -160,6 +353,7 @@
       </div>
     </section>
 
+    <!-- Виджет дневного бюджета -->
     <section class="daily-budget-widget">
       <div class="neumorphic-card">
         <div class="budget-header">
@@ -188,6 +382,7 @@
         </div>
       </div>
       
+      <!-- Модальное окно установки бюджета -->
       <div id="set-budget-modal" class="neumorphic-menu">
         <h3>Установить бюджет</h3>
         <input type="number" id="budget-amount" placeholder="Общая сумма" class="neumorphic-input" />
@@ -199,6 +394,7 @@
       </div>
     </section>
 
+    <!-- Краткая сводка -->
     <section class="summary">
       <div class="neumorphic-card"><h2>Доход</h2><p id="income">0 ₽</p></div>
       <div class="neumorphic-card"><h2>Расход</h2><p id="expense">0 ₽</p></div>
@@ -206,14 +402,17 @@
       <div class="neumorphic-card"><h2>Капитал</h2><p id="capital-display">0 ₽</p></div>
     </section>
     
+    <!-- Виджеты -->
     <section class="widgets" id="widgets"></section>
     
+    <!-- Основной график -->
     <section class="charts">
       <div class="chart-container">
         <canvas id="barChart"></canvas>
       </div>
     </section>
     
+    <!-- Динамика по категориям -->
     <section class="category-trends">
       <h3>Динамика трат по категориям</h3>
       <div class="trends-container">
@@ -221,6 +420,7 @@
       </div>
     </section>
 
+    <!-- Годовой отчет -->
     <div id="year-summary" class="neumorphic-menu year-summary">
       <h2>Годовой отчёт</h2>
       <div class="chart-container">
@@ -236,6 +436,7 @@
     </div>
   </div>
 
+  <!-- Оверлей обучения -->
   <div id="tutorial-overlay">
     <div id="tutorial-box" class="neumorphic-card">
       <h2 id="tutorial-title">Добро пожаловать</h2>
@@ -248,7 +449,10 @@
     </div>
   </div>
 
+  <!-- Подключение библиотеки Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Подключение основного скрипта -->
   <script src="script.js"></script>
 </body>
 </html>
