@@ -49,37 +49,60 @@ document.addEventListener('DOMContentLoaded', function() {
     current: 0
   };
 
+  // Данные фонда
+  let fundData = JSON.parse(localStorage.getItem('fundData')) || {
+    enabled: false,
+    name: '',
+    total: 0,
+    current: 0
+  };
+
   // Данные достижений
   const achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
     // Экономия
     saver: { unlocked: false, title: "Эконом", description: "Потратить <50% дохода" },
     superSaver: { unlocked: false, title: "Супер-эконом", description: "Потратить <30% дохода" },
+    
     // Доходы
     earner: { unlocked: false, title: "Заработок", description: "Заработать >50k за месяц" },
     superEarner: { unlocked: false, title: "Супер-заработок", description: "Заработать >100k за месяц" },
+    
     // Капитал
     investor: { unlocked: false, title: "Инвестор", description: "Капитал >100k" },
+    
     // Бюджет
     budgetKeeper: { unlocked: false, title: "Бюджетник", description: "Уложиться в бюджет" },
+    
     // Накопления
     saverGoal: { unlocked: false, title: "Накопитель", description: "Достичь цели накоплений" },
+    
+    // Фонд
+    fundMaster: { unlocked: false, title: "Фондовик", description: "Использовать весь фонд" },
+    
     // Категории
     categoryMaster: { unlocked: false, title: "Категорийный", description: "Иметь 5+ категорий" },
+    
     // Время
     earlyBird: { unlocked: false, title: "Ранняя пташка", description: "Ввести доход до 9 утра" },
     nightOwl: { unlocked: false, title: "Сова", description: "Ввести доход после 11 вечера" },
+    
     // Постоянство
     consistent: { unlocked: false, title: "Постоянный", description: "Использовать 30 дней подряд" },
+    
     // Особые
     firstIncome: { unlocked: false, title: "Первый шаг", description: "Ввести первый доход" },
     firstExpense: { unlocked: false, title: "Первая трата", description: "Ввести первую трату" },
+    
     // Годовые
     yearComplete: { unlocked: false, title: "Годовой план", description: "Заполнить все месяцы года" },
+    
     // Прочее
     balanced: { unlocked: false, title: "Баланс", description: "Доходы = Расходам" },
     zeroWaste: { unlocked: false, title: "Без отходов", description: "0 трат за день" },
+    
     // Специальные
     weekendWarrior: { unlocked: false, title: "Выходной", description: "Ввести доход в выходной" },
+    
     // Долгосрочные
     marathoner: { unlocked: false, title: "Марафонец", description: "Использовать 100 дней" }
   };
@@ -145,6 +168,12 @@ document.addEventListener('DOMContentLoaded', function() {
     savingsGoal: document.getElementById('savings-goal'),
     saveSavingsBtn: document.getElementById('save-savings-btn'),
     cancelSavingsBtn: document.getElementById('cancel-savings-btn'),
+    enableFundBtn: document.getElementById('enable-fund-btn'),
+    fundModal: document.getElementById('fund-modal'),
+    fundName: document.getElementById('fund-name'),
+    fundTotal: document.getElementById('fund-total'),
+    saveFundBtn: document.getElementById('save-fund-btn'),
+    cancelFundBtn: document.getElementById('cancel-fund-btn'),
     closeReportsBtn: document.getElementById('close-reports-btn'),
     closeCategoryWidget: document.getElementById('close-category-widget'),
     daysProgressBar: document.querySelector('.days-progress'),
@@ -179,6 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
+    localStorage.setItem('budgetData', JSON.stringify(budgetData));
+    localStorage.setItem('savingsData', JSON.stringify(savingsData));
+    localStorage.setItem('fundData', JSON.stringify(fundData));
     localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
     updateCategoriesList();
   }
@@ -499,6 +531,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Отрисовка виджета накоплений
     renderSavingsWidget();
+
+    // Отрисовка виджета фонда
+    renderFundWidget();
     
     // Отрисовка истории трат
     renderExpenseHistory();
@@ -592,6 +627,36 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('add-to-savings-btn')?.addEventListener('click', addToSavings);
   }
 
+  // Отрисовка виджета фонда
+  function renderFundWidget() {
+    if (!fundData.enabled) return;
+    
+    const widget = document.createElement('div');
+    widget.className = 'neumorphic-card widget fund-widget';
+    widget.style.setProperty('--widget-color', '#e74c3c');
+    
+    const progress = fundData.total > 0 ? Math.min(100, Math.round((fundData.current / fundData.total) * 100)) : 0;
+    
+    widget.innerHTML = `
+      <button class="delete-widget-btn" id="disable-fund-btn">×</button>
+      <h3 style="color: #e74c3c">${fundData.name || 'Фонд'}</h3>
+      <div class="savings-progress-container">
+        <div class="savings-progress-bar" style="width: ${progress}%"></div>
+      </div>
+      <p>${formatCurrency(fundData.current)} / ${formatCurrency(fundData.total)} (${progress}%)</p>
+      <div class="widget-input-group">
+        <input type="number" class="neumorphic-input widget-input" placeholder="Сумма траты" id="fund-expense">
+        <button class="neumorphic-btn small" id="subtract-from-fund-btn">-</button>
+      </div>
+    `;
+    
+    elements.widgetsContainer.prepend(widget);
+
+    // Добавляем обработчики для кнопок виджета фонда
+    document.getElementById('disable-fund-btn')?.addEventListener('click', disableFund);
+    document.getElementById('subtract-from-fund-btn')?.addEventListener('click', subtractFromFund);
+  }
+
   // Удаление виджета категории
   function deleteWidget(category) {
     if (confirm(`Удалить категорию "${category}" только для текущего месяца?`)) {
@@ -673,6 +738,44 @@ document.addEventListener('DOMContentLoaded', function() {
           !achievementsData.saverGoal.unlocked) {
         achievementsData.saverGoal.unlocked = true;
         showAchievementUnlocked(achievementsData.saverGoal.title);
+        saveData();
+      }
+    }
+  }
+
+  // Отключение фонда
+  function disableFund() {
+    if (confirm('Отключить виджет фонда?')) {
+      fundData.enabled = false;
+      localStorage.setItem('fundData', JSON.stringify(fundData));
+      updateUI();
+    }
+  }
+
+  // Вычитание из фонда
+  function subtractFromFund() {
+    const input = document.getElementById('fund-expense');
+    const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
+    
+    if (!isNaN(amount) && amount > 0) {
+      if (amount > fundData.current) {
+        alert('Недостаточно средств в фонде!');
+        return;
+      }
+      
+      fundData.current -= amount;
+      localStorage.setItem('fundData', JSON.stringify(fundData));
+      input.value = '';
+      updateUI();
+      
+      const btn = input.nextElementSibling;
+      btn.classList.add('pulse');
+      setTimeout(() => btn.classList.remove('pulse'), 500);
+      
+      // Проверка достижения "Фондовик"
+      if (fundData.current <= 0 && !achievementsData.fundMaster.unlocked) {
+        achievementsData.fundMaster.unlocked = true;
+        showAchievementUnlocked(achievementsData.fundMaster.title);
         saveData();
       }
     }
@@ -1086,6 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoriesCount = Object.keys(monthData.categories || {}).length;
     const now = new Date();
     const hours = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 - воскресенье, 6 - суббота
     
     // Проверяем достижения
     if (income > 0 && !achievementsData.firstIncome.unlocked) {
@@ -1148,6 +1252,12 @@ document.addEventListener('DOMContentLoaded', function() {
       showAchievementUnlocked(achievementsData.zeroWaste.title);
     }
     
+    // Проверка на выходной день
+    if ((dayOfWeek === 0 || dayOfWeek === 6) && !achievementsData.weekendWarrior.unlocked) {
+      achievementsData.weekendWarrior.unlocked = true;
+      showAchievementUnlocked(achievementsData.weekendWarrior.title);
+    }
+    
     // Проверяем заполнение всех месяцев года
     let allMonthsFilled = true;
     for (let i = 0; i < 12; i++) {
@@ -1160,6 +1270,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (allMonthsFilled && !achievementsData.yearComplete.unlocked) {
       achievementsData.yearComplete.unlocked = true;
       showAchievementUnlocked(achievementsData.yearComplete.title);
+    }
+
+    // Проверка достижения "Фондовик"
+    if (fundData.enabled && fundData.current <= 0 && !achievementsData.fundMaster.unlocked) {
+      achievementsData.fundMaster.unlocked = true;
+      showAchievementUnlocked(achievementsData.fundMaster.title);
     }
     
     saveData();
@@ -1197,12 +1313,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     Object.entries(achievementsData).forEach(([key, achievement]) => {
       const achievementEl = document.createElement('div');
-      achievementEl.className = `achievement-item ${achievement.unlocked ? 'unlocked' : ''}`;
+      achievementEl.className = `achievement-widget ${achievement.unlocked ? 'unlocked' : 'locked'}`;
       achievementEl.innerHTML = `
         <div class="medal-icon">${achievement.unlocked ? '🏆' : '🏅'}</div>
-        <div class="achievement-info">
-          <strong>${achievement.title}</strong>
-          <div>${achievement.description}</div>
+        <div class="achievement-content">
+          <h4>${achievement.title}</h4>
+          <p>${achievement.description}</p>
         </div>
       `;
       container.appendChild(achievementEl);
@@ -1235,6 +1351,10 @@ document.addEventListener('DOMContentLoaded', function() {
       {
         title: "Накопления",
         text: "Включите виджет накоплений через меню (☰) и установите финансовую цель. Отслеживайте прогресс в виджете."
+      },
+      {
+        title: "Фонд",
+        text: "Включите виджет фонда через меню (☰) и установите сумму фонда. Используйте его для запланированных трат."
       },
       {
         title: "Достижения",
@@ -1451,6 +1571,35 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.savingsModal.classList.remove('show');
     });
 
+    // Виджет фонда
+    elements.enableFundBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.fundModal);
+    });
+
+    elements.saveFundBtn.addEventListener('click', () => {
+      const name = elements.fundName.value.trim();
+      const total = parseFloat(elements.fundTotal.value.replace(/\s+/g, '').replace(',', '.'));
+      
+      if (name && !isNaN(total) && total > 0) {
+        fundData = {
+          enabled: true,
+          name: name,
+          total: total,
+          current: total // Фонд начинается с полной суммы
+        };
+        localStorage.setItem('fundData', JSON.stringify(fundData));
+        elements.fundModal.classList.remove('show');
+        updateUI();
+        
+        showSuccessMessage('Фонд создан!');
+      }
+    });
+
+    elements.cancelFundBtn.addEventListener('click', () => {
+      elements.fundModal.classList.remove('show');
+    });
+
     // Переключение месяцев
     elements.monthTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -1510,6 +1659,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.setBudgetModal,
         elements.moreMenu,
         elements.savingsModal,
+        elements.fundModal,
         elements.yearSelectModal,
         elements.historyModal,
         elements.achievementsModal
@@ -1526,6 +1676,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.budgetSettingsBtn,
         elements.moreBtn,
         elements.enableSavingsBtn,
+        elements.enableFundBtn,
         elements.yearSelectBtn,
         elements.historyBtn,
         achievementsBtn
@@ -1550,7 +1701,9 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.budgetAmount, handler: elements.saveBudgetBtn },
       { element: elements.budgetDays, handler: elements.saveBudgetBtn },
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
-      { element: elements.savingsGoal, handler: elements.saveSavingsBtn }
+      { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
+      { element: elements.fundName, handler: elements.saveFundBtn },
+      { element: elements.fundTotal, handler: elements.saveFundBtn }
     ];
 
     enterHandlers.forEach(item => {
