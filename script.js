@@ -12,6 +12,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Данные приложения
   let financeData = JSON.parse(localStorage.getItem('financeData')) || {};
+
+
+  function preventPullToRefresh() {
+  let startY = 0;
+  let isAtTop = false;
+
+  document.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+    isAtTop = document.documentElement.scrollTop === 0;
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function(e) {
+    const y = e.touches[0].clientY;
+    if (isAtTop && y > startY) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+}
   
   // Инициализация данных для года
   function initYearData(year) {
@@ -1717,6 +1735,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Инициализация приложения
   function initializeApp() {
+  preventPullToRefresh();
     // Установка активного месяца
     elements.monthTabs[currentMonth].classList.add('active');
     
