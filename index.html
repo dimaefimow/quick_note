@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+  <meta name="telegram-web-app-disable-pull-to-refresh" content="true">
   <title>Финансовая аналитика</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
@@ -454,5 +455,17 @@
   
   <!-- Подключение основного скрипта -->
   <script src="script.js"></script>
+  <!-- Подключите перед закрывающим тегом body -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.enableClosingConfirmation();
+      Telegram.WebApp.setHeaderColor('#f0f4f8');
+      Telegram.WebApp.setBackgroundColor('#f0f4f8');
+    }
+  });
+</script>
 </body>
 </html>
