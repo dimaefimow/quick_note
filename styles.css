@@ -1,4 +1,3 @@
-/* Основные переменные */
 :root {
   --bg: #f0f4f8;
   --text: #333;
@@ -11,27 +10,19 @@
   --border-radius: 12px;
 }
 
-/* Базовые стили */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   margin: 0;
   padding: 0;
+  transition: var(--transition);
   min-height: 100vh;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  line-height: 1.5;
 }
 
-/* Контейнер приложения */
 .app {
   max-width: 1200px;
   margin: 0 auto;
@@ -39,7 +30,7 @@ body {
   position: relative;
 }
 
-/* Заголовок и навигация */
+/* Header styles */
 header {
   padding-top: 32px;
   margin-bottom: 22px;
@@ -75,7 +66,32 @@ header {
   display: none;
 }
 
-/* Кнопки */
+/* Theme toggle button */
+.theme-toggle {
+  min-width: 40px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+.theme-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+/* Inputs and buttons */
+.inputs, .summary, .widgets, .charts, .analytics {
+  margin: 15px 0;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .neumorphic-btn {
   padding: 10px 15px;
   border: none;
@@ -126,7 +142,6 @@ header {
   background: var(--primary-hover);
 }
 
-/* Поля ввода */
 .neumorphic-input {
   padding: 10px 12px;
   border: none;
@@ -147,7 +162,7 @@ header {
               inset -5px -5px 10px var(--shadow-light);
 }
 
-/* Карточки */
+/* Cards */
 .neumorphic-card {
   background: var(--bg);
   border-radius: var(--border-radius);
@@ -165,7 +180,7 @@ header {
               -8px -8px 15px var(--shadow-light);
 }
 
-/* Модальные окна */
+/* Menus */
 .neumorphic-menu {
   display: none;
   position: fixed;
@@ -193,7 +208,7 @@ header {
   animation: none;
 }
 
-/* Дополнительное меню */
+/* Стили для меню (☰) */
 #more-menu {
   width: 250px;
   padding: 15px;
@@ -221,7 +236,7 @@ header {
   margin: 0;
 }
 
-/* Виджет категорий */
+/* Стили для виджета категорий */
 .category-widget {
   position: fixed;
   bottom: -100%;
@@ -264,7 +279,6 @@ header {
   gap: 10px;
 }
 
-/* Финансовое меню */
 .financial-menu {
   overflow-x: hidden;   
   width: 95%;
@@ -282,7 +296,7 @@ header {
   max-width: 800px;
 }
 
-/* Сводка */
+/* Summary section */
 .summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -306,7 +320,7 @@ header {
   font-weight: 700;
 }
 
-/* Виджеты */
+/* Widgets */
 .widgets {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -388,7 +402,7 @@ header {
   font-size: 0.8rem;
 }
 
-/* Прогресс-бары */
+/* Savings widget */
 .savings-progress-container {
   height: 10px;
   background: rgba(0,0,0,0.1);
@@ -399,20 +413,12 @@ header {
 
 .savings-progress-bar {
   height: 100%;
-  border-radius: 5px;
-  transition: width 0.5s ease, background-color 0.3s ease;
-}
-
-/* Виджет накоплений */
-.savings-widget {
-  --widget-color: #2ecc71;
-}
-
-.savings-widget .savings-progress-bar {
   background: #2ecc71;
+  border-radius: 5px;
+  transition: width 3.5s ease;
 }
 
-/* Виджет фонда */
+/* Fund widget */
 .fund-widget {
   --widget-color: #e74c3c;
 }
@@ -421,11 +427,15 @@ header {
   background: #e74c3c;
 }
 
-/* Бюджет */
+/* Стили для виджета бюджета с прогресс-барами */
 .budget-progress-container {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+body.dark .budget-progress-container {
+  border-top-color: rgba(255,255,255,0.1);
 }
 
 .progress-info {
@@ -440,16 +450,76 @@ header {
   margin-bottom: 12px;
 }
 
-/* Градиенты для прогресс-баров */
+/* Градиент для прогресс-бара дней */
 .days-progress {
   background: linear-gradient(90deg, #3498db, #2980b9);
 }
 
+/* Градиент для прогресс-бара средств */
 .funds-progress {
   background: linear-gradient(90deg, #2ecc71, #27ae60);
 }
 
-/* Выбор месяца */
+/* Добавление анимации */
+.savings-progress-bar {
+  transition: width 0.5s ease, background-color 0.3s ease;
+}
+
+.savings-progress-container:hover .funds-progress {
+  background: #27ae60;
+}
+.funds-progress {
+  background: #2ecc71;
+}
+
+/* Стиль для превью виджета накоплений */
+.savings-widget-preview {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.savings-widget-preview h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  color: #2ecc71;
+}
+
+/* Стиль для превью виджета фонда */
+.fund-widget-preview {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.fund-widget-preview h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  color: #e74c3c;
+}
+
+/* Кнопка в стиле виджета */
+#enable-savings-btn, #enable-fund-btn {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+#enable-fund-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+/* Month selector */
 .month-selector {
   margin-bottom: 15px;
   background: var(--bg);
@@ -504,7 +574,7 @@ header {
               inset -2px -2px 4px rgba(255,255,255,0.1);
 }
 
-/* Графики */
+/* Charts */
 .chart-container {
   position: relative;
   height: 300px;
@@ -520,7 +590,22 @@ header {
   contain: content;
 }
 
-/* Финансовые карточки */
+body.dark .chart-container,
+body.dark .financial-chart-container,
+body.dark .trend-chart-container {
+  background: #1e1e1e;
+}
+
+body.dark canvas {
+  filter: brightness(0.9);
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Financial cards */
 .financial-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -559,48 +644,37 @@ header {
   word-break: break-word;
 }
 
-/* Мини-графики */
-.mini-charts-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 15px;
-  margin-left: -10px;
-  margin-right: -10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  width: calc(100% + 20px);
-}
-
+/* Financial charts */
 .financial-charts {
   display: flex;
-  min-width: max-content;
-  gap: 15px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .financial-chart-container {
-  min-width: 280px;
-  flex-shrink: 0;
-  height: 220px;
   background: var(--bg);
   border-radius: var(--border-radius);
-  padding: 10px;
+  padding: 15px;
   box-shadow: 3px 3px 6px var(--shadow-dark), 
               -3px -3px 6px var(--shadow-light);
+  min-width: 280px;
+  flex-shrink: 0;
+  overflow: hidden;
+  contain: content;
 }
 
 .financial-chart-container h4 {
-  margin: 0 0 5px 0;
-  font-size: 0.9rem;
+  margin: 0 0 10px 0;
   text-align: center;
-  white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .financial-chart-container canvas {
   width: 100% !important;
-  height: 180px !important;
+  height: 200px !important;
 }
 
-/* Категории отчетов */
+/* Categories report - горизонтальный скролл */
 .top-categories-report {
   background: var(--bg);
   border-radius: var(--border-radius);
@@ -665,6 +739,10 @@ header {
   border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
+body.dark .month-categories h5 {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
 .category-item {
   display: flex;
   justify-content: space-between;
@@ -676,9 +754,17 @@ header {
   transition: var(--transition);
 }
 
+body.dark .category-item {
+  background: rgba(255,255,255,0.05);
+}
+
 .category-item.total {
   background: rgba(52, 152, 219, 0.1);
   font-weight: bold;
+}
+
+body.dark .category-item.total {
+  background: rgba(52, 152, 219, 0.2);
 }
 
 .category-item:hover {
@@ -697,7 +783,7 @@ header {
   line-height: 1;
 }
 
-/* Динамика трат по категориям */
+/* Динамика трат по категориям - горизонтальный скролл */
 .category-trends {
   margin-top: 20px;
   background: var(--bg);
@@ -752,7 +838,7 @@ header {
   contain: content;
 }
 
-/* Виджет бюджета */
+/* Budget widget */
 .daily-budget-widget {
   margin: 15px 0;
   position: relative;
@@ -788,7 +874,135 @@ header {
   opacity: 0.8;
 }
 
-/* Сообщения */
+#set-budget-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 350px;
+  padding: 15px;
+}
+
+#set-budget-modal h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+#set-budget-modal .neumorphic-input {
+  margin-bottom: 15px;
+}
+
+#set-budget-modal .button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#set-budget-modal .button-group .neumorphic-btn {
+  flex: 1;
+}
+
+/* Savings modal */
+#savings-modal, #fund-modal {
+  width: 90%;
+  max-width: 350px;
+}
+
+#savings-modal .neumorphic-input, #fund-modal .neumorphic-input {
+  margin-bottom: 15px;
+}
+
+#savings-modal .button-group, #fund-modal .button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#savings-modal .button-group .neumorphic-btn, #fund-modal .button-group .neumorphic-btn {
+  flex: 1;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.5s ease;
+}
+
+.negative {
+  color: #e74c3c !important;
+}
+
+/* Dark theme */
+body.dark {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --shadow-light: #2a2a2a;
+  --shadow-dark: #0a0a0a;
+  --primary: #2980b9;
+  --primary-hover: #3498db;
+}
+
+body.dark .theme-icon {
+  transform: rotate(180deg);
+}
+
+body.dark .neumorphic-input {
+  color: white !important;
+}
+
+body.dark input::placeholder {
+  color: #aaa !important;
+  opacity: 1;
+}
+
+/* Исправление для мобильных графиков */
+.mini-charts-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 15px;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: calc(100% + 20px);
+}
+
+.financial-charts {
+  display: flex;
+  min-width: max-content;
+  gap: 15px;
+}
+
+.financial-chart-container {
+  min-width: 280px;
+  flex-shrink: 0;
+  height: 220px;
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+}
+
+.financial-chart-container h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.financial-chart-container canvas {
+  width: 100% !important;
+  height: 180px !important;
+}
+
+/* Success message */
 .success-message {
   position: fixed;
   bottom: 20px;
@@ -810,7 +1024,7 @@ header {
   100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
 }
 
-/* История трат */
+/* History items */
 .history-item {
   padding: 10px;
   margin: 5px 0;
@@ -821,12 +1035,20 @@ header {
   align-items: center;
 }
 
+body.dark .history-item {
+  background: rgba(255,255,255,0.05);
+}
+
 .history-date {
   font-size: 0.8rem;
   color: #666;
 }
 
-/* Выбор года */
+body.dark .history-date {
+  color: #aaa;
+}
+
+/* Year selection */
 .year-list {
   display: flex;
   flex-direction: column;
@@ -854,7 +1076,7 @@ header {
   color: white;
 }
 
-/* Обучение */
+/* Tutorial overlay */
 #tutorial-overlay {
   display: none;
   position: fixed;
@@ -895,7 +1117,7 @@ header {
   padding: 8px 16px;
 }
 
-/* Достижения */
+/* Achievements */
 .achievements-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -919,10 +1141,18 @@ header {
   transition: var(--transition);
 }
 
+body.dark .achievement-widget {
+  background: rgba(255,255,255,0.05);
+}
+
 .achievement-widget.unlocked {
   opacity: 1;
   background: rgba(46, 204, 113, 0.1);
   box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);
+}
+
+body.dark .achievement-widget.unlocked {
+  background: rgba(46, 204, 113, 0.2);
 }
 
 .achievement-widget.locked {
@@ -982,73 +1212,7 @@ header {
   color: #f1c40f;
 }
 
-/* Темная тема */
-body.dark {
-  --bg: #1a1a1a;
-  --text: #f0f0f0;
-  --shadow-light: #2a2a2a;
-  --shadow-dark: #0a0a0a;
-  --primary: #2980b9;
-  --primary-hover: #3498db;
-}
-
-body.dark .theme-icon {
-  transform: rotate(180deg);
-}
-
-body.dark .neumorphic-input {
-  color: white !important;
-}
-
-body.dark input::placeholder {
-  color: #aaa !important;
-  opacity: 1;
-}
-
-body.dark .month-categories h5,
-body.dark .budget-progress-container,
-body.dark .category-item,
-body.dark .history-item {
-  border-color: rgba(255,255,255,0.1);
-}
-
-body.dark .category-item,
-body.dark .history-item {
-  background: rgba(255,255,255,0.05);
-}
-
-body.dark .category-item.total {
-  background: rgba(52, 152, 219, 0.2);
-}
-
-body.dark .achievement-widget {
-  background: rgba(255,255,255,0.05);
-}
-
-body.dark .achievement-widget.unlocked {
-  background: rgba(46, 204, 113, 0.2);
-}
-
-body.dark .history-date {
-  color: #aaa;
-}
-
-/* Анимации */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.pulse {
-  animation: pulse 0.5s ease;
-}
-
-.negative {
-  color: #e74c3c !important;
-}
-
-/* Адаптация для планшетов */
+/* Tablet adaptation */
 @media (min-width: 768px) {
   .app {
     padding: 20px;
@@ -1142,7 +1306,7 @@ body.dark .history-date {
   }
 }
 
-/* Адаптация для десктопов */
+/* Desktop adaptation */
 @media (min-width: 992px) {
   .widgets {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -1161,7 +1325,7 @@ body.dark .history-date {
   }
 }
 
-/* Адаптация для мобильных */
+/* Mobile adaptation */
 @media (max-width: 767px) {
   header {
     flex-direction: column;
@@ -1239,7 +1403,7 @@ body.dark .history-date {
   }
 }
 
-/* Адаптация для маленьких мобильных */
+/* Small mobile devices */
 @media (max-width: 400px) {
   .widgets {
     grid-template-columns: 1fr;
