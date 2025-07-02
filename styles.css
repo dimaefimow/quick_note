@@ -651,8 +651,6 @@ canvas {
               -3px -3px 6px var(--shadow-light);
   min-width: 280px;
   flex-shrink: 0;
-  overflow: hidden;
-  contain: content;
 }
 
 .financial-chart-container h4 {
