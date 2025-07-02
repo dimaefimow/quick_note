@@ -41,13 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
     dailyHistory: {}
   };
 
-  // Данные накоплений
-  let savingsData = JSON.parse(localStorage.getItem('savingsData')) || {
-    enabled: false,
-    name: '',
-    goal: 0,
-    current: 0
-  };
+  // Данные накоплений (теперь массив виджетов)
+  let savingsWidgets = JSON.parse(localStorage.getItem('savingsWidgets')) || [];
 
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
@@ -432,8 +427,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Отрисовка виджетов категорий
     renderWidgets();
 
-    // Отрисовка виджета накоплений
-    renderSavingsWidget();
+    // Отрисовка виджетов накоплений
+    renderSavingsWidgets();
     
     // Отрисовка истории трат
     renderExpenseHistory();
@@ -494,34 +489,117 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Отрисовка виджета накоплений
-  function renderSavingsWidget() {
-    if (!savingsData.enabled) return;
+  // Отрисовка всех виджетов накоплений
+  function renderSavingsWidgets() {
+    // Сначала удаляем все существующие виджеты накоплений
+    document.querySelectorAll('.savings-widget').forEach(widget => widget.remove());
     
-    const widget = document.createElement('div');
-    widget.className = 'neumorphic-card widget savings-widget';
-    widget.style.setProperty('--widget-color', '#2ecc71');
-    
-    const progress = savingsData.goal > 0 ? Math.min(100, Math.round((savingsData.current / savingsData.goal) * 100)) : 0;
-    
-    widget.innerHTML = `
-      <button class="delete-widget-btn" id="disable-savings-btn">×</button>
-      <h3 style="color: #2ecc71">${savingsData.name || 'Накопления'}</h3>
-      <div class="savings-progress-container">
-        <div class="savings-progress-bar" style="width: ${progress}%"></div>
-      </div>
-      <p>${formatCurrency(savingsData.current)} / ${formatCurrency(savingsData.goal)} (${progress}%)</p>
-      <div class="widget-input-group">
-        <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="savings-amount">
-        <button class="neumorphic-btn small" id="add-to-savings-btn">+</button>
-      </div>
-    `;
-    
-    elements.widgetsContainer.prepend(widget);
+    // Затем создаем новые виджеты из сохраненных данных
+    savingsWidgets.forEach(widget => {
+      const widgetElement = document.createElement('div');
+      widgetElement.className = 'neumorphic-card widget savings-widget';
+      widgetElement.dataset.widgetId = widget.id;
+      widgetElement.style.setProperty('--widget-color', widget.color);
+      
+      const progress = widget.goal > 0 
+        ? Math.min(100, Math.round((widget.current / widget.goal) * 100)) 
+        : 0;
+      
+      widgetElement.innerHTML = `
+        <button class="delete-widget-btn" data-widget-id="${widget.id}">×</button>
+        <h3 style="color: ${widget.color}">${widget.name}</h3>
+        <div class="savings-progress-container">
+          <div class="savings-progress-bar" style="width: ${progress}%"></div>
+        </div>
+        <p>${formatCurrency(widget.current)} / ${formatCurrency(widget.goal)} (${progress}%)</p>
+        <div class="widget-input-group">
+          <input type="number" class="neumorphic-input widget-input savings-amount" 
+                placeholder="Сумма" data-widget-id="${widget.id}">
+          <button class="neumorphic-btn small add-savings-btn" 
+                  data-widget-id="${widget.id}">+</button>
+        </div>
+      `;
+      
+      elements.widgetsContainer.prepend(widgetElement);
+      
+      // Добавляем обработчики для нового виджета
+      widgetElement.querySelector('.add-savings-btn').addEventListener('click', addToSavings);
+      widgetElement.querySelector('.delete-widget-btn').addEventListener('click', deleteSavingsWidget);
+    });
+  }
 
-    // Добавляем обработчики для кнопок виджета накоплений
-    document.getElementById('disable-savings-btn')?.addEventListener('click', disableSavings);
-    document.getElementById('add-to-savings-btn')?.addEventListener('click', addToSavings);
+  // Добавление средств к накоплениям
+  function addToSavings() {
+    const widgetId = this.dataset.widgetId;
+    const input = document.querySelector(`.savings-amount[data-widget-id="${widgetId}"]`);
+    const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
+    
+    if (!isNaN(amount) && amount > 0) {
+      const widgetIndex = savingsWidgets.findIndex(w => w.id === widgetId);
+      if (widgetIndex !== -1) {
+        savingsWidgets[widgetIndex].current += amount;
+        localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+        
+        // Обновляем только этот виджет
+        updateSingleWidget(widgetId);
+        
+        input.value = '';
+        this.classList.add('pulse');
+        setTimeout(() => this.classList.remove('pulse'), 500);
+      }
+    }
+  }
+
+  // Удаление виджета накоплений
+  function deleteSavingsWidget() {
+    const widgetId = this.dataset.widgetId;
+    if (confirm('Удалить этот виджет накоплений?')) {
+      savingsWidgets = savingsWidgets.filter(w => w.id !== widgetId);
+      localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+      document.querySelector(`.savings-widget[data-widget-id="${widgetId}"]`).remove();
+    }
+  }
+
+  // Обновление одного виджета накоплений
+  function updateSingleWidget(widgetId) {
+    const widgetData = savingsWidgets.find(w => w.id === widgetId);
+    if (!widgetData) return;
+    
+    const widgetElement = document.querySelector(`.savings-widget[data-widget-id="${widgetId}"]`);
+    if (!widgetElement) return;
+    
+    const progress = widgetData.goal > 0 
+      ? Math.min(100, Math.round((widgetData.current / widgetData.goal) * 100)) 
+      : 0;
+    
+    widgetElement.querySelector('.savings-progress-bar').style.width = `${progress}%`;
+    widgetElement.querySelector('p').textContent = 
+      `${formatCurrency(widgetData.current)} / ${formatCurrency(widgetData.goal)} (${progress}%)`;
+  }
+
+  // Создание нового виджета накоплений
+  function createNewSavingsWidget(name = '', goal = 0, current = 0) {
+    const widgetId = Date.now().toString(); // Уникальный ID для виджета
+    
+    const newWidget = {
+      id: widgetId,
+      name: name || `Накопления ${savingsWidgets.length + 1}`,
+      goal: goal || 0,
+      current: current || 0,
+      color: getRandomWidgetColor()
+    };
+    
+    savingsWidgets.push(newWidget);
+    localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+    
+    // Отрисовываем новый виджет
+    renderSavingsWidgets();
+  }
+
+  // Генерация случайного цвета для виджета
+  function getRandomWidgetColor() {
+    const colors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c'];
+    return colors[Math.floor(Math.random() * colors.length)];
   }
 
   // Удаление виджета категории
@@ -568,32 +646,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('budgetData', JSON.stringify(budgetData));
       }
       
-      updateUI();
-      
-      const btn = input.nextElementSibling;
-      btn.classList.add('pulse');
-      setTimeout(() => btn.classList.remove('pulse'), 500);
-    }
-  }
-
-  // Отключение накоплений
-  function disableSavings() {
-    if (confirm('Отключить виджет накоплений?')) {
-      savingsData.enabled = false;
-      localStorage.setItem('savingsData', JSON.stringify(savingsData));
-      updateUI();
-    }
-  }
-
-  // Добавление к накоплениям
-  function addToSavings() {
-    const input = document.getElementById('savings-amount');
-    const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
-    
-    if (!isNaN(amount) && amount > 0) {
-      savingsData.current += amount;
-      localStorage.setItem('savingsData', JSON.stringify(savingsData));
-      input.value = '';
       updateUI();
       
       const btn = input.nextElementSibling;
@@ -1207,25 +1259,18 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.enableSavingsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       toggleMenu(elements.savingsModal);
+      
+      // Сбрасываем поля формы при открытии
+      elements.savingsName.value = '';
+      elements.savingsGoal.value = '';
     });
 
     elements.saveSavingsBtn.addEventListener('click', () => {
-      const name = elements.savingsName.value.trim();
+      const name = elements.savingsName.value.trim() || `Накопления ${savingsWidgets.length + 1}`;
       const goal = parseFloat(elements.savingsGoal.value.replace(/\s+/g, '').replace(',', '.'));
       
-      if (name && !isNaN(goal) && goal > 0) {
-        savingsData = {
-          enabled: true,
-          name: name,
-          goal: goal,
-          current: savingsData.current || 0
-        };
-        localStorage.setItem('savingsData', JSON.stringify(savingsData));
-        elements.savingsModal.classList.remove('show');
-        updateUI();
-        
-        showSuccessMessage('Цель накоплений установлена!');
-      }
+      createNewSavingsWidget(name, goal, 0);
+      elements.savingsModal.classList.remove('show');
     });
 
     elements.cancelSavingsBtn.addEventListener('click', () => {
