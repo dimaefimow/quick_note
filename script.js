@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // Данные достижений
-  const achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
+  let achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
     // Экономия
     saver: { unlocked: false, title: "Эконом", description: "Потратить <50% дохода" },
     superSaver: { unlocked: false, title: "Экономный как экономная экономка", description: "Потратить <30% дохода" },
@@ -104,7 +104,17 @@ document.addEventListener('DOMContentLoaded', function() {
     weekendWarrior: { unlocked: false, title: "Выходной", description: "Ввести доход в выходной" },
     
     // Долгосрочные
-    marathoner: { unlocked: false, title: "Всё посчитано", description: "Использовать 100 дней" }
+    marathoner: { unlocked: false, title: "Всё посчитано", description: "Использовать 100 дней" },
+    
+    // Новые достижения
+    overspending: { unlocked: false, title: "Оказия", description: "Вы потратили больше чем планировали" },
+    restaurantSpender: { unlocked: false, title: "Попитонить", description: "Создать категорию 'Рестораны' и потратить на неё 5000 за сутки" },
+    lowIncome: { unlocked: false, title: "Бедолага", description: "Ваш доход за месяц < 50000" },
+    appleSpender: { unlocked: false, title: "Быть богатым, безупречным", description: "Потратить на категорию 'Золотое яблоко' > 8000 за месяц" },
+    highIncome: { unlocked: false, title: "Базовый минимум", description: "Ваш доход за месяц > 200000" },
+    capitalGrowth: { unlocked: false, title: "Как всё идет, иду наверх, никак иначе", description: "Капитализация +100% месяц к месяцу" },
+    lowCapital: { unlocked: false, title: "Ред флаг", description: "Капитализация < 30000" },
+    bigIncome: { unlocked: false, title: "Город под подошвой", description: "Записать доход 1000000 за раз" }
   };
 
   // Переменные для графиков
@@ -561,6 +571,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthData = financeData[currentYear][currentMonth];
     const categories = monthData.categories || {};
     
+    // Сначала добавляем виджеты накоплений и фонда
+    renderSavingsWidget();
+    renderFundWidget();
+    
+    // Затем добавляем виджеты категорий
     Object.entries(categories).forEach(([cat, val], index) => {
       const widget = document.createElement('div');
       widget.className = 'neumorphic-card widget';
@@ -599,6 +614,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка виджета накоплений
   function renderSavingsWidget() {
+    // Проверяем, есть ли уже такой виджет
+    const existingWidget = document.querySelector('.savings-widget');
+    if (existingWidget) return;
+    
     if (!savingsData.enabled) return;
     
     const widget = document.createElement('div');
@@ -629,6 +648,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка виджета фонда
   function renderFundWidget() {
+    // Проверяем, есть ли уже такой виджет
+    const existingWidget = document.querySelector('.fund-widget');
+    if (existingWidget) return;
+    
     if (!fundData.enabled) return;
     
     const widget = document.createElement('div');
@@ -1183,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Проверка достижений
   function checkAchievements() {
     const monthData = financeData[currentYear][currentMonth];
+    const prevMonthData = financeData[currentYear][(currentMonth - 1 + 12) % 12] || { capital: 0 };
     const income = monthData.income || 0;
     const expense = monthData.expense || 0;
     const capital = monthData.capital || 0;
@@ -1276,6 +1300,65 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fundData.enabled && fundData.current <= 0 && !achievementsData.fundMaster.unlocked) {
       achievementsData.fundMaster.unlocked = true;
       showAchievementUnlocked(achievementsData.fundMaster.title);
+    }
+    
+    // Оказия - потратили больше чем планировали
+    if (budgetData.startDate && budgetData.totalAmount > 0 && 
+        monthData.expense > budgetData.totalAmount && 
+        !achievementsData.overspending.unlocked) {
+      achievementsData.overspending.unlocked = true;
+      showAchievementUnlocked(achievementsData.overspending.title);
+    }
+    
+    // Попитонить - рестораны 5000 за сутки
+    if (monthData.categories['Рестораны'] || monthData.categories['рестораны']) {
+      const restaurantSpent = monthData.categories['Рестораны'] || monthData.categories['рестораны'];
+      const today = new Date().toISOString().split('T')[0];
+      const todayExpenses = monthData.expensesHistory.filter(e => 
+        e.date.includes(today) && 
+        (e.category === 'Рестораны' || e.category === 'рестораны')
+      ).reduce((sum, e) => sum + e.amount, 0);
+      
+      if (todayExpenses >= 5000 && !achievementsData.restaurantSpender.unlocked) {
+        achievementsData.restaurantSpender.unlocked = true;
+        showAchievementUnlocked(achievementsData.restaurantSpender.title);
+      }
+    }
+    
+    // Бедолага - доход < 50000
+    if (monthData.income > 0 && monthData.income < 50000 && 
+        !achievementsData.lowIncome.unlocked) {
+      achievementsData.lowIncome.unlocked = true;
+      showAchievementUnlocked(achievementsData.lowIncome.title);
+    }
+    
+    // Быть богатым - золотое яблоко > 8000
+    if (monthData.categories['Золотое яблоко'] || monthData.categories['золотое яблоко']) {
+      const appleSpent = monthData.categories['Золотое яблоко'] || monthData.categories['золотое яблоко'];
+      if (appleSpent > 8000 && !achievementsData.appleSpender.unlocked) {
+        achievementsData.appleSpender.unlocked = true;
+        showAchievementUnlocked(achievementsData.appleSpender.title);
+      }
+    }
+    
+    // Базовый минимум - доход > 200000
+    if (monthData.income > 200000 && !achievementsData.highIncome.unlocked) {
+      achievementsData.highIncome.unlocked = true;
+      showAchievementUnlocked(achievementsData.highIncome.title);
+    }
+    
+    // Капитализация +100%
+    if (prevMonthData.capital > 0 && 
+        monthData.capital >= prevMonthData.capital * 2 && 
+        !achievementsData.capitalGrowth.unlocked) {
+      achievementsData.capitalGrowth.unlocked = true;
+      showAchievementUnlocked(achievementsData.capitalGrowth.title);
+    }
+    
+    // Ред флаг - капитализация < 30000
+    if (monthData.capital < 30000 && !achievementsData.lowCapital.unlocked) {
+      achievementsData.lowCapital.unlocked = true;
+      showAchievementUnlocked(achievementsData.lowCapital.title);
     }
     
     saveData();
@@ -1432,6 +1515,13 @@ document.addEventListener('DOMContentLoaded', function() {
         saveData();
         updateUI();
         
+        // Проверка достижения "Город под подошвой"
+        if (incomeVal >= 1000000 && !achievementsData.bigIncome.unlocked) {
+          achievementsData.bigIncome.unlocked = true;
+          showAchievementUnlocked(achievementsData.bigIncome.title);
+          saveData();
+        }
+        
         elements.addIncomeBtn.classList.add('pulse');
         setTimeout(() => elements.addIncomeBtn.classList.remove('pulse'), 500);
       }
@@ -1441,6 +1531,15 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.addCategoryBtn.addEventListener('click', () => {
       const categoryName = elements.newCategoryInput.value.trim();
       if (categoryName) {
+        // Проверяем, есть ли уже такая категория (без учета регистра)
+        const existingCategory = Object.keys(financeData[currentYear][currentMonth].categories)
+          .find(cat => cat.toLowerCase() === categoryName.toLowerCase());
+        
+        if (existingCategory) {
+          showSuccessMessage(`Категория "${existingCategory}" уже существует!`);
+          return;
+        }
+        
         // Добавляем категорию во все месяцы текущего года
         for (let i = 0; i < 12; i++) {
           const monthData = financeData[currentYear][i];
