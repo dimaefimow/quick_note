@@ -49,74 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
     current: 0
   };
 
-  // Данные фонда
-  let fundData = JSON.parse(localStorage.getItem('fundData')) || {
-    enabled: false,
-    name: '',
-    total: 0,
-    current: 0
-  };
-
-  // Данные достижений
-  let achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {
-    // Экономия
-    saver: { unlocked: false, title: "Эконом", description: "Потратить <50% дохода" },
-    superSaver: { unlocked: false, title: "Экономный как экономная экономка", description: "Потратить <30% дохода" },
-    
-    // Доходы
-    earner: { unlocked: false, title: "Заработок", description: "Заработать >50k за месяц" },
-    superEarner: { unlocked: false, title: "большой кэш", description: "Заработать >100k за месяц" },
-    
-    // Капитал
-    investor: { unlocked: false, title: "Инвестор", description: "Капитал >100k" },
-    
-    // Бюджет
-    budgetKeeper: { unlocked: false, title: "Всё идёт по плану", description: "Уложиться в бюджет" },
-    
-    // Накопления
-    saverGoal: { unlocked: false, title: "Накопитель", description: "Достичь цели накоплений" },
-    
-    // Фонд
-    fundMaster: { unlocked: false, title: "Пустая казна", description: "Использовать весь фонд" },
-    
-    // Категории
-    categoryMaster: { unlocked: false, title: "Всё по полочкам", description: "Иметь 5+ категорий" },
-    
-    // Время
-    earlyBird: { unlocked: false, title: "Доброе утро", description: "Ввести доход до 9 утра" },
-    nightOwl: { unlocked: false, title: "Сова", description: "Ввести доход после 11 вечера" },
-    
-    // Постоянство
-    consistent: { unlocked: false, title: "День за днём", description: "Использовать 30 дней подряд" },
-    
-    // Особые
-    firstIncome: { unlocked: false, title: "Первый шаг", description: "Ввести первый доход" },
-    firstExpense: { unlocked: false, title: "Первая трата", description: "Ввести первую трату" },
-    
-    // Годовые
-    yearComplete: { unlocked: false, title: "Годовой план", description: "Заполнить все месяцы года" },
-    
-    // Прочее
-    balanced: { unlocked: false, title: "Рубль в рубль", description: "Доходы = Расходам" },
-    zeroWaste: { unlocked: false, title: "Содержанка", description: "0 трат за день" },
-    
-    // Специальные
-    weekendWarrior: { unlocked: false, title: "Выходной", description: "Ввести доход в выходной" },
-    
-    // Долгосрочные
-    marathoner: { unlocked: false, title: "Всё посчитано", description: "Использовать 100 дней" },
-    
-    // Новые достижения
-    overspending: { unlocked: false, title: "Оказия", description: "Вы потратили больше чем планировали" },
-    restaurantSpender: { unlocked: false, title: "Попитонить", description: "Создать категорию 'Рестораны' и потратить на неё 5000 за сутки" },
-    lowIncome: { unlocked: false, title: "Бедолага", description: "Ваш доход за месяц < 50000" },
-    appleSpender: { unlocked: false, title: "Быть богатым, безупречным", description: "Потратить на категорию 'Золотое яблоко' > 8000 за месяц" },
-    highIncome: { unlocked: false, title: "Базовый минимум", description: "Ваш доход за месяц > 200000" },
-    capitalGrowth: { unlocked: false, title: "Как всё идет, иду наверх, никак иначе", description: "Капитализация +100% месяц к месяцу" },
-    lowCapital: { unlocked: false, title: "Ред флаг", description: "Капитализация < 30000" },
-    bigIncome: { unlocked: false, title: "Город под подошвой", description: "Записать доход 1000000 за раз" }
-  };
-
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
   let miniCapitalChart, miniExpenseChart;
@@ -178,12 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     savingsGoal: document.getElementById('savings-goal'),
     saveSavingsBtn: document.getElementById('save-savings-btn'),
     cancelSavingsBtn: document.getElementById('cancel-savings-btn'),
-    enableFundBtn: document.getElementById('enable-fund-btn'),
-    fundModal: document.getElementById('fund-modal'),
-    fundName: document.getElementById('fund-name'),
-    fundTotal: document.getElementById('fund-total'),
-    saveFundBtn: document.getElementById('save-fund-btn'),
-    cancelFundBtn: document.getElementById('cancel-fund-btn'),
     closeReportsBtn: document.getElementById('close-reports-btn'),
     closeCategoryWidget: document.getElementById('close-category-widget'),
     daysProgressBar: document.querySelector('.days-progress'),
@@ -209,19 +135,12 @@ document.addEventListener('DOMContentLoaded', function() {
     tutorialText: document.getElementById('tutorial-text'),
     tutorialPrev: document.getElementById('tutorial-prev'),
     tutorialNext: document.getElementById('tutorial-next'),
-    tutorialClose: document.getElementById('tutorial-close'),
-    achievementsModal: document.getElementById('achievements-modal'),
-    achievementsList: document.getElementById('achievements-list'),
-    closeAchievements: document.getElementById('close-achievements')
+    tutorialClose: document.getElementById('tutorial-close')
   };
 
   // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
-    localStorage.setItem('budgetData', JSON.stringify(budgetData));
-    localStorage.setItem('savingsData', JSON.stringify(savingsData));
-    localStorage.setItem('fundData', JSON.stringify(fundData));
-    localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
     updateCategoriesList();
   }
 
@@ -420,23 +339,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Настройки графиков
   function getChartOptions(title) {
-    const isMobile = window.innerWidth < 768;
     return {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { 
-          display: false,
-          labels: {
-            font: {
-              size: isMobile ? 10 : 12
-            }
-          }
-        },
+        legend: { display: false },
         tooltip: {
-          bodyFont: {
-            size: isMobile ? 12 : 14
-          },
           callbacks: {
             label: function(context) {
               return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
@@ -444,11 +352,8 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         },
         title: {
-          display: !!title,
-          text: title,
-          font: {
-            size: isMobile ? 14 : 16
-          }
+          display: false,
+          text: title
         }
       },
       scales: {
@@ -456,12 +361,9 @@ document.addEventListener('DOMContentLoaded', function() {
           beginAtZero: true,
           ticks: {
             callback: function(value) {
-              return (value / 1000).toFixed(value >= 10000 ? 0 : 1) + 'k ₽';
+              return (value / 1000).toFixed(0) + 'k ₽';
             },
-            color: document.body.classList.contains('dark') ? '#eee' : '#333',
-            font: {
-              size: isMobile ? 10 : 12
-            }
+            color: document.body.classList.contains('dark') ? '#eee' : '#333'
           },
           grid: {
             color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
@@ -472,10 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
             display: false
           },
           ticks: {
-            color: document.body.classList.contains('dark') ? '#eee' : '#333',
-            font: {
-              size: isMobile ? 10 : 12
-            }
+            color: document.body.classList.contains('dark') ? '#eee' : '#333'
           }
         }
       },
@@ -483,19 +382,13 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 1000,
         easing: 'easeOutQuart'
       },
-      devicePixelRatio: 2,
-      elements: {
-        bar: {
-          borderRadius: 6,
-          borderWidth: 0
-        },
-        line: {
-          tension: 0.3,
-          borderWidth: 3
-        },
-        point: {
-          radius: 4,
-          hoverRadius: 6
+      devicePixelRatio: 1, // Фиксируем соотношение пикселей
+      layout: {
+        padding: {
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 10
         }
       }
     };
@@ -541,18 +434,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Отрисовка виджета накоплений
     renderSavingsWidget();
-
-    // Отрисовка виджета фонда
-    renderFundWidget();
     
     // Отрисовка истории трат
     renderExpenseHistory();
     
     // Отрисовка графиков динамики категорий
     renderCategoryTrends();
-    
-    // Проверка достижений
-    checkAchievements();
   }
 
   // Отрисовка всех графиков
@@ -571,11 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthData = financeData[currentYear][currentMonth];
     const categories = monthData.categories || {};
     
-    // Сначала добавляем виджеты накоплений и фонда
-    renderSavingsWidget();
-    renderFundWidget();
-    
-    // Затем добавляем виджеты категорий
     Object.entries(categories).forEach(([cat, val], index) => {
       const widget = document.createElement('div');
       widget.className = 'neumorphic-card widget';
@@ -614,10 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка виджета накоплений
   function renderSavingsWidget() {
-    // Проверяем, есть ли уже такой виджет
-    const existingWidget = document.querySelector('.savings-widget');
-    if (existingWidget) return;
-    
     if (!savingsData.enabled) return;
     
     const widget = document.createElement('div');
@@ -644,40 +522,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Добавляем обработчики для кнопок виджета накоплений
     document.getElementById('disable-savings-btn')?.addEventListener('click', disableSavings);
     document.getElementById('add-to-savings-btn')?.addEventListener('click', addToSavings);
-  }
-
-  // Отрисовка виджета фонда
-  function renderFundWidget() {
-    // Проверяем, есть ли уже такой виджет
-    const existingWidget = document.querySelector('.fund-widget');
-    if (existingWidget) return;
-    
-    if (!fundData.enabled) return;
-    
-    const widget = document.createElement('div');
-    widget.className = 'neumorphic-card widget fund-widget';
-    widget.style.setProperty('--widget-color', '#e74c3c');
-    
-    const progress = fundData.total > 0 ? Math.min(100, Math.round((fundData.current / fundData.total) * 100)) : 0;
-    
-    widget.innerHTML = `
-      <button class="delete-widget-btn" id="disable-fund-btn">×</button>
-      <h3 style="color: #e74c3c">${fundData.name || 'Фонд'}</h3>
-      <div class="savings-progress-container">
-        <div class="savings-progress-bar" style="width: ${progress}%"></div>
-      </div>
-      <p>${formatCurrency(fundData.current)} / ${formatCurrency(fundData.total)} (${progress}%)</p>
-      <div class="widget-input-group">
-        <input type="number" class="neumorphic-input widget-input" placeholder="Сумма траты" id="fund-expense">
-        <button class="neumorphic-btn small" id="subtract-from-fund-btn">-</button>
-      </div>
-    `;
-    
-    elements.widgetsContainer.prepend(widget);
-
-    // Добавляем обработчики для кнопок виджета фонда
-    document.getElementById('disable-fund-btn')?.addEventListener('click', disableFund);
-    document.getElementById('subtract-from-fund-btn')?.addEventListener('click', subtractFromFund);
   }
 
   // Удаление виджета категории
@@ -755,52 +599,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const btn = input.nextElementSibling;
       btn.classList.add('pulse');
       setTimeout(() => btn.classList.remove('pulse'), 500);
-      
-      // Проверка достижения цели накоплений
-      if (savingsData.goal > 0 && savingsData.current >= savingsData.goal && 
-          !achievementsData.saverGoal.unlocked) {
-        achievementsData.saverGoal.unlocked = true;
-        showAchievementUnlocked(achievementsData.saverGoal.title);
-        saveData();
-      }
-    }
-  }
-
-  // Отключение фонда
-  function disableFund() {
-    if (confirm('Отключить виджет фонда?')) {
-      fundData.enabled = false;
-      localStorage.setItem('fundData', JSON.stringify(fundData));
-      updateUI();
-    }
-  }
-
-  // Вычитание из фонда
-  function subtractFromFund() {
-    const input = document.getElementById('fund-expense');
-    const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
-    
-    if (!isNaN(amount) && amount > 0) {
-      if (amount > fundData.current) {
-        alert('Недостаточно средств в фонде!');
-        return;
-      }
-      
-      fundData.current -= amount;
-      localStorage.setItem('fundData', JSON.stringify(fundData));
-      input.value = '';
-      updateUI();
-      
-      const btn = input.nextElementSibling;
-      btn.classList.add('pulse');
-      setTimeout(() => btn.classList.remove('pulse'), 500);
-      
-      // Проверка достижения "Фондовик"
-      if (fundData.current <= 0 && !achievementsData.fundMaster.unlocked) {
-        achievementsData.fundMaster.unlocked = true;
-        showAchievementUnlocked(achievementsData.fundMaster.title);
-        saveData();
-      }
     }
   }
 
@@ -1092,13 +890,6 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
     localStorage.setItem('budgetData', JSON.stringify(budgetData));
-    
-    // Проверяем достижение "Бюджетник"
-    if (remainingAmount > 0 && remainingDays > 0 && !achievementsData.budgetKeeper.unlocked) {
-      achievementsData.budgetKeeper.unlocked = true;
-      showAchievementUnlocked(achievementsData.budgetKeeper.title);
-      saveData();
-    }
   }
 
   // Просмотр истории трат
@@ -1203,211 +994,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Проверка достижений
-  function checkAchievements() {
-    const monthData = financeData[currentYear][currentMonth];
-    const prevMonthData = financeData[currentYear][(currentMonth - 1 + 12) % 12] || { capital: 0 };
-    const income = monthData.income || 0;
-    const expense = monthData.expense || 0;
-    const capital = monthData.capital || 0;
-    const categoriesCount = Object.keys(monthData.categories || {}).length;
-    const now = new Date();
-    const hours = now.getHours();
-    const dayOfWeek = now.getDay(); // 0 - воскресенье, 6 - суббота
-    
-    // Проверяем достижения
-    if (income > 0 && !achievementsData.firstIncome.unlocked) {
-      achievementsData.firstIncome.unlocked = true;
-      showAchievementUnlocked(achievementsData.firstIncome.title);
-    }
-    
-    if (expense > 0 && !achievementsData.firstExpense.unlocked) {
-      achievementsData.firstExpense.unlocked = true;
-      showAchievementUnlocked(achievementsData.firstExpense.title);
-    }
-    
-    if (income > 0 && expense/income < 0.5 && !achievementsData.saver.unlocked) {
-      achievementsData.saver.unlocked = true;
-      showAchievementUnlocked(achievementsData.saver.title);
-    }
-    
-    if (income > 0 && expense/income < 0.3 && !achievementsData.superSaver.unlocked) {
-      achievementsData.superSaver.unlocked = true;
-      showAchievementUnlocked(achievementsData.superSaver.title);
-    }
-    
-    if (income > 50000 && !achievementsData.earner.unlocked) {
-      achievementsData.earner.unlocked = true;
-      showAchievementUnlocked(achievementsData.earner.title);
-    }
-    
-    if (income > 100000 && !achievementsData.superEarner.unlocked) {
-      achievementsData.superEarner.unlocked = true;
-      showAchievementUnlocked(achievementsData.superEarner.title);
-    }
-    
-    if (capital > 100000 && !achievementsData.investor.unlocked) {
-      achievementsData.investor.unlocked = true;
-      showAchievementUnlocked(achievementsData.investor.title);
-    }
-    
-    if (categoriesCount >= 5 && !achievementsData.categoryMaster.unlocked) {
-      achievementsData.categoryMaster.unlocked = true;
-      showAchievementUnlocked(achievementsData.categoryMaster.title);
-    }
-    
-    if (hours < 9 && !achievementsData.earlyBird.unlocked) {
-      achievementsData.earlyBird.unlocked = true;
-      showAchievementUnlocked(achievementsData.earlyBird.title);
-    }
-    
-    if (hours >= 23 && !achievementsData.nightOwl.unlocked) {
-      achievementsData.nightOwl.unlocked = true;
-      showAchievementUnlocked(achievementsData.nightOwl.title);
-    }
-    
-    if (income === expense && income > 0 && !achievementsData.balanced.unlocked) {
-      achievementsData.balanced.unlocked = true;
-      showAchievementUnlocked(achievementsData.balanced.title);
-    }
-    
-    if (expense === 0 && income > 0 && !achievementsData.zeroWaste.unlocked) {
-      achievementsData.zeroWaste.unlocked = true;
-      showAchievementUnlocked(achievementsData.zeroWaste.title);
-    }
-    
-    // Проверка на выходной день
-    if ((dayOfWeek === 0 || dayOfWeek === 6) && !achievementsData.weekendWarrior.unlocked) {
-      achievementsData.weekendWarrior.unlocked = true;
-      showAchievementUnlocked(achievementsData.weekendWarrior.title);
-    }
-    
-    // Проверяем заполнение всех месяцев года
-    let allMonthsFilled = true;
-    for (let i = 0; i < 12; i++) {
-      if (financeData[currentYear][i].income === 0 && financeData[currentYear][i].expense === 0) {
-        allMonthsFilled = false;
-        break;
-      }
-    }
-    
-    if (allMonthsFilled && !achievementsData.yearComplete.unlocked) {
-      achievementsData.yearComplete.unlocked = true;
-      showAchievementUnlocked(achievementsData.yearComplete.title);
-    }
-
-    // Проверка достижения "Фондовик"
-    if (fundData.enabled && fundData.current <= 0 && !achievementsData.fundMaster.unlocked) {
-      achievementsData.fundMaster.unlocked = true;
-      showAchievementUnlocked(achievementsData.fundMaster.title);
-    }
-    
-    // Оказия - потратили больше чем планировали
-    if (budgetData.startDate && budgetData.totalAmount > 0 && 
-        monthData.expense > budgetData.totalAmount && 
-        !achievementsData.overspending.unlocked) {
-      achievementsData.overspending.unlocked = true;
-      showAchievementUnlocked(achievementsData.overspending.title);
-    }
-    
-    // Попитонить - рестораны 5000 за сутки
-    if (monthData.categories['Рестораны'] || monthData.categories['рестораны']) {
-      const restaurantSpent = monthData.categories['Рестораны'] || monthData.categories['рестораны'];
-      const today = new Date().toISOString().split('T')[0];
-      const todayExpenses = monthData.expensesHistory.filter(e => 
-        e.date.includes(today) && 
-        (e.category === 'Рестораны' || e.category === 'рестораны')
-      ).reduce((sum, e) => sum + e.amount, 0);
-      
-      if (todayExpenses >= 5000 && !achievementsData.restaurantSpender.unlocked) {
-        achievementsData.restaurantSpender.unlocked = true;
-        showAchievementUnlocked(achievementsData.restaurantSpender.title);
-      }
-    }
-    
-    // Бедолага - доход < 50000
-    if (monthData.income > 0 && monthData.income < 50000 && 
-        !achievementsData.lowIncome.unlocked) {
-      achievementsData.lowIncome.unlocked = true;
-      showAchievementUnlocked(achievementsData.lowIncome.title);
-    }
-    
-    // Быть богатым - золотое яблоко > 8000
-    if (monthData.categories['Золотое яблоко'] || monthData.categories['золотое яблоко']) {
-      const appleSpent = monthData.categories['Золотое яблоко'] || monthData.categories['золотое яблоко'];
-      if (appleSpent > 8000 && !achievementsData.appleSpender.unlocked) {
-        achievementsData.appleSpender.unlocked = true;
-        showAchievementUnlocked(achievementsData.appleSpender.title);
-      }
-    }
-    
-    // Базовый минимум - доход > 200000
-    if (monthData.income > 200000 && !achievementsData.highIncome.unlocked) {
-      achievementsData.highIncome.unlocked = true;
-      showAchievementUnlocked(achievementsData.highIncome.title);
-    }
-    
-    // Капитализация +100%
-    if (prevMonthData.capital > 0 && 
-        monthData.capital >= prevMonthData.capital * 2 && 
-        !achievementsData.capitalGrowth.unlocked) {
-      achievementsData.capitalGrowth.unlocked = true;
-      showAchievementUnlocked(achievementsData.capitalGrowth.title);
-    }
-    
-    // Ред флаг - капитализация < 30000
-    if (monthData.capital < 30000 && !achievementsData.lowCapital.unlocked) {
-      achievementsData.lowCapital.unlocked = true;
-      showAchievementUnlocked(achievementsData.lowCapital.title);
-    }
-    
-    saveData();
-  }
-
-  // Показать уведомление о разблокированном достижении
-  function showAchievementUnlocked(title) {
-    const msg = document.createElement('div');
-    msg.className = 'achievement-unlocked';
-    msg.innerHTML = `
-      <div class="medal-icon">🏆</div>
-      <div>
-        <strong>Достижение разблокировано!</strong>
-        <div>${title}</div>
-      </div>
-    `;
-    document.body.appendChild(msg);
-    
-    setTimeout(() => {
-      msg.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-      msg.classList.remove('show');
-      setTimeout(() => document.body.removeChild(msg), 500);
-    }, 3000);
-  }
-
-  // Отрисовка списка достижений
-  function renderAchievements() {
-    const container = document.getElementById('achievements-list');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    Object.entries(achievementsData).forEach(([key, achievement]) => {
-      const achievementEl = document.createElement('div');
-      achievementEl.className = `achievement-widget ${achievement.unlocked ? 'unlocked' : 'locked'}`;
-      achievementEl.innerHTML = `
-        <div class="medal-icon">${achievement.unlocked ? '🏆' : '🏅'}</div>
-        <div class="achievement-content">
-          <h4>${achievement.title}</h4>
-          <p>${achievement.description}</p>
-        </div>
-      `;
-      container.appendChild(achievementEl);
-    });
-  }
-
   // Режим обучения
   function initTutorial() {
     const tutorialSteps = [
@@ -1436,14 +1022,6 @@ document.addEventListener('DOMContentLoaded', function() {
         text: "Включите виджет накоплений через меню (☰) и установите финансовую цель. Отслеживайте прогресс в виджете."
       },
       {
-        title: "Фонд",
-        text: "Включите виджет фонда через меню (☰) и установите сумму фонда. Используйте его для запланированных трат."
-      },
-      {
-        title: "Достижения",
-        text: "Зарабатывайте медали за выполнение финансовых задач. Просматривайте их в разделе 'Награды'."
-      },
-      {
         title: "Графики",
         text: "Основной график показывает распределение расходов по категориям. Ниже представлена динамика трат по категориям за год."
       }
@@ -1454,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showTutorialStep(step) {
       elements.tutorialTitle.textContent = tutorialSteps[step].title;
       elements.tutorialText.textContent = tutorialSteps[step].text;
-      elements.tutorialOverlay.style.display = 'flex';
+      elements.tutorialOverlay.style.display = 'block';
     }
     
     elements.tutorialNext.addEventListener('click', () => {
@@ -1515,13 +1093,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveData();
         updateUI();
         
-        // Проверка достижения "Город под подошвой"
-        if (incomeVal >= 1000000 && !achievementsData.bigIncome.unlocked) {
-          achievementsData.bigIncome.unlocked = true;
-          showAchievementUnlocked(achievementsData.bigIncome.title);
-          saveData();
-        }
-        
         elements.addIncomeBtn.classList.add('pulse');
         setTimeout(() => elements.addIncomeBtn.classList.remove('pulse'), 500);
       }
@@ -1531,15 +1102,6 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.addCategoryBtn.addEventListener('click', () => {
       const categoryName = elements.newCategoryInput.value.trim();
       if (categoryName) {
-        // Проверяем, есть ли уже такая категория (без учета регистра)
-        const existingCategory = Object.keys(financeData[currentYear][currentMonth].categories)
-          .find(cat => cat.toLowerCase() === categoryName.toLowerCase());
-        
-        if (existingCategory) {
-          showSuccessMessage(`Категория "${existingCategory}" уже существует!`);
-          return;
-        }
-        
         // Добавляем категорию во все месяцы текущего года
         for (let i = 0; i < 12; i++) {
           const monthData = financeData[currentYear][i];
@@ -1670,35 +1232,6 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.savingsModal.classList.remove('show');
     });
 
-    // Виджет фонда
-    elements.enableFundBtn.addEventListener('click', () => {
-      elements.moreMenu.classList.remove('show');
-      toggleMenu(elements.fundModal);
-    });
-
-    elements.saveFundBtn.addEventListener('click', () => {
-      const name = elements.fundName.value.trim();
-      const total = parseFloat(elements.fundTotal.value.replace(/\s+/g, '').replace(',', '.'));
-      
-      if (name && !isNaN(total) && total > 0) {
-        fundData = {
-          enabled: true,
-          name: name,
-          total: total,
-          current: total // Фонд начинается с полной суммы
-        };
-        localStorage.setItem('fundData', JSON.stringify(fundData));
-        elements.fundModal.classList.remove('show');
-        updateUI();
-        
-        showSuccessMessage('Фонд создан!');
-      }
-    });
-
-    elements.cancelFundBtn.addEventListener('click', () => {
-      elements.fundModal.classList.remove('show');
-    });
-
     // Переключение месяцев
     elements.monthTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -1732,22 +1265,6 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.historyModal.classList.remove('show');
     });
 
-    // Достижения
-    const achievementsBtn = document.createElement('button');
-    achievementsBtn.className = 'neumorphic-btn primary';
-    achievementsBtn.textContent = 'Награды';
-    achievementsBtn.addEventListener('click', () => {
-      elements.moreMenu.classList.remove('show');
-      toggleMenu(elements.achievementsModal);
-      renderAchievements();
-    });
-    
-    elements.moreMenu.insertBefore(achievementsBtn, elements.moreMenu.firstChild);
-    
-    elements.closeAchievements.addEventListener('click', () => {
-      elements.achievementsModal.classList.remove('show');
-    });
-
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
       // Список всех меню
@@ -1758,10 +1275,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.setBudgetModal,
         elements.moreMenu,
         elements.savingsModal,
-        elements.fundModal,
         elements.yearSelectModal,
-        elements.historyModal,
-        elements.achievementsModal
+        elements.historyModal
       ];
       
       // Проверяем, был ли клик вне меню
@@ -1775,10 +1290,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.budgetSettingsBtn,
         elements.moreBtn,
         elements.enableSavingsBtn,
-        elements.enableFundBtn,
         elements.yearSelectBtn,
-        elements.historyBtn,
-        achievementsBtn
+        elements.historyBtn
       ].some(button => button.contains(e.target));
       
       // Закрываем все меню, если клик был вне меню и не по кнопке меню
@@ -1800,9 +1313,7 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.budgetAmount, handler: elements.saveBudgetBtn },
       { element: elements.budgetDays, handler: elements.saveBudgetBtn },
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
-      { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
-      { element: elements.fundName, handler: elements.saveFundBtn },
-      { element: elements.fundTotal, handler: elements.saveFundBtn }
+      { element: elements.savingsGoal, handler: elements.saveSavingsBtn }
     ];
 
     enterHandlers.forEach(item => {
