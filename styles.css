@@ -403,6 +403,10 @@ header {
 }
 
 /* Savings widget */
+.savings-widget {
+  --widget-color: #2ecc71;
+}
+
 .savings-progress-container {
   height: 10px;
   background: rgba(0,0,0,0.1);
@@ -415,7 +419,7 @@ header {
   height: 100%;
   background: #2ecc71;
   border-radius: 5px;
-  transition: width 3.5s ease;
+  transition: width 0.5s ease;
 }
 
 /* Fund widget */
@@ -458,18 +462,6 @@ body.dark .budget-progress-container {
 /* Градиент для прогресс-бара средств */
 .funds-progress {
   background: linear-gradient(90deg, #2ecc71, #27ae60);
-}
-
-/* Добавление анимации */
-.savings-progress-bar {
-  transition: width 0.5s ease, background-color 0.3s ease;
-}
-
-.savings-progress-container:hover .funds-progress {
-  background: #27ae60;
-}
-.funds-progress {
-  background: #2ecc71;
 }
 
 /* Стиль для превью виджета накоплений */
