@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Данные накоплений (теперь массив виджетов)
   let savingsWidgets = JSON.parse(localStorage.getItem('savingsWidgets')) || [];
 
+  // Данные фондов (новый функционал)
+  let fundWidgets = JSON.parse(localStorage.getItem('fundWidgets')) || [];
+
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
   let miniCapitalChart, miniExpenseChart;
@@ -130,7 +133,14 @@ document.addEventListener('DOMContentLoaded', function() {
     tutorialText: document.getElementById('tutorial-text'),
     tutorialPrev: document.getElementById('tutorial-prev'),
     tutorialNext: document.getElementById('tutorial-next'),
-    tutorialClose: document.getElementById('tutorial-close')
+    tutorialClose: document.getElementById('tutorial-close'),
+    // Новые элементы для функционала фондов
+    fundModal: document.getElementById('fund-modal'),
+    fundName: document.getElementById('fund-name'),
+    fundAmount: document.getElementById('fund-amount'),
+    saveFundBtn: document.getElementById('save-fund-btn'),
+    cancelFundBtn: document.getElementById('cancel-fund-btn'),
+    enableFundBtn: document.getElementById('enable-fund-btn')
   };
 
   // Функция сохранения данных
@@ -430,6 +440,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Отрисовка виджетов накоплений
     renderSavingsWidgets();
     
+    // Отрисовка виджетов фондов
+    renderFundWidgets();
+    
     // Отрисовка истории трат
     renderExpenseHistory();
     
@@ -528,6 +541,47 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Отрисовка всех виджетов фондов
+  function renderFundWidgets() {
+    // Удаляем все существующие виджеты фондов
+    document.querySelectorAll('.fund-widget').forEach(widget => widget.remove());
+    
+    // Создаем новые виджеты из сохраненных данных
+    fundWidgets.forEach(widget => {
+      const widgetElement = document.createElement('div');
+      widgetElement.className = 'neumorphic-card widget fund-widget';
+      widgetElement.dataset.widgetId = widget.id;
+      widgetElement.style.setProperty('--widget-color', widget.color);
+      
+      const spent = widget.initialAmount - widget.current;
+      const progress = widget.initialAmount > 0 
+        ? Math.min(100, Math.round((spent / widget.initialAmount) * 100)) 
+        : 0;
+      
+      widgetElement.innerHTML = `
+        <button class="delete-widget-btn" data-widget-id="${widget.id}">×</button>
+        <h3 style="color: ${widget.color}">${widget.name}</h3>
+        <div class="savings-progress-container">
+          <div class="savings-progress-bar" style="width: ${progress}%"></div>
+        </div>
+        <p>Использовано: ${formatCurrency(spent)} / ${formatCurrency(widget.initialAmount)} (${progress}%)</p>
+        <p>Остаток: ${formatCurrency(widget.current)}</p>
+        <div class="widget-input-group">
+          <input type="number" class="neumorphic-input widget-input fund-amount" 
+                placeholder="Сумма расхода" data-widget-id="${widget.id}">
+          <button class="neumorphic-btn small add-fund-btn" 
+                  data-widget-id="${widget.id}">-</button>
+        </div>
+      `;
+      
+      elements.widgetsContainer.prepend(widgetElement);
+      
+      // Добавляем обработчики для нового виджета
+      widgetElement.querySelector('.add-fund-btn').addEventListener('click', subtractFromFund);
+      widgetElement.querySelector('.delete-widget-btn').addEventListener('click', deleteFundWidget);
+    });
+  }
+
   // Добавление средств к накоплениям
   function addToSavings() {
     const widgetId = this.dataset.widgetId;
@@ -550,6 +604,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Вычитание из фонда
+  function subtractFromFund() {
+    const widgetId = this.dataset.widgetId;
+    const input = document.querySelector(`.fund-amount[data-widget-id="${widgetId}"]`);
+    const amount = parseFloat(input.value.replace(/\s+/g, '').replace(',', '.'));
+    
+    if (!isNaN(amount) && amount > 0) {
+      const widgetIndex = fundWidgets.findIndex(w => w.id === widgetId);
+      if (widgetIndex !== -1 && fundWidgets[widgetIndex].current >= amount) {
+        fundWidgets[widgetIndex].current -= amount;
+        localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+        
+        // Обновляем только этот виджет
+        updateSingleFundWidget(widgetId);
+        
+        input.value = '';
+        this.classList.add('pulse');
+        setTimeout(() => this.classList.remove('pulse'), 500);
+      } else if (widgetIndex !== -1) {
+        alert('Недостаточно средств в фонде!');
+      }
+    }
+  }
+
   // Удаление виджета накоплений
   function deleteSavingsWidget() {
     const widgetId = this.dataset.widgetId;
@@ -557,6 +635,16 @@ document.addEventListener('DOMContentLoaded', function() {
       savingsWidgets = savingsWidgets.filter(w => w.id !== widgetId);
       localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
       document.querySelector(`.savings-widget[data-widget-id="${widgetId}"]`).remove();
+    }
+  }
+
+  // Удаление виджета фонда
+  function deleteFundWidget() {
+    const widgetId = this.dataset.widgetId;
+    if (confirm('Удалить этот фонд?')) {
+      fundWidgets = fundWidgets.filter(w => w.id !== widgetId);
+      localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+      document.querySelector(`.fund-widget[data-widget-id="${widgetId}"]`).remove();
     }
   }
 
@@ -577,6 +665,26 @@ document.addEventListener('DOMContentLoaded', function() {
       `${formatCurrency(widgetData.current)} / ${formatCurrency(widgetData.goal)} (${progress}%)`;
   }
 
+  // Обновление одного виджета фонда
+  function updateSingleFundWidget(widgetId) {
+    const widgetData = fundWidgets.find(w => w.id === widgetId);
+    if (!widgetData) return;
+    
+    const widgetElement = document.querySelector(`.fund-widget[data-widget-id="${widgetId}"]`);
+    if (!widgetElement) return;
+    
+    const spent = widgetData.initialAmount - widgetData.current;
+    const progress = widgetData.initialAmount > 0 
+      ? Math.min(100, Math.round((spent / widgetData.initialAmount) * 100)) 
+      : 0;
+    
+    widgetElement.querySelector('.savings-progress-bar').style.width = `${progress}%`;
+    widgetElement.querySelectorAll('p')[0].textContent = 
+      `Использовано: ${formatCurrency(spent)} / ${formatCurrency(widgetData.initialAmount)} (${progress}%)`;
+    widgetElement.querySelectorAll('p')[1].textContent = 
+      `Остаток: ${formatCurrency(widgetData.current)}`;
+  }
+
   // Создание нового виджета накоплений
   function createNewSavingsWidget(name = '', goal = 0, current = 0) {
     const widgetId = Date.now().toString(); // Уникальный ID для виджета
@@ -594,6 +702,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Отрисовываем новый виджет
     renderSavingsWidgets();
+  }
+
+  // Создание нового виджета фонда
+  function createNewFundWidget(name = '', amount = 0, current = null) {
+    const widgetId = Date.now().toString();
+    const initialAmount = current !== null ? current : amount;
+    
+    const newWidget = {
+      id: widgetId,
+      name: name || `Фонд ${fundWidgets.length + 1}`,
+      initialAmount: amount,
+      current: initialAmount,
+      color: getRandomWidgetColor()
+    };
+    
+    fundWidgets.push(newWidget);
+    localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+    renderFundWidgets();
   }
 
   // Генерация случайного цвета для виджета
@@ -1074,6 +1200,10 @@ document.addEventListener('DOMContentLoaded', function() {
         text: "Включите виджет накоплений через меню (☰) и установите финансовую цель. Отслеживайте прогресс в виджете."
       },
       {
+        title: "Фонды",
+        text: "Создавайте фонды для целевых расходов. Устанавливайте начальную сумму и вычитайте расходы по мере использования."
+      },
+      {
         title: "Графики",
         text: "Основной график показывает распределение расходов по категориям. Ниже представлена динамика трат по категориям за год."
       }
@@ -1277,6 +1407,28 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.savingsModal.classList.remove('show');
     });
 
+    // Виджет фондов
+    elements.enableFundBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.fundModal);
+      elements.fundName.value = '';
+      elements.fundAmount.value = '';
+    });
+
+    elements.saveFundBtn.addEventListener('click', () => {
+      const name = elements.fundName.value.trim() || `Фонд ${fundWidgets.length + 1}`;
+      const amount = parseFloat(elements.fundAmount.value.replace(/\s+/g, '').replace(',', '.'));
+      
+      if (!isNaN(amount) && amount > 0) {
+        createNewFundWidget(name, amount, amount);
+        elements.fundModal.classList.remove('show');
+      }
+    });
+
+    elements.cancelFundBtn.addEventListener('click', () => {
+      elements.fundModal.classList.remove('show');
+    });
+
     // Переключение месяцев
     elements.monthTabs.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -1320,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.setBudgetModal,
         elements.moreMenu,
         elements.savingsModal,
+        elements.fundModal,
         elements.yearSelectModal,
         elements.historyModal
       ];
@@ -1335,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.budgetSettingsBtn,
         elements.moreBtn,
         elements.enableSavingsBtn,
+        elements.enableFundBtn,
         elements.yearSelectBtn,
         elements.historyBtn
       ].some(button => button.contains(e.target));
@@ -1358,7 +1512,9 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.budgetAmount, handler: elements.saveBudgetBtn },
       { element: elements.budgetDays, handler: elements.saveBudgetBtn },
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
-      { element: elements.savingsGoal, handler: elements.saveSavingsBtn }
+      { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
+      { element: elements.fundName, handler: elements.saveFundBtn },
+      { element: elements.fundAmount, handler: elements.saveFundBtn }
     ];
 
     enterHandlers.forEach(item => {
