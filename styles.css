@@ -450,6 +450,90 @@ header {
               inset -3px -3px 6px var(--shadow-light);
 }
 
+/* Fund Widget */
+.fund-widget {
+  --widget-color: #e67e22;
+  --widget-bg: rgba(230, 126, 34, 0.1);
+  position: relative;
+  animation: widgetAppear 0.3s ease-out;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  box-shadow: 5px 5px 10px var(--shadow-dark), 
+              -5px -5px 10px var(--shadow-light);
+  transition: var(--transition);
+}
+
+.fund-widget:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 15px var(--shadow-dark), 
+              -8px -8px 15px var(--shadow-light);
+}
+
+.fund-widget h3 {
+  color: var(--widget-color);
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fund-widget .widget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fund-widget p {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fund-widget p:last-of-type {
+  font-weight: bold;
+  color: var(--widget-color);
+  font-size: 1.1rem;
+  margin-top: 8px;
+}
+
+.fund-widget .savings-progress-container {
+  height: 8px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.fund-widget .savings-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--widget-color);
+  transition: width 0.5s ease;
+}
+
+.fund-widget .widget-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fund-widget .widget-actions .neumorphic-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+}
+
+.fund-widget .widget-actions .neumorphic-btn.primary {
+  background: var(--widget-color);
+}
+
+.fund-widget .widget-actions .neumorphic-btn.primary:hover {
+  background: #d35400;
+}
+
 /* Budget widget */
 .budget-progress-container {
   margin-top: 15px;
@@ -491,37 +575,6 @@ body.dark .budget-progress-container {
 
 .funds-progress {
   background: #2ecc71;
-}
-
-/* Savings widget preview */
-.savings-widget-preview {
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  box-shadow: 5px 5px 10px var(--shadow-dark), 
-              -5px -5px 10px var(--shadow-light);
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.savings-widget-preview h3 {
-  margin: 0 0 15px 0;
-  font-size: 1.1rem;
-  color: #2ecc71;
-}
-
-.savings-widget-preview:hover {
-  transform: translateY(-3px);
-  box-shadow: 8px 8px 15px var(--shadow-dark), 
-              -8px -8px 15px var(--shadow-light);
-  transition: var(--transition);
-}
-
-#enable-savings-btn {
-  width: 100%;
-  padding: 12px;
-  font-weight: 600;
-  margin-top: 10px;
 }
 
 /* Month selector */
@@ -983,6 +1036,11 @@ body.dark .savings-progress-container {
 body.dark .savings-widget .widget-input {
   background: var(--bg);
   color: var(--text);
+}
+
+body.dark .fund-widget {
+  --widget-color: #d35400;
+  --widget-bg: rgba(211, 84, 0, 0.15);
 }
 
 /* Mobile charts */
