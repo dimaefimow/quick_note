@@ -8,7 +8,6 @@
 </head>
 <body>
   
-
   <div class="app">
     <header>
       <div class="header-container">
@@ -25,22 +24,21 @@
       </div>
       
       <div id="more-menu" class="neumorphic-menu">
-        
-          <button id="enable-savings-btn" class="neumorphic-btn primary">Включить накопления</button>
-
+        <button id="enable-savings-btn" class="neumorphic-btn primary">Включить накопления</button>
         <button id="enable-fund-btn" class="neumorphic-btn primary">Создать фонд</button>
         <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
         <button id="history-btn" class="neumorphic-btn primary">История трат</button>
+        <button id="achievements-btn" class="neumorphic-btn primary">Достижения</button>
       </div>
       
       <div id="year-select-modal" class="neumorphic-menu">
-  <h3>Выберите год</h3>
-  <div id="years-list" class="year-list"></div>
-  <div class="button-group">
-    <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
-    <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
-  </div>
-</div>
+        <h3>Выберите год</h3>
+        <div id="years-list" class="year-list"></div>
+        <div class="button-group">
+          <button id="add-year-btn" class="neumorphic-btn primary">Добавить</button>
+          <button id="close-year-select" class="neumorphic-btn">Закрыть</button>
+        </div>
+      </div>
       
       <div id="history-modal" class="neumorphic-menu">
         <h3>История трат</h3>
@@ -93,6 +91,13 @@
         </div>
         
         <button id="close-reports-btn" class="neumorphic-btn primary">Закрыть</button>
+      </div>
+
+      <!-- Модальное окно достижений -->
+      <div id="achievements-modal" class="neumorphic-menu">
+        <h3>Достижения</h3>
+        <div id="achievements-list" class="achievements-container"></div>
+        <button id="close-achievements" class="neumorphic-btn">Закрыть</button>
       </div>
     </header>
 
