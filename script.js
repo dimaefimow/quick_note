@@ -41,11 +41,14 @@ document.addEventListener('DOMContentLoaded', function() {
     dailyHistory: {}
   };
 
-  // Данные накоплений (теперь массив виджетов)
+  // Данные накоплений
   let savingsWidgets = JSON.parse(localStorage.getItem('savingsWidgets')) || [];
 
-  // Данные фондов (новый функционал)
+  // Данные фондов
   let fundWidgets = JSON.parse(localStorage.getItem('fundWidgets')) || [];
+
+  // Данные достижений
+  let achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {};
 
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
@@ -58,6 +61,211 @@ document.addEventListener('DOMContentLoaded', function() {
     '#9b59b6', '#1abc9c', '#d35400', '#34495e',
     '#16a085', '#27ae60', '#2980b9', '#8e44ad',
     '#f1c40f', '#e67e22', '#c0392b'
+  ];
+
+  // Список достижений
+  const achievements = [
+    {
+      id: 'basic_minimum',
+      title: 'Базовый минимум',
+      description: 'Доход в месяц > 300 000 ₽',
+      secret: false,
+      check: (data) => data.income > 300000
+    },
+    {
+      id: 'beer_category',
+      title: 'Я беру паре баб по паре банок Bud',
+      description: 'Создать категорию «Пиво»',
+      secret: false,
+      check: (data) => Object.keys(data.categories).includes('Пиво')
+    },
+    {
+      id: 'psychologist_category',
+      title: 'Мне нужен ответ',
+      description: 'Создать категорию «Психолог»',
+      secret: false,
+      check: (data) => Object.keys(data.categories).includes('Психолог')
+    },
+    {
+      id: 'credit_category',
+      title: 'Где деньги, Лебовский?',
+      description: 'Создать категорию «Кредит»',
+      secret: false,
+      check: (data) => Object.keys(data.categories).includes('Кредит')
+    },
+    {
+      id: 'vacation_savings',
+      title: 'А на море белый песок',
+      description: 'Создать виджет накопления «Отдых»',
+      secret: false,
+      check: (data) => data.savingsWidgets?.some(w => w.name === 'Отдых')
+    },
+    {
+      id: 'food_category',
+      title: 'Что на ужин?',
+      description: 'Создать категорию «Еда»',
+      secret: false,
+      check: (data) => Object.keys(data.categories).includes('Еда')
+    },
+    {
+      id: 'no_smoking',
+      title: 'Уничтожить табачные корпорации',
+      description: 'Создать категорию «Курение» и не потратить на неё деньги в течение месяца',
+      secret: false,
+      check: (data) => {
+        const hasCategory = Object.keys(data.categories).includes('Курение');
+        const hasExpenses = data.categories['Курение'] > 0;
+        return hasCategory && !hasExpenses;
+      }
+    },
+    {
+      id: '500_rubles',
+      title: 'Как выжить на 500 рублей?',
+      description: 'В конце месяца у вас остаётся < 500 ₽',
+      secret: false,
+      check: (data) => (data.income - data.expense) < 500
+    },
+    {
+      id: 'no_spending_week',
+      title: 'Содержанка',
+      description: 'Прожить неделю, не потратив ни рубля',
+      secret: false,
+      check: (data) => {
+        // Проверяем последние 7 дней истории трат
+        const lastWeekExpenses = data.expensesHistory
+          .filter(e => new Date(e.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+          .reduce((sum, e) => sum + e.amount, 0);
+        return lastWeekExpenses === 0;
+      }
+    },
+    {
+      id: 'black_hole',
+      title: 'Чёрная дыра в бюджете',
+      description: '1 из категорий трат занимает > 40% всех расходов',
+      secret: false,
+      check: (data) => {
+        const totalExpense = data.expense;
+        if (totalExpense === 0) return false;
+        
+        return Object.values(data.categories).some(amount => 
+          (amount / totalExpense) > 0.4
+        );
+      }
+    },
+    {
+      id: 'balanced_budget',
+      title: 'Рубль в рубль',
+      description: 'Доходы = Расходы в течение месяца',
+      secret: false,
+      check: (data) => data.income === data.expense
+    },
+    {
+      id: 'poor',
+      title: 'Бедолага',
+      description: 'Ваш доход < 50 000 ₽ в месяц',
+      secret: false,
+      check: (data) => data.income < 50000
+    },
+    {
+      id: 'capital_growth',
+      title: 'Как всё идёт',
+      description: 'Капитализация +100% в течение 3 месяцев',
+      secret: false,
+      check: (data) => {
+        // Проверяем рост капитализации за последние 3 месяца
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        let prevMonth = currentMonth - 2;
+        let prevYear = currentYear;
+        if (prevMonth < 0) {
+          prevMonth += 12;
+          prevYear--;
+        }
+        
+        const prevCapital = financeData[prevYear]?.[prevMonth]?.capital || 0;
+        const currentCapital = data.capital;
+        
+        return prevCapital > 0 && (currentCapital / prevCapital) >= 2;
+      }
+    },
+    {
+      id: 'no_tracking',
+      title: 'Ред флаг',
+      description: 'Не записывать траты 1 месяц',
+      secret: false,
+      check: (data) => data.expense === 0 && data.expensesHistory.length === 0
+    },
+    {
+      id: 'overspending',
+      title: 'Оказия',
+      description: 'Потратить больше, чем заработал в течение месяца',
+      secret: false,
+      check: (data) => data.expense > data.income
+    },
+    {
+      id: 'fast_spending',
+      title: 'К чёрту стоп-кран!',
+      description: 'Потратить 80% дохода в первые 24 часа',
+      secret: false,
+      check: (data) => {
+        if (data.income === 0) return false;
+        
+        // Проверяем траты в первые сутки месяца
+        const firstDayExpenses = data.expensesHistory
+          .filter(e => {
+            const expenseDate = new Date(e.date);
+            return expenseDate.getDate() === 1 && 
+                   expenseDate.getMonth() === currentMonth &&
+                   expenseDate.getFullYear() === currentYear;
+          })
+          .reduce((sum, e) => sum + e.amount, 0);
+        
+        return (firstDayExpenses / data.income) >= 0.8;
+      }
+    },
+    {
+      id: 'income_decline',
+      title: 'Раньше было лучше',
+      description: 'Заработать доход за этот месяц меньше, чем в прошлом',
+      secret: false,
+      check: (data) => {
+        const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        
+        const prevMonthIncome = financeData[prevYear]?.[prevMonth]?.income || 0;
+        return data.income < prevMonthIncome;
+      }
+    },
+    // Секретные достижения
+    {
+      id: 'secret_richest',
+      title: 'Самый богатый человек подъезда',
+      description: '(секретное достижение)',
+      secret: true,
+      check: (data) => data.capital > 900000
+    },
+    {
+      id: 'secret_imac',
+      title: 'Мечта создателя Quick Note',
+      description: '(секретное достижение)',
+      secret: true,
+      check: (data) => data.savingsWidgets?.some(w => w.name === 'iMac')
+    },
+    {
+      id: 'secret_manhattan',
+      title: 'В квартирке на Лесной',
+      description: '(секретное достижение)',
+      secret: true,
+      check: (data) => Object.keys(data.categories).includes('Манхэттен')
+    },
+    {
+      id: 'secret_devil',
+      title: 'Чертила',
+      description: '(секретное достижение)',
+      secret: true,
+      check: (data) => data.expensesHistory?.some(e => e.amount === 666)
+    }
   ];
 
   // DOM элементы
@@ -134,13 +342,16 @@ document.addEventListener('DOMContentLoaded', function() {
     tutorialPrev: document.getElementById('tutorial-prev'),
     tutorialNext: document.getElementById('tutorial-next'),
     tutorialClose: document.getElementById('tutorial-close'),
-    // Новые элементы для функционала фондов
     fundModal: document.getElementById('fund-modal'),
     fundName: document.getElementById('fund-name'),
     fundAmount: document.getElementById('fund-amount'),
     saveFundBtn: document.getElementById('save-fund-btn'),
     cancelFundBtn: document.getElementById('cancel-fund-btn'),
-    enableFundBtn: document.getElementById('enable-fund-btn')
+    enableFundBtn: document.getElementById('enable-fund-btn'),
+    achievementsBtn: document.getElementById('achievements-btn'),
+    achievementsModal: document.getElementById('achievements-modal'),
+    achievementsList: document.getElementById('achievements-list'),
+    closeAchievements: document.getElementById('close-achievements')
   };
 
   // Функция сохранения данных
@@ -152,6 +363,76 @@ document.addEventListener('DOMContentLoaded', function() {
   // Форматирование валюты
   function formatCurrency(amount) {
     return amount.toLocaleString('ru-RU') + ' ₽';
+  }
+
+  // Проверка достижений
+  function checkAchievements() {
+    const monthData = financeData[currentYear][currentMonth];
+    const data = {
+      income: monthData.income,
+      expense: monthData.expense,
+      capital: monthData.capital,
+      categories: monthData.categories,
+      savingsWidgets: savingsWidgets,
+      fundWidgets: fundWidgets,
+      expensesHistory: monthData.expensesHistory
+    };
+
+    achievements.forEach(ach => {
+      if (!achievementsData[ach.id] && ach.check(data)) {
+        achievementsData[ach.id] = true;
+        localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+        showAchievementUnlocked(ach);
+      }
+    });
+  }
+
+  // Показать уведомление о разблокировке достижения
+  function showAchievementUnlocked(achievement) {
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+      <div class="achievement-badge unlocked">
+        <h4>Новое достижение!</h4>
+        <h3>${achievement.title}</h3>
+        <p>${achievement.description}</p>
+      </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 500);
+    }, 5000);
+  }
+
+  // Отрисовка списка достижений
+  function renderAchievementsList() {
+    elements.achievementsList.innerHTML = '';
+    
+    achievements.forEach(ach => {
+      const unlocked = achievementsData[ach.id];
+      
+      // Не показываем секретные достижения, если они не разблокированы
+      if (ach.secret && !unlocked) return;
+      
+      const achievementEl = document.createElement('div');
+      achievementEl.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'}`;
+      achievementEl.innerHTML = `
+        <div class="achievement-icon">${unlocked ? '🏆' : '🔒'}</div>
+        <div class="achievement-info">
+          <h4>${ach.title}</h4>
+          <p>${ach.description}</p>
+        </div>
+      `;
+      elements.achievementsList.appendChild(achievementEl);
+    });
   }
 
   // Обновление списка категорий
@@ -387,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: 1000,
         easing: 'easeOutQuart'
       },
-      devicePixelRatio: 1, // Фиксируем соотношение пикселей
+      devicePixelRatio: 1,
       layout: {
         padding: {
           left: 10,
@@ -448,6 +729,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Отрисовка графиков динамики категорий
     renderCategoryTrends();
+    
+    // Проверка достижений
+    checkAchievements();
   }
 
   // Отрисовка всех графиков
@@ -687,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Создание нового виджета накоплений
   function createNewSavingsWidget(name = '', goal = 0, current = 0) {
-    const widgetId = Date.now().toString(); // Уникальный ID для виджета
+    const widgetId = Date.now().toString();
     
     const newWidget = {
       id: widgetId,
@@ -1204,6 +1488,10 @@ document.addEventListener('DOMContentLoaded', function() {
         text: "Создавайте фонды для целевых расходов. Устанавливайте начальную сумму и вычитайте расходы по мере использования."
       },
       {
+        title: "Достижения",
+        text: "Отслеживайте свои финансовые успехи через систему достижений. Разблокируйте их, выполняя различные условия."
+      },
+      {
         title: "Графики",
         text: "Основной график показывает распределение расходов по категориям. Ниже представлена динамика трат по категориям за год."
       }
@@ -1462,6 +1750,17 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.historyModal.classList.remove('show');
     });
 
+    // Достижения
+    elements.achievementsBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.achievementsModal);
+      renderAchievementsList();
+    });
+
+    elements.closeAchievements.addEventListener('click', () => {
+      elements.achievementsModal.classList.remove('show');
+    });
+
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
       // Список всех меню
@@ -1474,7 +1773,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.savingsModal,
         elements.fundModal,
         elements.yearSelectModal,
-        elements.historyModal
+        elements.historyModal,
+        elements.achievementsModal
       ];
       
       // Проверяем, был ли клик вне меню
@@ -1490,7 +1790,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.enableSavingsBtn,
         elements.enableFundBtn,
         elements.yearSelectBtn,
-        elements.historyBtn
+        elements.historyBtn,
+        elements.achievementsBtn
       ].some(button => button.contains(e.target));
       
       // Закрываем все меню, если клик был вне меню и не по кнопке меню
