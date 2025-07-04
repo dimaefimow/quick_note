@@ -1011,6 +1011,118 @@ body.dark .category-item.total {
   color: #e74c3c !important;
 }
 
+/* Achievements styles */
+.achievements-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+.achievement-item {
+  display: flex;
+  gap: 15px;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  background: rgba(0,0,0,0.03);
+  transition: var(--transition);
+}
+
+body.dark .achievement-item {
+  background: rgba(255,255,255,0.05);
+}
+
+.achievement-item.unlocked {
+  background: rgba(46, 204, 113, 0.1);
+  border-left: 4px solid #2ecc71;
+}
+
+body.dark .achievement-item.unlocked {
+  background: rgba(46, 204, 113, 0.2);
+}
+
+.achievement-item.locked {
+  opacity: 0.6;
+  background: rgba(0,0,0,0.03);
+}
+
+.achievement-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+}
+
+.achievement-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+body.dark .achievement-info p {
+  color: #aaa;
+}
+
+/* Achievement notification */
+.achievement-notification {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  z-index: 2000;
+  transition: bottom 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.achievement-notification.show {
+  bottom: 20px;
+}
+
+.achievement-badge {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.achievement-badge h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.achievement-badge h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+}
+
+.achievement-badge p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
 /* Dark theme */
 body.dark {
   --bg: #1a1a1a;
