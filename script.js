@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
       check: (data) => data.capital > 900000
     },
     {
-      id: 'secret_imac',
+      id: 'secret_iMac',
       title: 'Мечта создателя Quick Note',
       description: 'Создать накопление "iMac"',
       emoji: '💻',
