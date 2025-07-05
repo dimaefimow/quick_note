@@ -1,3 +1,7 @@
+// Блокировка закрытия свайпом в Telegram Mini Apps
+if (window.Telegram?.WebApp?.preventClose) {
+  window.Telegram.WebApp.preventClose();
+}
 document.addEventListener('DOMContentLoaded', function() {
   // Текущий месяц и год
   let currentMonth = new Date().getMonth();
