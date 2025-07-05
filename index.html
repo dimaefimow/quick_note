@@ -29,7 +29,21 @@
         <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
         <button id="history-btn" class="neumorphic-btn primary">История трат</button>
         <button id="achievements-btn" class="neumorphic-btn primary">Достижения</button>
+        <button id="transfer-data-btn" class="neumorphic-btn primary">Перенос данных</button>
         <button id="reset-btn" class="neumorphic-btn danger">Сброс</button>
+      </div>
+      
+      <!-- Модальное окно переноса данных -->
+      <div id="transfer-data-modal" class="neumorphic-menu">
+        <h3>Перенос данных</h3>
+        <div class="transfer-options">
+          <button id="export-data-btn" class="neumorphic-btn primary">Экспорт данных</button>
+          <div class="import-section">
+            <textarea id="import-data-input" class="neumorphic-input" placeholder="Вставьте данные для импорта" rows="5"></textarea>
+            <button id="import-data-btn" class="neumorphic-btn primary">Импорт данных</button>
+          </div>
+        </div>
+        <button id="close-transfer-data" class="neumorphic-btn">Закрыть</button>
       </div>
       
       <div id="year-select-modal" class="neumorphic-menu">
