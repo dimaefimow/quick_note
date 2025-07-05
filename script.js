@@ -63,12 +63,13 @@ document.addEventListener('DOMContentLoaded', function() {
     '#f1c40f', '#e67e22', '#c0392b'
   ];
 
-  // Список достижений
+  // Список достижений с уникальными эмодзи
   const achievements = [
     {
       id: 'basic_minimum',
       title: 'Базовый минимум',
       description: 'Доход в месяц > 300 000 ₽',
+      emoji: '💰',
       secret: false,
       check: (data) => data.income > 300000
     },
@@ -76,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'beer_category',
       title: 'Я беру паре баб по паре банок Bud',
       description: 'Создать категорию «Пиво»',
+      emoji: '🍺',
       secret: false,
       check: (data) => Object.keys(data.categories).includes('Пиво')
     },
@@ -83,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'psychologist_category',
       title: 'Мне нужен ответ',
       description: 'Создать категорию «Психолог»',
+      emoji: '🧠',
       secret: false,
       check: (data) => Object.keys(data.categories).includes('Психолог')
     },
@@ -90,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'credit_category',
       title: 'Где деньги, Лебовский?',
       description: 'Создать категорию «Кредит»',
+      emoji: '💳',
       secret: false,
       check: (data) => Object.keys(data.categories).includes('Кредит')
     },
@@ -97,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'vacation_savings',
       title: 'А на море белый песок',
       description: 'Создать виджет накопления «Отдых»',
+      emoji: '🏖️',
       secret: false,
       check: (data) => data.savingsWidgets?.some(w => w.name === 'Отдых')
     },
@@ -104,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'food_category',
       title: 'Что на ужин?',
       description: 'Создать категорию «Еда»',
+      emoji: '🍕',
       secret: false,
       check: (data) => Object.keys(data.categories).includes('Еда')
     },
@@ -111,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'no_smoking',
       title: 'Уничтожить табачные корпорации',
       description: 'Создать категорию «Курение» и не потратить на неё деньги в течение месяца',
+      emoji: '🚭',
       secret: false,
       check: (data) => {
         const hasCategory = Object.keys(data.categories).includes('Курение');
@@ -122,30 +129,44 @@ document.addEventListener('DOMContentLoaded', function() {
       id: '500_rubles',
       title: 'Как выжить на 500 рублей?',
       description: 'В конце месяца у вас остаётся < 500 ₽',
+      emoji: '🪙',
       secret: false,
-      check: (data) => (data.income - data.expense) < 500
+      check: (data) => {
+        const today = new Date();
+        return today.getDate() > 28 && // Проверяем только в конце месяца
+               data.expense > 0 && // Должны быть траты
+               (data.income - data.expense) < 500;
+      }
     },
     {
       id: 'no_spending_week',
       title: 'Содержанка',
       description: 'Прожить неделю, не потратив ни рубля',
+      emoji: '👑',
       secret: false,
       check: (data) => {
-        // Проверяем последние 7 дней истории трат
-        const lastWeekExpenses = data.expensesHistory
-          .filter(e => new Date(e.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-          .reduce((sum, e) => sum + e.amount, 0);
-        return lastWeekExpenses === 0;
+        const today = new Date();
+        return today.getDate() >= 7 && data.expensesHistory.length > 0 &&
+          data.expensesHistory
+            .filter(e => new Date(e.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+            .reduce((sum, e) => sum + e.amount, 0) === 0;
       }
     },
     {
       id: 'black_hole',
       title: 'Чёрная дыра в бюджете',
       description: '1 из категорий трат занимает > 40% всех расходов',
+      emoji: '🕳️',
       secret: false,
       check: (data) => {
         const totalExpense = data.expense;
         if (totalExpense === 0) return false;
+        
+        // Проверяем только в конце месяца
+        const today = new Date();
+        const isEndOfMonth = today.getDate() >= 28; // Проверяем последние дни месяца
+        
+        if (!isEndOfMonth) return false;
         
         return Object.values(data.categories).some(amount => 
           (amount / totalExpense) > 0.4
@@ -156,23 +177,33 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'balanced_budget',
       title: 'Рубль в рубль',
       description: 'Доходы = Расходы в течение месяца',
+      emoji: '⚖️',
       secret: false,
-      check: (data) => data.income === data.expense
+      check: (data) => {
+        const today = new Date();
+        return today.getDate() > 1 && data.expense > 0 && data.income === data.expense;
+      }
     },
     {
       id: 'poor',
       title: 'Бедолага',
       description: 'Ваш доход < 50 000 ₽ в месяц',
+      emoji: '🥺',
       secret: false,
-      check: (data) => data.income < 50000
+      check: (data) => {
+        const today = new Date();
+        return today.getDate() > 3 && 
+               data.income > 0 && // Доход должен быть больше 0
+               data.income < 50000;
+      }
     },
     {
       id: 'capital_growth',
       title: 'Как всё идёт',
       description: 'Капитализация +100% в течение 3 месяцев',
+      emoji: '📈',
       secret: false,
       check: (data) => {
-        // Проверяем рост капитализации за последние 3 месяца
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         
@@ -193,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'no_tracking',
       title: 'Ред флаг',
       description: 'Не записывать траты 1 месяц',
+      emoji: '🚩',
       secret: false,
       check: (data) => data.expense === 0 && data.expensesHistory.length === 0
     },
@@ -200,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'overspending',
       title: 'Оказия',
       description: 'Потратить больше, чем заработал в течение месяца',
+      emoji: '💸',
       secret: false,
       check: (data) => data.expense > data.income
     },
@@ -207,11 +240,11 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'fast_spending',
       title: 'К чёрту стоп-кран!',
       description: 'Потратить 80% дохода в первые 24 часа',
+      emoji: '🏎️',
       secret: false,
       check: (data) => {
         if (data.income === 0) return false;
         
-        // Проверяем траты в первые сутки месяца
         const firstDayExpenses = data.expensesHistory
           .filter(e => {
             const expenseDate = new Date(e.date);
@@ -228,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
       id: 'income_decline',
       title: 'Раньше было лучше',
       description: 'Заработать доход за этот месяц меньше, чем в прошлом',
+      emoji: '📉',
       secret: false,
       check: (data) => {
         const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
@@ -241,28 +275,32 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       id: 'secret_richest',
       title: 'Самый богатый человек подъезда',
-      description: '(секретное достижение)',
+      description: 'Накопить капитал > 900 000 ₽',
+      emoji: '🏆',
       secret: true,
       check: (data) => data.capital > 900000
     },
     {
       id: 'secret_imac',
       title: 'Мечта создателя Quick Note',
-      description: '(секретное достижение)',
+      description: 'Создать накопление "iMac"',
+      emoji: '💻',
       secret: true,
       check: (data) => data.savingsWidgets?.some(w => w.name === 'iMac')
     },
     {
       id: 'secret_manhattan',
       title: 'В квартирке на Лесной',
-      description: '(секретное достижение)',
+      description: 'Создать категорию "Манхэттен"',
+      emoji: '🍸',
       secret: true,
       check: (data) => Object.keys(data.categories).includes('Манхэттен')
     },
     {
       id: 'secret_devil',
       title: 'Чертила',
-      description: '(секретное достижение)',
+      description: 'Потратить 666 рублей за раз',
+      emoji: '😈',
       secret: true,
       check: (data) => data.expensesHistory?.some(e => e.amount === 666)
     }
@@ -351,7 +389,10 @@ document.addEventListener('DOMContentLoaded', function() {
     achievementsBtn: document.getElementById('achievements-btn'),
     achievementsModal: document.getElementById('achievements-modal'),
     achievementsList: document.getElementById('achievements-list'),
-    closeAchievements: document.getElementById('close-achievements')
+    closeAchievements: document.getElementById('close-achievements'),
+    resetBtn: document.getElementById('reset-btn'),
+    resetSlider: null,
+    resetSliderValue: 0
   };
 
   // Функция сохранения данных
@@ -394,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     notification.innerHTML = `
       <div class="achievement-badge unlocked">
         <h4>Новое достижение!</h4>
-        <h3>${achievement.title}</h3>
+        <h3>${achievement.emoji} ${achievement.title}</h3>
         <p>${achievement.description}</p>
       </div>
     `;
@@ -419,18 +460,25 @@ document.addEventListener('DOMContentLoaded', function() {
     achievements.forEach(ach => {
       const unlocked = achievementsData[ach.id];
       
-      // Не показываем секретные достижения, если они не разблокированы
-      if (ach.secret && !unlocked) return;
-      
       const achievementEl = document.createElement('div');
       achievementEl.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'}`;
+      
+      // Для секретных и неразблокированных - скрываем описание
+      const description = (ach.secret && !unlocked) ? 'Секретное достижение' : ach.description;
+      
       achievementEl.innerHTML = `
-        <div class="achievement-icon">${unlocked ? '🏆' : '🔒'}</div>
+        <div class="achievement-icon">${ach.emoji}</div>
         <div class="achievement-info">
           <h4>${ach.title}</h4>
-          <p>${ach.description}</p>
+          <p>${description}</p>
         </div>
       `;
+      
+      // Для неразблокированных секретных достижений добавляем класс
+      if (ach.secret && !unlocked) {
+        achievementEl.classList.add('secret');
+      }
+      
       elements.achievementsList.appendChild(achievementEl);
     });
   }
@@ -1254,7 +1302,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(successMsg);
     
     setTimeout(() => {
-      document.body.removeChild(successMsg);
+      successMsg.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      successMsg.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(successMsg);
+      }, 500);
     }, 3000);
   }
 
@@ -1550,6 +1605,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Показать слайдер сброса
+  function showResetSlider() {
+    const modal = document.createElement('div');
+    modal.className = 'reset-modal';
+    modal.innerHTML = `
+      <div class="reset-slider-container">
+        <h3>Сбросить все данные</h3>
+        <p>Проведите пальцем вправо для подтверждения</p>
+        <div class="slider-track">
+          <div class="slider-thumb">→</div>
+          <div class="slider-progress"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    const thumb = modal.querySelector('.slider-thumb');
+    const track = modal.querySelector('.slider-track');
+    const progress = modal.querySelector('.slider-progress');
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+    
+    thumb.addEventListener('mousedown', startDrag);
+    thumb.addEventListener('touchstart', startDrag);
+    
+    function startDrag(e) {
+      isDragging = true;
+      startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+      currentX = startX;
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('touchmove', drag);
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('touchend', endDrag);
+      e.preventDefault();
+    }
+    
+    function drag(e) {
+      if (!isDragging) return;
+      const x = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+      const rect = track.getBoundingClientRect();
+      let newX = x - rect.left;
+      
+      // Ограничиваем движение в пределах трека
+      newX = Math.max(0, Math.min(newX, rect.width));
+      
+      thumb.style.left = `${newX}px`;
+      progress.style.width = `${newX}px`;
+      currentX = x;
+      
+      // Если пользователь провел достаточно далеко
+      if (newX >= rect.width * 0.9) {
+        endDrag();
+        resetApp();
+      }
+    }
+    
+    function endDrag() {
+      if (!isDragging) return;
+      isDragging = false;
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('touchmove', drag);
+      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener('touchend', endDrag);
+      
+      // Возвращаем слайдер в исходное положение
+      thumb.style.left = '0';
+      progress.style.width = '0';
+    }
+    
+    function resetApp() {
+      // Удаляем модальное окно
+      document.body.removeChild(modal);
+      
+      // Сбрасываем все данные
+      localStorage.clear();
+      financeData = {};
+      savingsWidgets = [];
+      fundWidgets = [];
+      achievementsData = {};
+      budgetData = {
+        totalAmount: 0,
+        days: 0,
+        startDate: null,
+        spent: 0,
+        dailyHistory: {}
+      };
+      
+      // Инициализируем текущий год
+      initYearData(currentYear);
+      
+      // Показываем сообщение об успешном сбросе
+      showSuccessMessage('Все данные сброшены!');
+      
+      // Обновляем интерфейс
+      updateUI();
+    }
+    
+    // Закрытие при клике вне слайдера
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+      }
+    });
+  }
+
   // Настройка обработчиков событий
   function setupEventHandlers() {
     // Добавление дохода
@@ -1761,6 +1922,12 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.achievementsModal.classList.remove('show');
     });
 
+    // Кнопка сброса данных
+    elements.resetBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      showResetSlider();
+    });
+
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
       // Список всех меню
@@ -1791,7 +1958,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.enableFundBtn,
         elements.yearSelectBtn,
         elements.historyBtn,
-        elements.achievementsBtn
+        elements.achievementsBtn,
+        elements.resetBtn
       ].some(button => button.contains(e.target));
       
       // Закрываем все меню, если клик был вне меню и не по кнопке меню
