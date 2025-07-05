@@ -1382,6 +1382,51 @@ body.dark .slider-track {
   transition: width 0.1s ease;
 }
 
+/* Transfer data styles */
+.transfer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.import-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#import-data-input {
+  min-height: 100px;
+  resize: vertical;
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 10px;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  box-shadow: inset 3px 3px 6px var(--shadow-dark), 
+              inset -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+  color: var(--text);
+}
+
+#import-data-input:focus {
+  outline: none;
+  box-shadow: inset 5px 5px 10px var(--shadow-dark), 
+              inset -5px -5px 10px var(--shadow-light);
+}
+
+.transfer-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.transfer-buttons .neumorphic-btn {
+  flex: 1;
+}
+
 /* Dark theme */
 body.dark {
   --bg: #1a1a1a;
@@ -1412,6 +1457,11 @@ body.dark .savings-widget .widget-input {
 body.dark .fund-widget {
   --widget-color: #d35400;
   --widget-bg: rgba(211, 84, 0, 0.15);
+}
+
+body.dark #import-data-input {
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* Tablet adaptation */
@@ -1505,6 +1555,14 @@ body.dark .fund-widget {
   
   .month-categories h5 {
     font-size: 1.1rem;
+  }
+  
+  .transfer-options {
+    flex-direction: row;
+  }
+  
+  .import-section {
+    flex: 1;
   }
 }
 
@@ -1670,5 +1728,9 @@ body.dark .fund-widget {
   .trend-chart-container {
     width: 240px;
     height: 240px;
+  }
+  
+  .transfer-buttons {
+    flex-direction: column;
   }
 }
