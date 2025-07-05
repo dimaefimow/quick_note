@@ -391,6 +391,12 @@ document.addEventListener('DOMContentLoaded', function() {
     achievementsList: document.getElementById('achievements-list'),
     closeAchievements: document.getElementById('close-achievements'),
     resetBtn: document.getElementById('reset-btn'),
+    transferDataBtn: document.getElementById('transfer-data-btn'),
+    transferDataModal: document.getElementById('transfer-data-modal'),
+    closeTransferData: document.getElementById('close-transfer-data'),
+    exportDataBtn: document.getElementById('export-data-btn'),
+    importDataBtn: document.getElementById('import-data-btn'),
+    importDataInput: document.getElementById('import-data-input'),
     resetSlider: null,
     resetSliderValue: 0
   };
@@ -1711,6 +1717,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Экспорт данных
+  function exportData() {
+    const dataToExport = {
+        financeData: financeData,
+        budgetData: budgetData,
+        savingsWidgets: savingsWidgets,
+        fundWidgets: fundWidgets,
+        achievementsData: achievementsData
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    navigator.clipboard.writeText(dataStr)
+        .then(() => {
+            showSuccessMessage('Данные скопированы в буфер обмена!');
+        })
+        .catch(err => {
+            console.error('Ошибка копирования: ', err);
+            alert('Не удалось скопировать данные. Попробуйте вручную.');
+        });
+  }
+
+  // Импорт данных
+  function importData() {
+    const importDataStr = elements.importDataInput.value.trim();
+    if (!importDataStr) {
+        alert('Вставьте данные для импорта');
+        return;
+    }
+
+    try {
+        const importedData = JSON.parse(importDataStr);
+        
+        if (importedData.financeData && importedData.budgetData && 
+            importedData.savingsWidgets && importedData.fundWidgets && 
+            importedData.achievementsData) {
+            
+            financeData = importedData.financeData;
+            budgetData = importedData.budgetData;
+            savingsWidgets = importedData.savingsWidgets;
+            fundWidgets = importedData.fundWidgets;
+            achievementsData = importedData.achievementsData;
+            
+            localStorage.setItem('financeData', JSON.stringify(financeData));
+            localStorage.setItem('budgetData', JSON.stringify(budgetData));
+            localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+            localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+            localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+            
+            updateUI();
+            elements.importDataInput.value = '';
+            elements.transferDataModal.classList.remove('show');
+            showSuccessMessage('Данные успешно импортированы!');
+        } else {
+            alert('Некорректный формат данных');
+        }
+    } catch (e) {
+        console.error('Ошибка импорта: ', e);
+        alert('Ошибка при импорте данных. Проверьте формат.');
+    }
+  }
+
   // Настройка обработчиков событий
   function setupEventHandlers() {
     // Добавление дохода
@@ -1928,6 +1995,19 @@ document.addEventListener('DOMContentLoaded', function() {
       showResetSlider();
     });
 
+    // Перенос данных
+    elements.transferDataBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.transferDataModal);
+    });
+
+    elements.closeTransferData.addEventListener('click', () => {
+      elements.transferDataModal.classList.remove('show');
+    });
+
+    elements.exportDataBtn.addEventListener('click', exportData);
+    elements.importDataBtn.addEventListener('click', importData);
+
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
       // Список всех меню
@@ -1941,7 +2021,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.fundModal,
         elements.yearSelectModal,
         elements.historyModal,
-        elements.achievementsModal
+        elements.achievementsModal,
+        elements.transferDataModal
       ];
       
       // Проверяем, был ли клик вне меню
@@ -1959,7 +2040,8 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.yearSelectBtn,
         elements.historyBtn,
         elements.achievementsBtn,
-        elements.resetBtn
+        elements.resetBtn,
+        elements.transferDataBtn
       ].some(button => button.contains(e.target));
       
       // Закрываем все меню, если клик был вне меню и не по кнопке меню
@@ -1983,7 +2065,8 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
       { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
       { element: elements.fundName, handler: elements.saveFundBtn },
-      { element: elements.fundAmount, handler: elements.saveFundBtn }
+      { element: elements.fundAmount, handler: elements.saveFundBtn },
+      { element: elements.importDataInput, handler: elements.importDataBtn }
     ];
 
     enterHandlers.forEach(item => {
