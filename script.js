@@ -83,6 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
     '#f1c40f', '#e67e22', '#c0392b'
   ];
 
+  // Переменные для новых достижений
+  let themeToggleCount = 0;
+  let lastThemeToggleTime = 0;
+  let pullAttempts = 0;
+  let monthSequence = [];
+  const requiredMonthSequence = [8, 9, 10, 11, 0, 1]; // сентябрь-февраль
+
   // Список достижений с уникальными эмодзи
   const achievements = [
     {
@@ -323,6 +330,47 @@ document.addEventListener('DOMContentLoaded', function() {
       emoji: '😈',
       secret: true,
       check: (data) => data.expensesHistory?.some(e => e.amount === 666)
+    },
+    // Новые достижения
+    {
+      id: 'better_than_most',
+      title: "Лучше большинства",
+      description: "Вы получите её сразу",
+      emoji: "🏆",
+      secret: false,
+      check: () => true // Всегда разблокировано
+    },
+    {
+      id: 'cant_get_this',
+      title: "Ты не получишь это достижение",
+      description: "Его нельзя получить",
+      emoji: "🚫",
+      secret: false,
+      check: () => false // Никогда не разблокируется
+    },
+    {
+      id: 'ghost_busters',
+      title: "Ghost busters",
+      description: "5 раз подряд переключить тему",
+      emoji: "👻",
+      secret: true,
+      check: () => false // Разблокируется через специальный обработчик
+    },
+    {
+      id: 'dungeons_and_dragons',
+      title: "Подземелье и драконы",
+      description: "Потянуть вниз когда страница уже не листается",
+      emoji: "🐉",
+      secret: true,
+      check: () => false // Разблокируется через специальный обработчик
+    },
+    {
+      id: 'do_re_mi',
+      title: "До ре ми фа соль ля си",
+      description: "Открыть месяцы по порядку: сентябрь, октябрь, ноябрь, декабрь, январь, февраль",
+      emoji: "🎵",
+      secret: true,
+      check: () => false // Разблокируется через специальный обработчик
     }
   ];
 
@@ -481,6 +529,80 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(notification);
       }, 500);
     }, 5000);
+  }
+
+  // Разблокировать достижение по ID
+  function unlockAchievement(id) {
+    if (!achievementsData[id]) {
+      achievementsData[id] = true;
+      localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+      const achievement = achievements.find(a => a.id === id);
+      if (achievement) showAchievementUnlocked(achievement);
+    }
+  }
+
+  // Анимация призраков для достижения Ghost busters
+  function showGhostAnimation() {
+    const ghosts = ['👻', '👻', '👻', '👻', '👻', '👻', '👻'];
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '9999';
+    container.style.overflow = 'hidden';
+    document.body.appendChild(container);
+
+    ghosts.forEach((ghost, i) => {
+      const ghostEl = document.createElement('div');
+      ghostEl.textContent = ghost;
+      ghostEl.style.position = 'absolute';
+      ghostEl.style.fontSize = '30px';
+      ghostEl.style.left = `${Math.random() * 100}%`;
+      ghostEl.style.top = '-50px';
+      ghostEl.style.animation = `fall ${3 + Math.random() * 2}s linear ${i * 0.3}s forwards`;
+      container.appendChild(ghostEl);
+    });
+
+    // Добавляем стили для анимации
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fall {
+        to { transform: translateY(calc(100vh + 50px)) rotate(${Math.random() * 360}deg); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    setTimeout(() => {
+      document.body.removeChild(container);
+      document.head.removeChild(style);
+    }, 5000);
+  }
+
+  // Проверка последовательности месяцев для достижения До ре ми фа соль ля си
+  function checkMonthSequence(month) {
+    monthSequence.push(month);
+    
+    // Проверяем, соответствует ли последовательность требуемой
+    if (monthSequence.length > requiredMonthSequence.length) {
+      monthSequence.shift();
+    }
+    
+    if (arraysEqual(monthSequence, requiredMonthSequence)) {
+      unlockAchievement('do_re_mi');
+      monthSequence = [];
+    }
+  }
+
+  // Сравнение массивов
+  function arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
   }
 
   // Отрисовка списка достижений
@@ -1975,6 +2097,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.monthTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentMonth = parseInt(tab.dataset.month);
+        checkMonthSequence(currentMonth);
         updateUI();
       });
     });
@@ -2031,6 +2154,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     elements.exportDataBtn.addEventListener('click', exportData);
     elements.importDataBtn.addEventListener('click', importData);
+
+    // Обработчик для Ghost busters (переключение темы)
+    elements.themeToggleBtn.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastThemeToggleTime < 2000) { // 2 секунды между кликами
+        themeToggleCount++;
+        if (themeToggleCount >= 5) {
+          unlockAchievement('ghost_busters');
+          showGhostAnimation();
+          themeToggleCount = 0;
+        }
+      } else {
+        themeToggleCount = 1;
+      }
+      lastThemeToggleTime = now;
+    });
+
+    // Обработчик для Подземелье и драконы (потягивание вниз)
+    let lastScrollPosition = 0;
+    const scrollable = document.getElementById('scrollable');
+    scrollable.addEventListener('scroll', () => {
+      const currentScroll = scrollable.scrollTop;
+      if (currentScroll <= 0 && lastScrollPosition <= 0) {
+        pullAttempts++;
+        if (pullAttempts >= 3) {
+          unlockAchievement('dungeons_and_dragons');
+          pullAttempts = 0;
+        }
+      } else {
+        pullAttempts = 0;
+      }
+      lastScrollPosition = currentScroll;
+    });
+
+    // Проверка последовательности месяцев для достижения До ре ми фа соль ля си
+    function checkMonthSequence(month) {
+      monthSequence.push(month);
+      
+      // Проверяем, соответствует ли последовательность требуемой
+      if (monthSequence.length > requiredMonthSequence.length) {
+        monthSequence.shift();
+      }
+      
+      if (arraysEqual(monthSequence, requiredMonthSequence)) {
+        unlockAchievement('do_re_mi');
+        monthSequence = [];
+      }
+    }
 
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
@@ -2171,6 +2342,11 @@ document.addEventListener('DOMContentLoaded', function() {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(handleResize, 250);
     });
+
+    // Разблокируем достижение "Лучше большинства" при первом запуске
+    if (!achievementsData['better_than_most']) {
+      unlockAchievement('better_than_most');
+    }
   }
 
   // Запуск приложения
