@@ -2,7 +2,23 @@
 if (window.Telegram?.WebApp?.preventClose) {
   window.Telegram.WebApp.preventClose();
 }
+
+// Отключение вертикальных свайпов (для Telegram 7.7+)
+if (window.Telegram?.WebApp?.disableVerticalSwipes) {
+  window.Telegram.WebApp.disableVerticalSwipes();
+} else {
+  console.warn("Метод disableVerticalSwipes не поддерживается");
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Блокировка всплытия событий прокрутки
+  const container = document.querySelector('.content-container');
+  if (container) {
+    container.addEventListener('scroll', (e) => {
+      e.stopPropagation();
+    });
+  }
+
   // Текущий месяц и год
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
@@ -168,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Проверяем только в конце месяца
         const today = new Date();
-        const isEndOfMonth = today.getDate() >= 28; // Проверяем последние дни месяца
+        const isEndOfMonth = today.getDate() >= 28;
         
         if (!isEndOfMonth) return false;
         
@@ -408,6 +424,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Функция сохранения данных
   function saveData() {
     localStorage.setItem('financeData', JSON.stringify(financeData));
+    localStorage.setItem('budgetData', JSON.stringify(budgetData));
+    localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+    localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+    localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
     updateCategoriesList();
   }
 
