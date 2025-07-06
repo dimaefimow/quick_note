@@ -3,8 +3,6 @@ if (window.Telegram?.WebApp?.preventClose) {
   window.Telegram.WebApp.preventClose();
 }
 
-Telegram.WebApp.disableVerticalSwipes();
-
 // Отключение вертикальных свайпов (для Telegram 7.7+)
 if (window.Telegram?.WebApp?.disableVerticalSwipes) {
   window.Telegram.WebApp.disableVerticalSwipes();
