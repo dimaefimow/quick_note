@@ -90,6 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
   let monthSequence = [];
   const requiredMonthSequence = [8, 9, 10, 11, 0, 1]; // сентябрь-февраль
 
+  // Счетчик кликов по виджетам для активации падения интерфейса
+  let widgetClickCount = 0;
+
   // Список достижений с уникальными эмодзи
   const achievements = [
     {
@@ -468,6 +471,110 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSlider: null,
     resetSliderValue: 0
   };
+
+  // Функция для анимации падения интерфейса
+  function triggerFallAnimation() {
+    // Добавляем стили для анимации
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fallDown {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(var(--rotation)); opacity: 0; }
+      }
+      .falling {
+        animation: fallDown 2s ease forwards;
+        pointer-events: none;
+        position: relative;
+        z-index: 10000;
+      }
+      @keyframes smokeEffect {
+        0% { opacity: 0; transform: scale(0.5); }
+        50% { opacity: 0.8; }
+        100% { opacity: 0; transform: scale(3); }
+      }
+      .smoke {
+        position: absolute;
+        background: rgba(255,255,255,0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: smokeEffect 1.5s ease-out forwards;
+        z-index: 9999;
+      }
+      body.hell-mode {
+        filter: hue-rotate(-50deg) saturate(200%) brightness(70%) contrast(150%);
+        background: linear-gradient(to bottom, #300000, #150000);
+        transition: all 3s ease;
+      }
+      body.hell-mode * {
+        color: #ff4d4d !important;
+      }
+      body.hell-mode .neumorphic-card,
+      body.hell-mode .neumorphic-btn,
+      body.hell-mode .neumorphic-input,
+      body.hell-mode .neumorphic-menu {
+        background: #300000 !important;
+        box-shadow: 5px 5px 10px #150000, -5px -5px 10px #450000 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Создаем эффект дыма при падении
+    function createSmoke(x, y) {
+      const smoke = document.createElement('div');
+      smoke.className = 'smoke';
+      smoke.style.left = `${x}px`;
+      smoke.style.top = `${y}px`;
+      smoke.style.width = `${50 + Math.random() * 100}px`;
+      smoke.style.height = smoke.style.width;
+      document.body.appendChild(smoke);
+      
+      setTimeout(() => {
+        document.body.removeChild(smoke);
+      }, 1500);
+    }
+
+    // Применяем анимацию ко всем элементам интерфейса
+    const allElements = document.querySelectorAll('body > *:not(script):not(style)');
+    allElements.forEach(element => {
+      if (!element.classList.contains('falling')) {
+        // Случайные параметры для каждого элемента
+        const rotation = (Math.random() * 360) - 180; // от -180 до 180 градусов
+        const delay = Math.random() * 0.5; // случайная задержка
+        const duration = 1 + Math.random() * 1; // случайная длительность
+        
+        element.style.setProperty('--rotation', `${rotation}deg`);
+        element.style.animationDelay = `${delay}s`;
+        element.style.animationDuration = `${duration}s`;
+        element.classList.add('falling');
+        
+        // Создаем эффект дыма в случайных местах
+        if (Math.random() > 0.7) {
+          const rect = element.getBoundingClientRect();
+          const x = rect.left + rect.width * Math.random();
+          const y = rect.top + rect.height * Math.random();
+          createSmoke(x, y);
+        }
+      }
+    });
+
+    // Через 2 секунды включаем "адский режим"
+    setTimeout(() => {
+      document.body.classList.add('hell-mode');
+      
+      // Через 5 секунд возвращаем все на место (но режим ада остается)
+      setTimeout(() => {
+        allElements.forEach(element => {
+          element.classList.remove('falling');
+          element.style.animation = 'none';
+          element.style.transform = 'none';
+          element.style.opacity = '1';
+        });
+      }, 5000);
+    }, 2000);
+
+    // Сохраняем состояние ада в localStorage
+    localStorage.setItem('hellMode', 'true');
+  }
 
   // Функция сохранения данных
   function saveData() {
@@ -982,6 +1089,21 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
         addExpenseToCategory(category);
+      });
+    });
+
+    // Добавляем обработчики кликов для активации падения интерфейса
+    document.querySelectorAll('.widget:not(.savings-widget):not(.fund-widget)').forEach(widget => {
+      widget.addEventListener('click', function() {
+        widgetClickCount++;
+        if (widgetClickCount >= 15) {
+          // Добавляем вибрацию для эффекта
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+          }
+          triggerFallAnimation();
+          widgetClickCount = 0;
+        }
       });
     });
   }
