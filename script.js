@@ -472,9 +472,9 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSliderValue: 0
   };
 
-  // Функция для анимации падения интерфейса
+  // Функция для анимации падения интерфейса с улучшениями
   function triggerFallAnimation() {
-    // Добавляем стили для анимации
+    // Создаем стили для адского режима
     const style = document.createElement('style');
     style.textContent = `
       @keyframes fallDown {
@@ -487,36 +487,121 @@ document.addEventListener('DOMContentLoaded', function() {
         position: relative;
         z-index: 10000;
       }
+      
+      /* Новые эффекты для ада */
+      @keyframes hellPulse {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      
+      @keyframes flicker {
+        0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+          opacity: 1;
+        }
+        20%, 22%, 24%, 55% {
+          opacity: 0.3;
+        }
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      
+      body.hell-mode {
+        --bg: #1a0000;
+        --text: #ff4d4d;
+        --shadow-light: #4d0000;
+        --shadow-dark: #0a0000;
+        --primary: #ff3333;
+        --primary-hover: #cc0000;
+        transition: all 1s ease;
+        background: linear-gradient(45deg, #330000, #1a0000, #4d0000, #330000);
+        background-size: 400% 400%;
+        animation: hellPulse 15s ease infinite;
+      }
+      
+      body.hell-mode * {
+        color: #ff4d4d !important;
+        text-shadow: 0 0 5px #ff0000;
+        animation: flicker 5s infinite;
+      }
+      
+      body.hell-mode .neumorphic-card,
+      body.hell-mode .neumorphic-btn,
+      body.hell-mode .neumorphic-input,
+      body.hell-mode .neumorphic-menu {
+        background: #330000 !important;
+        box-shadow: 5px 5px 10px #0a0000, -5px -5px 10px #4d0000 !important;
+        border: 1px solid #ff3333 !important;
+      }
+      
+      .hell-particle {
+        position: fixed;
+        width: 5px;
+        height: 5px;
+        background: #ff3333;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9998;
+        animation: float 3s ease-in-out infinite;
+      }
+      
+      .flame {
+        position: fixed;
+        width: 100px;
+        height: 150px;
+        background: radial-gradient(ellipse at center, rgba(255,100,0,0.8) 0%, rgba(255,50,0,0.1) 70%);
+        border-radius: 50% 50% 20% 20%;
+        filter: blur(5px);
+        pointer-events: none;
+        z-index: 9997;
+        animation: flicker 2s infinite alternate;
+      }
+      
       @keyframes smokeEffect {
         0% { opacity: 0; transform: scale(0.5); }
         50% { opacity: 0.8; }
         100% { opacity: 0; transform: scale(3); }
       }
+      
       .smoke {
         position: absolute;
-        background: rgba(255,255,255,0.7);
+        background: radial-gradient(circle, rgba(255,100,0,0.7) 0%, rgba(139,0,0,0) 70%);
         border-radius: 50%;
         pointer-events: none;
         animation: smokeEffect 1.5s ease-out forwards;
         z-index: 9999;
       }
-      body.hell-mode {
-        filter: hue-rotate(-50deg) saturate(200%) brightness(70%) contrast(150%);
-        background: linear-gradient(to bottom, #300000, #150000);
-        transition: all 3s ease;
-      }
-      body.hell-mode * {
-        color: #ff4d4d !important;
-      }
-      body.hell-mode .neumorphic-card,
-      body.hell-mode .neumorphic-btn,
-      body.hell-mode .neumorphic-input,
-      body.hell-mode .neumorphic-menu {
-        background: #300000 !important;
-        box-shadow: 5px 5px 10px #150000, -5px -5px 10px #450000 !important;
-      }
     `;
     document.head.appendChild(style);
+
+    // Создаем эффект дыма и огня
+    function createHellEffects() {
+      // Добавляем частицы ада
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'hell-particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.width = `${3 + Math.random() * 7}px`;
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = `${Math.random() * 5}s`;
+        document.body.appendChild(particle);
+      }
+      
+      // Добавляем языки пламени внизу экрана
+      for (let i = 0; i < 5; i++) {
+        const flame = document.createElement('div');
+        flame.className = 'flame';
+        flame.style.left = `${10 + i * 20}%`;
+        flame.style.bottom = '-50px';
+        flame.style.width = `${80 + Math.random() * 70}px`;
+        flame.style.height = `${120 + Math.random() * 80}px`;
+        document.body.appendChild(flame);
+      }
+    }
 
     // Создаем эффект дыма при падении
     function createSmoke(x, y) {
@@ -557,9 +642,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Через 2 секунды включаем "адский режим"
+    // Включаем адский режим с дополнительными эффектами
     setTimeout(() => {
       document.body.classList.add('hell-mode');
+      createHellEffects();
+      
+      // Добавляем звуковой эффект (если разрешено)
+      if (typeof Audio !== 'undefined') {
+        try {
+          const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-creepy-laugh-22.mp3');
+          audio.volume = 0.3;
+          audio.play().catch(e => console.log('Audio playback error:', e));
+        } catch (e) {
+          console.log('Audio error:', e);
+        }
+      }
       
       // Через 5 секунд возвращаем все на место (но режим ада остается)
       setTimeout(() => {
@@ -569,6 +666,11 @@ document.addEventListener('DOMContentLoaded', function() {
           element.style.transform = 'none';
           element.style.opacity = '1';
         });
+        
+        // Удаляем частицы через 10 секунд
+        setTimeout(() => {
+          document.querySelectorAll('.hell-particle, .flame').forEach(el => el.remove());
+        }, 10000);
       }, 5000);
     }, 2000);
 
@@ -650,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Анимация призраков для достижения Ghost busters
   function showGhostAnimation() {
-    const ghosts = ['👻', '👻', '👻', '👻', '👻', '👻', '👻'];
+    const ghosts = ['👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻', '👻'];
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '0';
@@ -669,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
       ghostEl.style.fontSize = '30px';
       ghostEl.style.left = `${Math.random() * 100}%`;
       ghostEl.style.top = '-50px';
-      ghostEl.style.animation = `fall ${3 + Math.random() * 2}s linear ${i * 0.3}s forwards`;
+      ghostEl.style.animation = `fall ${3 + Math.random() * 2}s linear ${i * 0.1}s forwards`;
       container.appendChild(ghostEl);
     });
 
@@ -1587,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 3000);
   }
 
-  // Функция обновления виджета бюджета
+  // Обновление виджета бюджета
   function updateBudgetWidget() {
     if (!budgetData.startDate) {
       elements.dailyBudgetAmount.textContent = formatCurrency(0);
