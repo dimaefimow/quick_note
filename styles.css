@@ -940,7 +940,6 @@ body.dark .category-item.total {
 }
 
 #budget-progress {
-  margin: 0;
   font-size: 0.8rem;
   color: var(--text);
   opacity: 0.8;
@@ -1099,10 +1098,6 @@ body.dark .achievement-item.secret {
   margin: 0;
   font-size: 0.9rem;
   color: #666;
-}
-
-body.dark .achievement-info p {
-  color: #aaa;
 }
 
 /* Achievement notification */
@@ -1430,11 +1425,43 @@ body.dark .slider-track {
 /* Dark theme */
 body.dark {
   --bg: #1a1a1a;
-  --text: #f0f0f0;
+  --text: #ffffff;
   --shadow-light: #2a2a2a;
   --shadow-dark: #0a0a0a;
   --primary: #2980b9;
   --primary-hover: #3498db;
+}
+
+/* Принудительно белый текст для всех элементов в темной теме */
+body.dark,
+body.dark * {
+  color: #ffffff !important;
+}
+
+/* Исключения для элементов, которые должны сохранить свои цвета */
+body.dark .financial-value,
+body.dark .month-tab.active,
+body.dark .achievement-badge,
+body.dark .slider-thumb,
+body.dark .days-progress,
+body.dark .funds-progress,
+body.dark .negative,
+body.dark .delete-category-btn,
+body.dark .delete-widget-btn {
+  color: inherit !important;
+}
+
+/* Специальные стили для второстепенного текста */
+body.dark .achievement-info p,
+body.dark .history-date,
+body.dark .progress-info {
+  color: #cccccc !important;
+}
+
+/* Стили для инпутов в темной теме */
+body.dark .neumorphic-input,
+body.dark #import-data-input {
+  color: #ffffff !important;
 }
 
 body.dark .theme-icon {
@@ -1733,4 +1760,93 @@ body.dark #import-data-input {
   .transfer-buttons {
     flex-direction: column;
   }
+}
+
+/* Hell mode styles */
+body.hell-mode {
+  --bg: #fff0f0;
+  --text: #5a2a2a;
+  --shadow-light: #ffd6d6;
+  --shadow-dark: #e8b8b8;
+  --primary: #d85a5a;
+  --primary-hover: #c44a4a;
+  --danger: #d85a5a;
+  --danger-hover: #c44a4a;
+  --success: #a85a5a;
+  --warning: #c87d7d;
+  filter: none;
+  background: linear-gradient(to bottom, #fff0f0, #ffd6d6);
+}
+
+body.hell-mode * {
+  color: #5a2a2a !important;
+}
+
+body.hell-mode .neumorphic-card,
+body.hell-mode .neumorphic-btn,
+body.hell-mode .neumorphic-input,
+body.hell-mode .neumorphic-menu {
+  background: #ffebeb !important;
+  box-shadow: 5px 5px 10px #e8b8b8, -5px -5px 10px #ffd6d6 !important;
+}
+
+/* Дополнительные стили для компонентов в адском режиме */
+body.hell-mode .achievement-item {
+  background: rgba(216, 90, 90, 0.1) !important;
+}
+
+body.hell-mode .month-categories h5 {
+  border-bottom-color: rgba(90, 42, 42, 0.2) !important;
+}
+
+body.hell-mode .category-item {
+  background: rgba(216, 90, 90, 0.05) !important;
+}
+
+body.hell-mode .category-item.total {
+  background: rgba(216, 90, 90, 0.15) !important;
+}
+
+body.hell-mode .history-item {
+  background: rgba(216, 90, 90, 0.05) !important;
+}
+
+body.hell-mode .savings-progress-container {
+  background: rgba(216, 90, 90, 0.1) !important;
+}
+
+body.hell-mode .days-progress {
+  background: linear-gradient(90deg, #d85a5a, #c44a4a) !important;
+}
+
+body.hell-mode .funds-progress {
+  background: #d85a5a !important;
+}
+
+body.hell-mode .financial-value {
+  color: #d85a5a !important;
+}
+
+body.hell-mode .month-tab.active {
+  background: #d85a5a !important;
+}
+
+body.hell-mode .achievement-badge {
+  background: linear-gradient(135deg, #d85a5a, #c44a4a) !important;
+}
+
+body.hell-mode .slider-track {
+  background: rgba(216, 90, 90, 0.1) !important;
+}
+
+body.hell-mode .slider-thumb {
+  background: #d85a5a !important;
+}
+
+body.hell-mode .slider-progress {
+  background: rgba(216, 90, 90, 0.3) !important;
+}
+
+body.dark .achievement-info p {
+  color: #aaa;
 }
