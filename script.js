@@ -1167,8 +1167,13 @@ document.addEventListener('DOMContentLoaded', function() {
       widget.style.setProperty('--widget-color', color);
       
       widget.innerHTML = `
-        <button class="delete-widget-btn" data-category="${cat}">×</button>
-        <h3 style="color: ${color}">${cat}</h3>
+        <div class="widget-header">
+          <h3 style="color: ${color}">${cat}</h3>
+          <div class="widget-actions">
+            <button class="delete-last-expense-btn" data-category="${cat}" title="Удалить последнюю трату">↩️</button>
+            <button class="delete-widget-btn" data-category="${cat}">×</button>
+          </div>
+        </div>
         <p>${formatCurrency(val)}</p>
         <div class="widget-input-group">
           <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="expense-${cat}">
@@ -1179,7 +1184,15 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.widgetsContainer.appendChild(widget);
     });
 
-    // Добавляем обработчики для новых кнопок
+    // Добавляем обработчики для новых кнопок удаления последней траты
+    document.querySelectorAll('.delete-last-expense-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const category = this.getAttribute('data-category');
+        deleteLastExpense(category);
+      });
+    });
+
+    // Остальные обработчики остаются без изменений
     document.querySelectorAll('.delete-widget-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
@@ -1208,6 +1221,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
+  }
+
+  // Удаление последней траты в категории
+  function deleteLastExpense(category) {
+    const monthData = financeData[currentYear][currentMonth];
+    const expenses = monthData.expensesHistory || [];
+    
+    // Находим последнюю трату в этой категории
+    const lastExpenseIndex = expenses.map((exp, index) => 
+      exp.category === category ? index : -1
+    ).filter(i => i !== -1).pop();
+    
+    if (lastExpenseIndex !== undefined) {
+      const lastExpense = expenses[lastExpenseIndex];
+      
+      if (confirm(`Удалить последнюю трату в категории "${category}" на сумму ${formatCurrency(lastExpense.amount)}?`)) {
+        // Уменьшаем общие расходы категории
+        monthData.expense -= lastExpense.amount;
+        monthData.categories[category] -= lastExpense.amount;
+        
+        // Удаляем запись из истории
+        monthData.expensesHistory.splice(lastExpenseIndex, 1);
+        
+        // Обновляем дневные траты в бюджете, если они есть
+        if (lastExpense.date) {
+          const expenseDate = new Date(lastExpense.date);
+          const dateStr = expenseDate.toISOString().split('T')[0];
+          
+          if (budgetData.startDate && budgetData.dailyHistory[dateStr]) {
+            budgetData.dailyHistory[dateStr].spentToday -= lastExpense.amount;
+            if (budgetData.dailyHistory[dateStr].spentToday < 0) {
+              budgetData.dailyHistory[dateStr].spentToday = 0;
+            }
+            localStorage.setItem('budgetData', JSON.stringify(budgetData));
+          }
+        }
+        
+        saveData();
+        updateUI();
+        showSuccessMessage(`Последняя трата в категории "${category}" удалена`);
+      }
+    } else {
+      showSuccessMessage(`В категории "${category}" нет трат для удаления`);
+    }
   }
 
   // Отрисовка всех виджетов накоплений
@@ -1794,15 +1851,56 @@ document.addEventListener('DOMContentLoaded', function() {
     // Сортируем от последних к старым
     const sortedHistory = [...history].reverse();
     
-    sortedHistory.forEach(item => {
+    sortedHistory.forEach((item, index) => {
       const historyItem = document.createElement('div');
       historyItem.className = 'history-item';
       historyItem.innerHTML = `
         <div>${item.category}: ${formatCurrency(item.amount)}</div>
         <div class="history-date">${item.date}</div>
+        <button class="delete-history-btn" data-index="${history.length - 1 - index}">×</button>
       `;
       elements.historyList.appendChild(historyItem);
     });
+
+    // Добавляем обработчики для кнопок удаления
+    document.querySelectorAll('.delete-history-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const index = parseInt(this.getAttribute('data-index'));
+        deleteExpenseFromHistory(index);
+      });
+    });
+  }
+
+  // Удаление траты из истории
+  function deleteExpenseFromHistory(index) {
+    const monthData = financeData[currentYear][currentMonth];
+    const expense = monthData.expensesHistory[index];
+    
+    if (expense && confirm(`Удалить трату ${expense.category} на сумму ${formatCurrency(expense.amount)}?`)) {
+      // Уменьшаем общие расходы
+      monthData.expense -= expense.amount;
+      
+      // Уменьшаем расходы по категории
+      if (monthData.categories[expense.category]) {
+        monthData.categories[expense.category] -= expense.amount;
+        
+        // Если сумма в категории стала 0, удаляем категорию
+        if (monthData.categories[expense.category] <= 0) {
+          delete monthData.categories[expense.category];
+        }
+      }
+      
+      // Удаляем запись из истории
+      monthData.expensesHistory.splice(index, 1);
+      
+      // Обновляем данные в localStorage
+      saveData();
+      
+      // Обновляем интерфейс
+      updateUI();
+      
+      showSuccessMessage(`Трата удалена`);
+    }
   }
 
   // Выбор года
@@ -1971,7 +2069,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Переключаем текущее меню
+    const isOpening = !menuElement.classList.contains('show');
     menuElement.classList.toggle('show');
+    
+    // Добавляем/убираем класс для body
+    if (isOpening) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
     
     // Позиционируем меню по центру экрана
     if (menuElement.classList.contains('show')) {
