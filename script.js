@@ -1170,7 +1170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="widget-header">
           <h3 style="color: ${color}">${cat}</h3>
           <div class="widget-actions">
-            <button class="delete-last-expense-btn" data-category="${cat}" title="Удалить последнюю трату">↩️</button>
             <button class="delete-widget-btn" data-category="${cat}">×</button>
           </div>
         </div>
@@ -1184,15 +1183,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.widgetsContainer.appendChild(widget);
     });
 
-    // Добавляем обработчики для новых кнопок удаления последней траты
-    document.querySelectorAll('.delete-last-expense-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const category = this.getAttribute('data-category');
-        deleteLastExpense(category);
-      });
-    });
-
-    // Остальные обработчики остаются без изменений
+    // Добавляем обработчики для кнопок удаления
     document.querySelectorAll('.delete-widget-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
@@ -1221,50 +1212,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
-  }
-
-  // Удаление последней траты в категории
-  function deleteLastExpense(category) {
-    const monthData = financeData[currentYear][currentMonth];
-    const expenses = monthData.expensesHistory || [];
-    
-    // Находим последнюю трату в этой категории
-    const lastExpenseIndex = expenses.map((exp, index) => 
-      exp.category === category ? index : -1
-    ).filter(i => i !== -1).pop();
-    
-    if (lastExpenseIndex !== undefined) {
-      const lastExpense = expenses[lastExpenseIndex];
-      
-      if (confirm(`Удалить последнюю трату в категории "${category}" на сумму ${formatCurrency(lastExpense.amount)}?`)) {
-        // Уменьшаем общие расходы категории
-        monthData.expense -= lastExpense.amount;
-        monthData.categories[category] -= lastExpense.amount;
-        
-        // Удаляем запись из истории
-        monthData.expensesHistory.splice(lastExpenseIndex, 1);
-        
-        // Обновляем дневные траты в бюджете, если они есть
-        if (lastExpense.date) {
-          const expenseDate = new Date(lastExpense.date);
-          const dateStr = expenseDate.toISOString().split('T')[0];
-          
-          if (budgetData.startDate && budgetData.dailyHistory[dateStr]) {
-            budgetData.dailyHistory[dateStr].spentToday -= lastExpense.amount;
-            if (budgetData.dailyHistory[dateStr].spentToday < 0) {
-              budgetData.dailyHistory[dateStr].spentToday = 0;
-            }
-            localStorage.setItem('budgetData', JSON.stringify(budgetData));
-          }
-        }
-        
-        saveData();
-        updateUI();
-        showSuccessMessage(`Последняя трата в категории "${category}" удалена`);
-      }
-    } else {
-      showSuccessMessage(`В категории "${category}" нет трат для удаления`);
-    }
   }
 
   // Отрисовка всех виджетов накоплений
@@ -1842,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('budgetData', JSON.stringify(budgetData));
   }
 
-  // Просмотр истории трат
+  // Отрисовка истории трат
   function renderExpenseHistory() {
     elements.historyList.innerHTML = '';
     const monthData = financeData[currentYear][currentMonth];
@@ -1855,8 +1802,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const historyItem = document.createElement('div');
       historyItem.className = 'history-item';
       historyItem.innerHTML = `
-        <div>${item.category}: ${formatCurrency(item.amount)}</div>
-        <div class="history-date">${item.date}</div>
+        <div class="history-content">
+          <div class="history-category">${item.category}</div>
+          <div class="history-amount">${formatCurrency(item.amount)}</div>
+          <div class="history-date">${item.date}</div>
+        </div>
         <button class="delete-history-btn" data-index="${history.length - 1 - index}">×</button>
       `;
       elements.historyList.appendChild(historyItem);
@@ -1876,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const monthData = financeData[currentYear][currentMonth];
     const expense = monthData.expensesHistory[index];
     
-    if (expense && confirm(`Удалить трату ${expense.category} на сумму ${formatCurrency(expense.amount)}?`)) {
+    if (expense) {
       // Уменьшаем общие расходы
       monthData.expense -= expense.amount;
       
@@ -1899,7 +1849,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Обновляем интерфейс
       updateUI();
       
-      showSuccessMessage(`Трата удалена`);
+      showSuccessMessage(`Трата "${expense.category}" на сумму ${formatCurrency(expense.amount)} удалена`);
     }
   }
 
