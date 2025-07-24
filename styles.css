@@ -1178,31 +1178,46 @@ canvas {
 
 /* History items */
 .history-item {
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.03);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
-  padding-right: 30px;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: var(--border-radius);
+  background: rgba(0,0,0,0.03);
+  transition: var(--transition);
+}
+
+.history-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-category {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.history-amount {
+  font-weight: bold;
+  margin-right: auto;
 }
 
 .history-date {
   font-size: 0.8rem;
   color: #666;
+  width: 100%;
+  margin-top: 4px;
 }
 
 .delete-history-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
   background: rgba(231, 76, 60, 0.2);
   border: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   color: #e74c3c;
   font-weight: bold;
@@ -1211,13 +1226,13 @@ canvas {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
-  font-size: 0.8rem;
-  line-height: 1;
+  flex-shrink: 0;
+  margin-left: 10px;
 }
 
 .delete-history-btn:hover {
   background: rgba(231, 76, 60, 0.3);
-  transform: translateY(-50%) scale(1.1);
+  transform: scale(1.1);
 }
 
 /* Year selection */
@@ -1554,6 +1569,23 @@ body.dark .month-categories h5 {
 
 body.dark .slider-track {
   background: rgba(255,255,255,0.1);
+}
+
+/* Темная тема для истории */
+body.dark .history-item {
+  background: rgba(255,255,255,0.05);
+}
+
+body.dark .history-category {
+  color: var(--primary);
+}
+
+body.dark .history-date {
+  color: #aaa;
+}
+
+body.dark .delete-history-btn {
+  background: rgba(231, 76, 60, 0.3);
 }
 
 /* Tablet adaptation */
