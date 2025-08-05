@@ -1465,38 +1465,6 @@ canvas {
   flex: 1;
 }
 
-/* Excel import/export buttons */
-#import-excel-btn {
-  margin-bottom: 15px;
-}
-
-.import-section h4 {
-  margin: 15px 0 10px 0;
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--text);
-  opacity: 0.8;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.import-section h4::before,
-.import-section h4::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-  margin: auto;
-}
-
-.import-section h4::before {
-  margin-right: 10px;
-}
-
-.import-section h4::after {
-  margin-left: 10px;
-}
-
 /* Dark theme */
 body.dark {
   --bg: #1a1a1a;
@@ -1601,11 +1569,6 @@ body.dark .month-categories h5 {
 
 body.dark .slider-track {
   background: rgba(255,255,255,0.1);
-}
-
-body.dark .import-section h4::before,
-body.dark .import-section h4::after {
-  border-bottom-color: rgba(255,255,255,0.1);
 }
 
 /* Темная тема для истории */
