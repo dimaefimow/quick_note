@@ -53,8 +53,10 @@
         <div id="transfer-data-modal" class="neumorphic-menu">
           <h3>Перенос данных</h3>
           <div class="transfer-options">
-            <button id="export-data-btn" class="neumorphic-btn primary">Экспорт данных</button>
+            <button id="export-data-btn" class="neumorphic-btn primary">Экспорт в Excel</button>
+            <button id="import-excel-btn" class="neumorphic-btn primary">Импорт из Excel</button>
             <div class="import-section">
+              <h4>Или импорт из текста</h4>
               <textarea id="import-data-input" class="neumorphic-input" placeholder="Вставьте данные для импорта" rows="5"></textarea>
               <button id="import-data-btn" class="neumorphic-btn primary">Импорт данных</button>
             </div>
@@ -247,7 +249,28 @@
         <div class="neumorphic-card"><h2>Капитал</h2><p id="capital-display">0 ₽</p></div>
       </section>
       
-      <section class="widgets" id="widgets"></section>
+      <section class="widgets" id="widgets">
+        <template id="widget-template">
+          <div class="neumorphic-card widget">
+            <div class="widget-header">
+              <h3 style="color: ${color}">${cat}</h3>
+              <div class="widget-actions">
+                <button class="undo-expense-btn" data-category="${cat}" title="Отменить последнюю трату">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 10h10a8 8 0 0 1 8 8v1M3 10l5 5m-5-5l5-5"/>
+                  </svg>
+                </button>
+                <button class="delete-widget-btn" data-category="${cat}">×</button>
+              </div>
+            </div>
+            <p>${formatCurrency(val)}</p>
+            <div class="widget-input-group">
+              <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="expense-${cat}">
+              <button class="neumorphic-btn small" data-category="${cat}">+</button>
+            </div>
+          </div>
+        </template>
+      </section>
       
       <section class="charts">
         <div class="chart-container">
@@ -303,6 +326,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
