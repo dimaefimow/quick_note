@@ -468,7 +468,6 @@ document.addEventListener('DOMContentLoaded', function() {
     exportDataBtn: document.getElementById('export-data-btn'),
     importDataBtn: document.getElementById('import-data-btn'),
     importDataInput: document.getElementById('import-data-input'),
-    importExcelBtn: document.getElementById('import-excel-btn'),
     resetSlider: null,
     resetSliderValue: 0
   };
@@ -2144,57 +2143,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Экспорт данных в Excel
+  // Экспорт данных
   function exportData() {
     const dataToExport = {
-      financeData: financeData,
-      budgetData: budgetData,
-      savingsWidgets: savingsWidgets,
-      fundWidgets: fundWidgets,
-      achievementsData: achievementsData
+        financeData: financeData,
+        budgetData: budgetData,
+        savingsWidgets: savingsWidgets,
+        fundWidgets: fundWidgets,
+        achievementsData: achievementsData
     };
     
-    // Создаем новую рабочую книгу
-    const wb = XLSX.utils.book_new();
-    
-    // Конвертируем данные в рабочий лист
-    const ws = XLSX.utils.json_to_sheet([dataToExport]);
-    
-    // Добавляем рабочий лист в книгу
-    XLSX.utils.book_append_sheet(wb, ws, "FinanceData");
-    
-    // Генерируем файл Excel
-    XLSX.writeFile(wb, `finance_data_${currentYear}.xlsx`);
-    
-    showSuccessMessage('Excel файл успешно создан!');
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    navigator.clipboard.writeText(dataStr)
+        .then(() => {
+            showSuccessMessage('Данные скопированы в буфер обмена!');
+        })
+        .catch(err => {
+            console.error('Ошибка копирования: ', err);
+            alert('Не удалось скопировать данные. Попробуйте вручную.');
+        });
   }
 
-  // Импорт данных из Excel
+  // Импорт данных
   function importData() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.xlsx,.xls';
-    
-    fileInput.onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          
-          // Получаем первый лист
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          
-          // Конвертируем в JSON
-          const importedData = XLSX.utils.sheet_to_json(worksheet)[0];
-          
-          if (importedData && importedData.financeData && importedData.budgetData && 
-              importedData.savingsWidgets && importedData.fundWidgets && 
-              importedData.achievementsData) {
+    const importDataStr = elements.importDataInput.value.trim();
+    if (!importDataStr) {
+        alert('Вставьте данные для импорта');
+        return;
+    }
+
+    try {
+        const importedData = JSON.parse(importDataStr);
+        
+        if (importedData.financeData && importedData.budgetData && 
+            importedData.savingsWidgets && importedData.fundWidgets && 
+            importedData.achievementsData) {
             
             financeData = importedData.financeData;
             budgetData = importedData.budgetData;
@@ -2209,58 +2192,15 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
             
             updateUI();
-            showSuccessMessage('Данные успешно импортированы из Excel!');
-          } else {
-            alert('Некорректный формат данных в файле Excel');
-          }
-        } catch (e) {
-          console.error('Ошибка импорта: ', e);
-          alert('Ошибка при импорте данных. Проверьте файл.');
+            elements.importDataInput.value = '';
+            elements.transferDataModal.classList.remove('show');
+            showSuccessMessage('Данные успешно импортированы!');
+        } else {
+            alert('Некорректный формат данных');
         }
-      };
-      reader.readAsArrayBuffer(file);
-    };
-    
-    fileInput.click();
-  }
-
-  // Импорт данных из текста (JSON)
-  function importFromText() {
-    const importDataStr = elements.importDataInput.value.trim();
-    if (!importDataStr) {
-      alert('Вставьте данные для импорта');
-      return;
-    }
-
-    try {
-      const importedData = JSON.parse(importDataStr);
-      
-      if (importedData.financeData && importedData.budgetData && 
-          importedData.savingsWidgets && importedData.fundWidgets && 
-          importedData.achievementsData) {
-        
-        financeData = importedData.financeData;
-        budgetData = importedData.budgetData;
-        savingsWidgets = importedData.savingsWidgets;
-        fundWidgets = importedData.fundWidgets;
-        achievementsData = importedData.achievementsData;
-        
-        localStorage.setItem('financeData', JSON.stringify(financeData));
-        localStorage.setItem('budgetData', JSON.stringify(budgetData));
-        localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
-        localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
-        localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
-        
-        updateUI();
-        elements.importDataInput.value = '';
-        elements.transferDataModal.classList.remove('show');
-        showSuccessMessage('Данные успешно импортированы из текста!');
-      } else {
-        alert('Некорректный формат данных');
-      }
     } catch (e) {
-      console.error('Ошибка импорта: ', e);
-      alert('Ошибка при импорте данных. Проверьте формат.');
+        console.error('Ошибка импорта: ', e);
+        alert('Ошибка при импорте данных. Проверьте формат.');
     }
   }
 
@@ -2493,8 +2433,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     elements.exportDataBtn.addEventListener('click', exportData);
-    elements.importExcelBtn.addEventListener('click', importData);
-    elements.importDataBtn.addEventListener('click', importFromText);
+    elements.importDataBtn.addEventListener('click', importData);
 
     // Обработчик для Ghost busters (переключение темы)
     elements.themeToggleBtn.addEventListener('click', () => {
