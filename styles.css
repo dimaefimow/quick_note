@@ -700,17 +700,46 @@ header {
   margin-top: 15px;
   background: var(--bg);
   border-radius: var(--border-radius);
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-  padding: 10px;
+  box-shadow: 5px 5px 15px var(--shadow-dark), 
+              -5px -5px 15px var(--shadow-light);
+  padding: 15px;
   box-sizing: border-box;
   overflow: hidden;
   contain: content;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
-canvas {
+.chart-container canvas {
   width: 100% !important;
   height: 100% !important;
+  transition: opacity 0.3s ease;
+}
+
+/* Стили для мини-графиков */
+.mini-chart-container {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 5px 5px 15px var(--shadow-dark), 
+              -5px -5px 15px var(--shadow-light);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Анимация появления графиков */
+@keyframes chartFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-container {
+  animation: chartFadeIn 0.5s ease-out;
+}
+
+/* Темная тема для графиков */
+body.dark .chart-container {
+  box-shadow: 5px 5px 15px var(--shadow-dark), 
+              -5px -5px 15px var(--shadow-light);
+  border: 1px solid rgba(0,0,0,0.2);
 }
 
 /* Financial cards */
@@ -1805,6 +1834,16 @@ body.dark .delete-history-btn {
   .savings-widget .widget-input {
     width: 100%;
   }
+  
+  /* Адаптация графиков для мобильных устройств */
+  .chart-container {
+    height: 250px;
+    padding: 10px;
+  }
+  
+  .mini-chart-container {
+    padding: 10px;
+  }
 }
 
 /* Small mobile devices */
@@ -1856,6 +1895,11 @@ body.dark .delete-history-btn {
   
   .transfer-buttons {
     flex-direction: column;
+  }
+  
+  /* Адаптация графиков для очень маленьких экранов */
+  .chart-container {
+    height: 200px;
   }
 }
 
