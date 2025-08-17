@@ -981,113 +981,206 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка мини-графиков
   function renderMiniCharts() {
-    const labels = monthNames.map(name => name.substring(0, 3));
-    const capitalData = [];
-    const expenseData = [];
-    
-    for (let i = 0; i < 12; i++) {
-      const monthData = financeData[currentYear][i] || { income: 0, expense: 0, capital: 0 };
-      capitalData.push(monthData.capital);
-      expenseData.push(monthData.expense);
-    }
-    
-    // График капитализации
-    if (miniCapitalChart) miniCapitalChart.destroy();
-    const capitalCtx = elements.miniCapitalChart?.getContext('2d');
-    if (capitalCtx) {
-      miniCapitalChart = new Chart(capitalCtx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: capitalData,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: getChartOptions('Капитализация')
-      });
-    }
-    
-    // График расходов
-    if (miniExpenseChart) miniExpenseChart.destroy();
-    const expenseCtx = elements.miniExpenseChart?.getContext('2d');
-    if (expenseCtx) {
-      miniExpenseChart = new Chart(expenseCtx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: expenseData,
-            backgroundColor: 'rgba(231, 76, 60, 0.7)',
-            borderColor: 'rgba(231, 76, 60, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: getChartOptions('Расходы')
-      });
-    }
+  const labels = monthNames.map(name => name.substring(0, 3));
+  const capitalData = [];
+  const expenseData = [];
+  const isDark = document.body.classList.contains('dark');
+  
+  for (let i = 0; i < 12; i++) {
+    const monthData = financeData[currentYear][i] || { income: 0, expense: 0, capital: 0 };
+    capitalData.push(monthData.capital);
+    expenseData.push(monthData.expense);
   }
+  
+  // График капитализации
+  if (miniCapitalChart) miniCapitalChart.destroy();
+  const capitalCtx = elements.miniCapitalChart?.getContext('2d');
+  if (capitalCtx) {
+    const gradient = capitalCtx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, 'rgba(52, 152, 219, 0.8)');
+    gradient.addColorStop(1, 'rgba(52, 152, 219, 0.2)');
+    
+    miniCapitalChart = new Chart(capitalCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: capitalData,
+          borderColor: gradient,
+          backgroundColor: 'rgba(52, 152, 219, 0.1)',
+          borderWidth: 3,
+          tension: 0.3,
+          fill: true,
+          pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
+          pointBorderColor: '#3498db',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBorderWidth: 2
+        }]
+      },
+      options: getChartOptions('Капитализация')
+    });
+  }
+  
+  // График расходов
+  if (miniExpenseChart) miniExpenseChart.destroy();
+  const expenseCtx = elements.miniExpenseChart?.getContext('2d');
+  if (expenseCtx) {
+    const gradient = expenseCtx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
+    gradient.addColorStop(1, 'rgba(231, 76, 60, 0.2)');
+    
+    miniExpenseChart = new Chart(expenseCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: expenseData,
+          backgroundColor: gradient,
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 4
+        }]
+      },
+      options: getChartOptions('Расходы')
+    });
+  }
+}
 
-  // Настройки графиков
-  function getChartOptions(title) {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `${context.parsed.y.toLocaleString('ru-RU')} ₽`;
-            }
-          }
-        },
-        title: {
-          display: false,
-          text: title
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return (value / 1000).toFixed(0) + 'k ₽';
-            },
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
-          },
-          grid: {
-            color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            color: document.body.classList.contains('dark') ? '#eee' : '#333'
+  // Обновленные настройки графиков
+function getChartOptions(title) {
+  const isDark = document.body.classList.contains('dark');
+  const textColor = isDark ? '#eee' : '#333';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const tooltipBg = isDark ? '#2a2a2a' : '#fff';
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    devicePixelRatio: 2, // Улучшаем четкость на retina-экранах
+    plugins: {
+      legend: { 
+        display: false,
+        labels: {
+          color: textColor,
+          font: {
+            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            size: 12
           }
         }
       },
-      animation: {
-        duration: 1000,
-        easing: 'easeOutQuart'
+      tooltip: {
+        backgroundColor: tooltipBg,
+        titleColor: textColor,
+        bodyColor: textColor,
+        borderColor: isDark ? '#444' : '#ddd',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label || ''}: ${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+          }
+        },
+        displayColors: false,
+        titleFont: {
+          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+          size: 12,
+          weight: 'bold'
+        },
+        bodyFont: {
+          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+          size: 12
+        }
       },
-      devicePixelRatio: 1,
-      layout: {
+      title: {
+        display: !!title,
+        text: title,
+        color: textColor,
+        font: {
+          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+          size: 14,
+          weight: '600'
+        },
         padding: {
-          left: 10,
-          right: 10,
           top: 10,
-          bottom: 10
+          bottom: 15
         }
       }
-    };
-  }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: gridColor,
+          drawBorder: false,
+          lineWidth: 1
+        },
+        ticks: {
+          color: textColor,
+          font: {
+            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            size: 10
+          },
+          padding: 5,
+          callback: function(value) {
+            if (value >= 1000000) {
+              return (value / 1000000).toFixed(1) + 'M ₽';
+            } else if (value >= 1000) {
+              return (value / 1000).toFixed(0) + 'k ₽';
+            }
+            return value + ' ₽';
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false
+        },
+        ticks: {
+          color: textColor,
+          font: {
+            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            size: 10
+          },
+          padding: 5
+        }
+      }
+    },
+    elements: {
+      bar: {
+        borderRadius: 6,
+        borderSkipped: false,
+        borderWidth: 0
+      },
+      line: {
+        tension: 0.3,
+        borderWidth: 3,
+        fill: true
+      },
+      point: {
+        radius: 5,
+        hoverRadius: 7,
+        borderWidth: 2,
+        backgroundColor: 'var(--bg)'
+      }
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeOutQuart'
+    },
+    layout: {
+      padding: {
+        left: 10,
+        right: 10,
+        top: title ? 10 : 20,
+        bottom: 10
+      }
+    }
+  };
+}
 
   // Обновление интерфейса
   function updateUI() {
@@ -1494,69 +1587,86 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка основного графика расходов
   function renderChart() {
-    const ctx = document.getElementById('barChart')?.getContext('2d');
-    if (!ctx) return;
-    if (chart) chart.destroy();
+  const ctx = document.getElementById('barChart')?.getContext('2d');
+  if (!ctx) return;
+  if (chart) chart.destroy();
 
-    const monthData = financeData[currentYear][currentMonth];
-    const categoryNames = Object.keys(monthData.categories);
-    const values = Object.values(monthData.categories);
+  const monthData = financeData[currentYear][currentMonth];
+  const categoryNames = Object.keys(monthData.categories);
+  const values = Object.values(monthData.categories);
+  const isDark = document.body.classList.contains('dark');
 
-    const backgroundColors = categoryNames.map((_, index) => {
-      const color = categoryColors[index % categoryColors.length];
-      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, color);
-      gradient.addColorStop(1, shadeColor(color, -40));
-      return gradient;
-    });
+  // Создаем градиенты для каждого бара
+  const backgroundColors = categoryNames.map((_, index) => {
+    const color = categoryColors[index % categoryColors.length];
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(1, shadeColor(color, -30));
+    return gradient;
+  });
 
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: categoryNames,
-        datasets: [{
-          label: 'Расходы по категориям',
-          data: values,
-          backgroundColor: backgroundColors,
-          borderColor: document.body.classList.contains('dark') ? '#2e2e2e' : '#e0e5ec',
-          borderWidth: 2,
-          borderRadius: 10,
-          borderSkipped: false,
-        }]
-      },
-      options: getChartOptions('Расходы по категориям')
-    });
-  }
+  // Тень для эффекта неоморфизма
+  const shadowColor = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)';
+
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: categoryNames,
+      datasets: [{
+        label: 'Расходы',
+        data: values,
+        backgroundColor: backgroundColors,
+        borderColor: 'transparent',
+        borderWidth: 0,
+        borderRadius: 6,
+        borderSkipped: false,
+        shadowOffsetX: 3,
+        shadowOffsetY: 3,
+        shadowBlur: 5,
+        shadowColor: shadowColor
+      }]
+    },
+    options: getChartOptions('Расходы по категориям')
+  });
+}
 
   // Отрисовка графика капитализации
   function renderCapitalChart() {
-    const ctx = document.getElementById('capitalChart')?.getContext('2d');
-    if (!ctx) return;
-    if (capitalChart) capitalChart.destroy();
+  const ctx = document.getElementById('capitalChart')?.getContext('2d');
+  if (!ctx) return;
+  if (capitalChart) capitalChart.destroy();
 
-    const monthData = financeData[currentYear][currentMonth];
-    const capitalValue = monthData.capital || 0;
+  const monthData = financeData[currentYear][currentMonth];
+  const capitalValue = monthData.capital || 0;
+  const isDark = document.body.classList.contains('dark');
 
-    capitalChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Капитализация'],
-        datasets: [{
-          label: 'Капитализация',
-          data: [capitalValue],
-          backgroundColor: '#3498db33',
-          borderColor: '#3498db',
-          borderWidth: 3,
-          tension: 0.3,
-          fill: true,
-          pointBackgroundColor: '#3498db',
-          pointRadius: 5,
-          pointHoverRadius: 7
-        }]
-      },
-      options: getChartOptions('Капитализация')
-    });
-  }
+  // Создаем градиент для линии
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, '#3498db');
+  gradient.addColorStop(1, '#2c3e50');
+
+  capitalChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Капитализация'],
+      datasets: [{
+        label: 'Капитализация',
+        data: [capitalValue],
+        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+        borderColor: gradient,
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
+        pointBorderColor: '#3498db',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBorderWidth: 2
+      }]
+    },
+    options: getChartOptions('Капитализация')
+  });
+}
 
   // Отрисовка годовых графиков
   function renderYearCharts() {
