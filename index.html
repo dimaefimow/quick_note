@@ -20,6 +20,114 @@
     .app {
       min-height: 100%;
     }
+    
+    /* Обновленные стили для мини-графиков */
+    .mini-charts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 20px 0;
+      width: 100%;
+    }
+
+    .mini-chart-widget {
+      background: var(--bg);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: 3px 3px 6px var(--shadow-dark), 
+                  -3px -3px 6px var(--shadow-light);
+      transition: var(--transition);
+      width: 50%; /* Уменьшаем ширину в 2 раза */
+      margin: 0 auto; /* Центрируем графики */
+      overflow: hidden;
+    }
+
+    .mini-chart-widget h4 {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      text-align: center;
+      color: var(--primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+    }
+
+    .mini-chart-container {
+      position: relative;
+      height: 180px;
+      width: 100%;
+    }
+
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 767px) {
+      .mini-charts-container {
+        margin: 15px 0;
+        width: 100%;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      
+      .mini-chart-widget {
+        padding: 12px;
+        width: 90%; /* На мобильных делаем немного шире */
+        min-width: 0;
+        flex-shrink: 0;
+      }
+      
+      .mini-chart-widget h4 {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+      
+      .mini-chart-container {
+        height: 150px;
+      }
+    }
+
+    /* Для очень маленьких экранов */
+    @media (max-width: 400px) {
+      .mini-chart-widget {
+        padding: 10px;
+        width: 95%; /* На очень маленьких экранах почти на всю ширину */
+      }
+      
+      .mini-chart-widget h4 {
+        font-size: 0.85rem;
+      }
+      
+      .mini-chart-container {
+        height: 130px;
+      }
+    }
+
+    /* Горизонтальная прокрутка для планшетов и десктопов */
+    @media (min-width: 768px) {
+      .mini-charts-container {
+        flex-direction: row;
+        justify-content: center; /* Центрируем графики */
+        flex-wrap: wrap; /* Разрешаем перенос на новую строку */
+        overflow-x: visible;
+        padding-bottom: 15px;
+      }
+      
+      .mini-chart-widget {
+        min-width: 280px; /* Уменьшаем минимальную ширину */
+        flex-shrink: 0;
+        width: 45%; /* Ширина около половины контейнера */
+        margin: 0 2.5%; /* Небольшие отступы между графиками */
+      }
+    }
+    
+    body.dark .mini-chart-widget {
+      background: var(--bg);
+      box-shadow: 3px 3px 6px var(--shadow-dark), 
+                  -3px -3px 6px var(--shadow-light);
+    }
+    
+    body.dark .mini-chart-widget h4 {
+      color: var(--primary);
+    }
   </style>
 </head>
 <body>
@@ -72,9 +180,11 @@
         </div>
         
         <div id="history-modal" class="neumorphic-menu">
-          <h3>История трат</h3>
+          <div class="modal-header">
+           <h3>История трат</h3>
+           <button id="close-history" class="neumorphic-btn small">×</button>
+          </div>
           <div id="history-list"></div>
-          <button id="close-history" class="neumorphic-btn">Закрыть</button>
         </div>
         
         <div id="settings-menu" class="neumorphic-menu financial-menu">
@@ -101,14 +211,17 @@
             </div>
           </div>
           
+          <!-- Обновленный блок мини-графиков -->
           <div class="mini-charts-container">
-            <div class="financial-charts">
-              <div class="financial-chart-container">
-                <h4>Капитализация по месяцам</h4>
+            <div class="mini-chart-widget">
+              <h4>Капитализация по месяцам</h4>
+              <div class="mini-chart-container">
                 <canvas id="miniCapitalChart"></canvas>
               </div>
-              <div class="financial-chart-container">
-                <h4>Расходы по месяцам</h4>
+            </div>
+            <div class="mini-chart-widget">
+              <h4>Расходы по месяцам</h4>
+              <div class="mini-chart-container">
                 <canvas id="miniExpenseChart"></canvas>
               </div>
             </div>
@@ -231,7 +344,7 @@
         
         <div id="set-budget-modal" class="neumorphic-menu">
           <h3>Установить бюджет</h3>
-          <input type="number" id="budget-amount" placeholder="Общая сумма" class="neumorphic-input" />
+          <input type="number" id="budget-amount" placeholder="Общая сумму" class="neumorphic-input" />
           <input type="number" id="budget-days" placeholder="Количество дней" class="neumorphic-input" />
           <div class="button-group">
             <button id="save-budget-btn" class="neumorphic-btn primary">Сохранить</button>
