@@ -1057,7 +1057,7 @@ function getChartOptions(title) {
   return {
     responsive: true,
     maintainAspectRatio: false,
-    devicePixelRatio: 2, // Улучшаем четкость на retina-экранах
+    devicePixelRatio: 3, // Увеличиваем четкость для уменьшенных графиков
     plugins: {
       legend: { 
         display: false,
@@ -1065,7 +1065,7 @@ function getChartOptions(title) {
           color: textColor,
           font: {
             family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 12
+            size: 10 // Уменьшаем размер шрифта
           }
         }
       },
@@ -1094,20 +1094,7 @@ function getChartOptions(title) {
           size: 12
         }
       },
-      title: {
-        display: !!title,
-        text: title,
-        color: textColor,
-        font: {
-          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-          size: 14,
-          weight: '600'
-        },
-        padding: {
-          top: 10,
-          bottom: 15
-        }
-      }
+      
     },
     scales: {
       y: {
@@ -1121,16 +1108,16 @@ function getChartOptions(title) {
           color: textColor,
           font: {
             family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 10
+            size: 9 // Уменьшаем размер шрифта для осей
           },
-          padding: 5,
+          padding: 3,
           callback: function(value) {
             if (value >= 1000000) {
-              return (value / 1000000).toFixed(1) + 'M ₽';
+              return (value / 1000000).toFixed(1) + 'M';
             } else if (value >= 1000) {
-              return (value / 1000).toFixed(0) + 'k ₽';
+              return (value / 1000).toFixed(0) + 'k';
             }
-            return value + ' ₽';
+            return value;
           }
         }
       },
@@ -1143,9 +1130,11 @@ function getChartOptions(title) {
           color: textColor,
           font: {
             family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 10
+            size: 9 // Уменьшаем размер шрифта для осей
           },
-          padding: 5
+          padding: 3,
+          maxRotation: 45, // Наклон labels для лучшей читаемости
+          minRotation: 45
         }
       }
     },
@@ -1872,7 +1861,7 @@ function getChartOptions(title) {
       return;
     }
 
-    // Рассчитываем дневной бюджет с учетом остатка
+    // Рассчитываем дневный бюджет с учетом остатка
     const dailyBudget = remainingAmount / remainingDays;
     
     elements.dailyBudgetAmount.textContent = formatCurrency(dailyBudget);
@@ -2013,7 +2002,7 @@ function getChartOptions(title) {
       }
       
       const container = document.createElement('div');
-      container.className = 'trend-chart-container';
+      //container.className = 'trend-chart-container';
       container.innerHTML = `<h4>${category}</h4><canvas id="trend-${category}"></canvas>`;
       elements.trendsScroll.appendChild(container);
       
@@ -2037,13 +2026,18 @@ function getChartOptions(title) {
           }]
         },
         options: {
-          ...getChartOptions(category),
+          ...getChartOptions(''),
           aspectRatio: 1,
-          maintainAspectRatio: true
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: false // СКРЫВАЕМ ЛЕГЕНДУ
+            }
         }
-      });
+      }
     });
-  }
+  });
+}
 
   // Режим обучения
   function initTutorial() {
