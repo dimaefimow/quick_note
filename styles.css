@@ -389,6 +389,7 @@ header {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  margin: 15px 0;
 }
 
 /* Widget base styles */
@@ -401,7 +402,7 @@ header {
   background: var(--bg);
   box-shadow: 5px 5px 10px var(--shadow-dark), 
               -5px -5px 10px var(--shadow-light);
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .widget::before {
@@ -952,7 +953,7 @@ body.dark .chart-container {
 .trend-chart-container {
   flex: 0 0 auto;
   width: 280px;
-  height: 280px;
+  height: 250px;
   background: var(--bg);
   border-radius: var(--border-radius);
   padding: 10px;
@@ -1199,10 +1200,10 @@ body.dark .chart-container {
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  90% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+ 0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+ 10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+ 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+ 100% { opacity: 0; transform: translateX(-50%) translateY(20px); }
 }
 
 /* History items */
@@ -1292,292 +1293,29 @@ body.dark .chart-container {
   color: white;
 }
 
-/* Tutorial overlay */
-#tutorial-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-  justify-content: center;
-  align-items: center;
-}
-
-#tutorial-box {
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  max-width: 90%;
-  width: 500px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-#tutorial-title {
-  margin-top: 0;
-  color: var(--primary);
-}
-
-#tutorial-text {
-  margin-bottom: 20px;
-}
-
-.tutorial-buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-.tutorial-buttons button {
-  padding: 8px 16px;
-}
-
-/* Mobile charts */
-.mini-charts-container {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 15px;
-  margin-left: -10px;
-  margin-right: -10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  width: calc(100% + 20px);
-}
-
-.financial-charts {
-  display: flex;
-  min-width: max-content;
-  gap: 15px;
-}
-
-.financial-chart-container {
-  min-width: 280px;
-  flex-shrink: 0;
-  height: 220px;
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  box-shadow: 3px 3px 6px var(--shadow-dark), 
-              -3px -3px 6px var(--shadow-light);
-}
-
-.financial-chart-container h4 {
-  margin: 0 0 5px 0;
-  font-size: 0.9rem;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.financial-chart-container canvas {
-  width: 100% !important;
-  height: 180px !important;
-}
-
-/* Reset slider styles */
-.reset-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.reset-slider-container {
-  background: var(--bg);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  text-align: center;
-}
-
-.reset-slider-container h3 {
-  margin-top: 0;
-  color: var(--danger);
-}
-
-.reset-slider-container p {
-  margin-bottom: 20px;
-  color: var(--text);
-}
-
-.slider-track {
-  width: 100%;
-  height: 50px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 25px;
-  position: relative;
-  overflow: hidden;
-  margin: 20px 0;
-}
-
-.slider-thumb {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50px;
-  height: 50px;
-  background: var(--danger);
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 2;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.year-btn.active {
+  background: var(--primary);
   color: white;
-  font-weight: bold;
-  user-select: none;
-  touch-action: none;
-}
-
-.slider-progress {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 0;
-  background: rgba(231, 76, 60, 0.3);
-  transition: width 0.1s ease;
-}
-
-/* Transfer data styles */
-.transfer-options {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin: 15px 0;
-}
-
-.import-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#import-data-input {
-  min-height: 100px;
-  resize: vertical;
-  font-family: monospace;
-  font-size: 0.8rem;
-  padding: 10px;
-  border: none;
-  border-radius: var(--border-radius);
-  background: var(--bg);
-  box-shadow: inset 3px 3px 6px var(--shadow-dark), 
-              inset -3px -3px 6px var(--shadow-light);
-  transition: var(--transition);
-  color: var(--text);
-}
-
-#import-data-input:focus {
-  outline: none;
-  box-shadow: inset 5px 5px 10px var(--shadow-dark), 
-              inset -5px -5px 10px var(--shadow-light);
-}
-
-.transfer-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-}
-
-.transfer-buttons .neumorphic-btn {
-  flex: 1;
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2), 
+              inset -2px -2px 4px rgba(255,255,255,0.1);
 }
 
 /* Dark theme */
 body.dark {
   --bg: #1a1a1a;
-  --text: #ffffff;
+  --text: #e0e0e0;
   --shadow-light: #2a2a2a;
-  --shadow-dark: #0a0a0a;
-  --primary: #2980b9;
-  --primary-hover: #3498db;
+  --shadow-dark: #0c0c0c;
+  --primary: #3498db;
+  --primary-hover: #2980b9;
+  --danger: #e74c3c;
+  --danger-hover: #c0392b;
+  --success: #2ecc71;
+  --warning: #f39c12;
 }
 
-/* Принудительно белый текст для всех элементов в темной теме */
-body.dark,
-body.dark * {
-  color: #ffffff !important;
-}
-
-/* Исключения для элементов, которые должны сохранить свои цвета */
-body.dark .financial-value,
-body.dark .month-tab.active,
-body.dark .achievement-badge,
-body.dark .slider-thumb,
-body.dark .days-progress,
-body.dark .funds-progress,
-body.dark .negative,
-body.dark .delete-category-btn,
-body.dark .delete-widget-btn,
-body.dark .delete-last-expense-btn:hover {
-  color: inherit !important;
-}
-
-/* Специальные стили для второстепенного текста */
-body.dark .achievement-info p,
-body.dark .history-date,
-body.dark .progress-info {
-  color: #cccccc !important;
-}
-
-/* Стили для инпутов в темной теме */
-body.dark .neumorphic-input,
-body.dark #import-data-input {
-  color: #ffffff !important;
-}
-
-body.dark .theme-icon {
-  transform: rotate(180deg);
-}
-
-body.dark .savings-widget {
-  --widget-color: #27ae60;
-}
-
-body.dark .savings-progress-container {
-  background: rgba(255,255,255,0.1);
-}
-
-body.dark .savings-widget .widget-input {
-  background: var(--bg);
+body.dark .neumorphic-input {
   color: var(--text);
-}
-
-body.dark .fund-widget {
-  --widget-color: #d35400;
-  --widget-bg: rgba(211, 84, 0, 0.15);
-}
-
-body.dark #import-data-input {
-  background: var(--bg);
-  color: var(--text);
-}
-
-body.dark .widget-header {
-  border-bottom-color: rgba(255,255,255,0.1);
-}
-
-body.dark .category-item {
-  background: rgba(255,255,255,0.05);
-}
-
-body.dark .category-item.total {
-  background: rgba(52, 152, 219, 0.2);
-}
-
-body.dark .history-item {
-  background: rgba(255,255,255,0.05);
 }
 
 body.dark .achievement-item {
@@ -1585,279 +1323,110 @@ body.dark .achievement-item {
 }
 
 body.dark .achievement-item.unlocked {
-  background: rgba(46, 204, 113, 0.2);
+  background: rgba(46, 204, 113, 0.15);
 }
 
 body.dark .achievement-item.secret {
   background: rgba(255,255,255,0.03);
 }
 
-body.dark .month-categories h5 {
-  border-bottom-color: rgba(255,255,255,0.1);
+body.dark .achievement-icon {
+  background: var(--bg);
 }
 
-body.dark .slider-track {
-  background: rgba(255,255,255,0.1);
-}
-
-/* Темная тема для истории */
 body.dark .history-item {
   background: rgba(255,255,255,0.05);
 }
 
-body.dark .history-category {
-  color: var(--primary);
+body.dark .category-item {
+  background: rgba(255,255,255,0.05);
 }
 
-body.dark .history-date {
-  color: #aaa;
+body.dark .category-item.total {
+  background: rgba(52, 152, 219, 0.15);
 }
 
-body.dark .delete-history-btn {
-  background: rgba(231, 76, 60, 0.3);
+body.dark .month-categories {
+  background: var(--bg);
 }
 
-/* Tablet adaptation */
-@media (min-width: 768px) {
+body.dark .financial-card {
+  background: var(--bg);
+}
+
+body.dark .month-tab {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body.dark .month-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+body.dark .widget-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark .budget-progress-container {
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
   .app {
-    padding: 20px;
+    padding: 5px;
   }
   
   .header-container {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .header-buttons {
-    overflow-x: visible;
-    justify-content: flex-end;
-    flex: 1;
-    margin-top: 0;
-  }
-  
-  .header-title {
-    height: auto;
-    flex: 0 0 auto;
-    margin-right: 20px;
-  }
-  
-  .summary {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-  }
-  
-  .widgets {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-  }
-  
-  .neumorphic-btn {
-    padding: 12px 20px;
-    font-size: 1rem;
-  }
-  
-  .neumorphic-btn.small {
-    min-width: 80px;
-    font-size: 0.8rem;
-  }
-  
-  .neumorphic-card {
-    padding: 15px;
-  }
-  
-  .month-tabs {
-    gap: 8px;
-  }
-  
-  .month-tab {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-  }
-  
-  .financial-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  .financial-charts {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    min-width: auto;
-  }
-  
-  .financial-chart-container {
-    min-width: auto;
-    height: auto;
-  }
-  
-  .financial-card h3 {
-    font-size: 1.1rem;
-  }
-  
-  .financial-value {
-    font-size: 1.6rem;
-  }
-  
-  .financial-chart-container h4 {
-    font-size: 1rem;
-  }
-  
-  .top-categories-report h4 {
-    font-size: 1.3rem;
-  }
-  
-  .month-categories h5 {
-    font-size: 1.1rem;
-  }
-  
-  .transfer-options {
-    flex-direction: row;
-  }
-  
-  .import-section {
-    flex: 1;
-  }
-}
-
-/* Desktop adaptation */
-@media (min-width: 992px) {
-  .widgets {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-  
-  .chart-container {
-    height: 400px;
-  }
-  
-  .financial-menu {
-    max-width: 800px;
-  }
-  
-  .financial-chart-container canvas {
-    height: 200px !important;
-  }
-}
-
-/* Mobile adaptation */
-@media (max-width: 767px) {
-  header {
-    flex-direction: column;
-    gap: 15px;
+    min-height: 80px;
     padding-top: 15px;
   }
   
   .header-buttons {
-    width: 100%;
-    justify-content: space-between;
+    margin-top: 15px;
+    gap: 3px;
   }
   
-  .neumorphic-menu {
-    width: 95vw;
-    padding: 10px;
+  .neumorphic-btn.small {
+    padding: 5px 7px;
+    font-size: 0.65rem;
+    min-width: 55px;
+    height: 34px;
   }
   
-  .financial-menu, 
-  #capitalization-menu,
-  .year-summary {
-    width: 95vw;
-    max-width: none;
+  .inputs, .summary, .widgets, .charts, .analytics {
+    margin: 10px 0;
   }
   
-  .category-menu, 
-  .budget-settings-menu {
-    width: 100vw;
-    left: -10px;
-    border-radius: 0 0 15px 15px;
+  .summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .widgets {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
   
   .financial-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   
   .financial-charts {
-    display: flex;
-    min-width: max-content;
+    flex-direction: column;
     gap: 15px;
   }
   
   .financial-chart-container {
-    min-width: 280px;
-    flex-shrink: 0;
-  }
-  
-  .financial-chart-container canvas {
-    height: 180px !important;
-  }
-  
-  .month-categories {
-    min-width: 250px;
-    flex-shrink: 0;
-  }
-  
-  .top-categories-report {
-    padding: 15px;
-  }
-  
-  .month-categories {
-    padding: 12px;
-  }
-  
-  .financial-card {
-    padding: 12px;
-  }
-  
-  .financial-value {
-    font-size: 1.2rem;
-  }
-  
-  .trend-chart-container {
-    width: 260px;
-    height: 260px;
-  }
-  
-  .savings-widget {
-    padding: 8px;
-  }
-  
-  .savings-widget h3 {
-    font-size: 0.9rem;
-  }
-  
-  .savings-widget p {
-    font-size: 1rem;
-  }
-  
-  .savings-widget .widget-input-group {
-    flex-direction: column;
-  }
-  
-  .savings-widget .widget-input {
+    min-width: auto;
     width: 100%;
+    height: 200px;
   }
   
-  /* Адаптация графиков для мобильных устройств */
   .chart-container {
     height: 250px;
-    padding: 10px;
-  }
-  
-  .mini-chart-container {
-    padding: 10px;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 400px) {
-  .widgets {
-    grid-template-columns: 1fr;
-  }
-  
-  .summary {
-    grid-template-columns: 1fr;
-  }
-  
-  .header-buttons {
-    flex-wrap: wrap;
   }
   
   .month-tabs {
@@ -1865,132 +1434,337 @@ body.dark .delete-history-btn {
   }
   
   .month-tab {
-    min-width: 30px;
-    padding: 4px 6px;
+    padding: 5px 6px;
+    min-width: 35px;
+    font-size: 0.75rem;
+  }
+  
+  .achievement-item {
+    padding: 10px;
+  }
+  
+  .achievement-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1.3rem;
+  }
+  
+  .achievement-info h4 {
+    font-size: 0.9rem;
+  }
+  
+  .achievement-info p {
+    font-size: 0.8rem;
+  }
+  
+  .history-item {
+    padding: 10px;
+  }
+  
+  .history-content {
+    gap: 8px;
+  }
+  
+  .history-category {
+    font-size: 0.9rem;
+  }
+  
+  .history-amount {
+    font-size: 0.9rem;
+  }
+  
+  .history-date {
+    font-size: 0.75rem;
+  }
+  
+  .delete-history-btn {
+    width: 22px;
+    height: 22px;
     font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-buttons {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
   }
   
   .neumorphic-btn.small {
-    min-width: 60px;
-    padding: 6px 8px;
+    min-width: 50px;
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    height: 32px;
+  }
+  
+  .summary .neumorphic-card {
+    padding: 10px 5px;
+  }
+  
+  .summary h2 {
+    font-size: 0.9rem;
+  }
+  
+  .summary p {
+    font-size: 1rem;
+  }
+  
+  .widget {
+    padding: 8px;
+  }
+  
+  .widget h3 {
+    font-size: 0.9rem;
+  }
+  
+  .widget p {
+    font-size: 1rem;
+  }
+  
+  .financial-value {
+    font-size: 1.2rem;
+  }
+  
+  .chart-container {
+    height: 220px;
+    padding: 10px;
+  }
+  
+  .month-tab {
+    min-width: 30px;
+    padding: 4px 5px;
     font-size: 0.7rem;
   }
   
-  .financial-charts {
-    min-width: 500px;
-  }
-  
-  .financial-chart-container {
-    min-width: 240px;
-  }
-  
-  .month-categories {
-    min-width: 200px;
-  }
-  
-  .trend-chart-container {
-    width: 240px;
-    height: 240px;
-  }
-  
-  .transfer-buttons {
+  .achievement-item {
     flex-direction: column;
+    text-align: center;
+    gap: 8px;
   }
   
-  /* Адаптация графиков для очень маленьких экранов */
-  .chart-container {
-    height: 200px;
+  .achievement-info h4 {
+    margin-bottom: 3px;
   }
 }
 
-/* Hell mode styles */
-body.hell-mode {
-  --bg: #fff0f0;
-  --text: #5a2a2a;
-  --shadow-light: #ffd6d6;
-  --shadow-dark: #e8b8b8;
-  --primary: #d85a5a;
-  --primary-hover: #c44a4a;
-  --danger: #d85a5a;
-  --danger-hover: #c44a4a;
-  --success: #a85a5a;
-  --warning: #c87d7d;
-  filter: none;
-  background: linear-gradient(to bottom, #fff0f0, #ffd6d6);
+/* Обновленные стили для мини-графиков */
+.mini-charts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-body.hell-mode * {
-  color: #5a2a2a !important;
+.mini-chart-widget {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
+  transition: var(--transition);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-body.hell-mode .neumorphic-card,
-body.hell-mode .neumorphic-btn,
-body.hell-mode .neumorphic-input,
-body.hell-mode .neumorphic-menu {
-  background: #ffebeb !important;
-  box-shadow: 5px 5px 10px #e8b8b8, -5px -5px 10px #ffd6d6 !important;
+.mini-chart-widget h4 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 10px;
 }
 
-body.hell-mode .delete-last-expense-btn:hover {
-  color: #d85a5a !important;
+.mini-chart-container {
+  position: relative;
+  height: 180px;
+  width: 100%;
+  overflow: hidden;
 }
 
-body.hell-mode .achievement-item {
-  background: rgba(216, 90, 90, 0.1) !important;
+.mini-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
 }
 
-body.hell-mode .month-categories h5 {
-  border-bottom-color: rgba(90, 42, 42, 0.2) !important;
+/* Адаптация для мобильных устройств */
+@media (max-width: 767px) {
+  .mini-charts-container {
+    margin: 15px 0;
+    width: 100%;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  
+  .mini-chart-widget {
+    padding: 12px;
+    min-width: 0;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .mini-chart-widget h4 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+  
+  .mini-chart-container {
+    height: 150px;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .mini-chart-container canvas {
+    max-width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Убедимся, что контейнеры не выходят за пределы экрана */
+  .financial-menu {
+    width: 95%;
+    max-width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
 }
 
-body.hell-mode .category-item {
-  background: rgba(216, 90, 90, 0.05) !important;
+/* Для очень маленьких экранов */
+@media (max-width: 768px) {
+  .widgets {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .mini-chart-widget {
+    padding: 10px;
+  }
+  
+  .mini-chart-widget h4 {
+    font-size: 0.85rem;
+  }
+  
+  .mini-chart-container {
+    height: 130px;
+  }
 }
 
-body.hell-mode .category-item.total {
-  background: rgba(216, 90, 90, 0.15) !important;
+/* Горизонтальная прокрутка для планшетов и десктопов */
+@media (min-width: 768px) {
+  .mini-charts-container {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 15px;
+    scrollbar-width: thin;
+  }
+  
+  .mini-chart-widget {
+    min-width: 300px;
+    flex-shrink: 0;
+  }
+  
+  .mini-charts-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .mini-charts-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 3px;
+  }
+  
+  .mini-charts-container::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 3px;
+  }
 }
 
-body.hell-mode .history-item {
-  background: rgba(216, 90, 90, 0.05) !important;
+/* Темная тема */
+body.dark .mini-chart-widget {
+  background: var(--bg);
+  box-shadow: 3px 3px 6px var(--shadow-dark), 
+              -3px -3px 6px var(--shadow-light);
 }
 
-body.hell-mode .savings-progress-container {
-  background: rgba(216, 90, 90, 0.1) !important;
+body.dark .mini-chart-widget h4 {
+  color: var(--primary);
 }
 
-body.hell-mode .days-progress {
-  background: linear-gradient(90deg, #d85a5a, #c44a4a) !important;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-body.hell-mode .funds-progress {
-  background: #d85a5a !important;
+body.dark .modal-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-body.hell-mode .financial-value {
-  color: #d85a5a !important;
+.modal-header h3 {
+  margin: 0;
 }
 
-body.hell-mode .month-tab.active {
-  background: #d85a5a !important;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-body.hell-mode .achievement-badge {
-  background: linear-gradient(135deg, #d85a5a, #c44a4a) !important;
+body.dark .modal-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-body.hell-mode .slider-track {
-  background: rgba(216, 90, 90, 0.1) !important;
+.modal-header h3 {
+  margin: 0;
 }
 
-body.hell-mode .slider-thumb {
-  background: #d85a5a !important;
+@media (max-width: 768px) {
+  .widgets {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
 }
 
-body.hell-mode .slider-progress {
-  background: rgba(216, 90, 90, 0.3) !important;
+.mini-chart-container {
+  overflow: hidden;
 }
 
-body.dark .achievement-info p {
-  color: #aaa;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.dark .modal-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .widgets {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
+
+.mini-chart-container {
+  overflow: hidden;
 }
