@@ -2658,6 +2658,31 @@ function getChartOptions(title) {
   }
 
   // Инициализация приложения
+
+  function adjustHeaderButtons() {
+  const headerButtons = document.querySelector('.header-buttons');
+  const buttons = headerButtons.querySelectorAll('.neumorphic-btn.small');
+  
+  // Рассчитываем общую ширину всех кнопок
+  let totalWidth = 0;
+  buttons.forEach(btn => {
+    totalWidth += btn.offsetWidth + 6; // 6px - gap между кнопками
+  });
+  
+  // Если кнопки не помещаются, разрешаем горизонтальную прокрутку
+  if (totalWidth > headerButtons.offsetWidth) {
+    headerButtons.style.overflowX = 'auto';
+    headerButtons.style.justifyContent = 'flex-start';
+  } else {
+    headerButtons.style.overflowX = 'hidden';
+    headerButtons.style.justifyContent = 'center';
+  }
+}
+
+// Вызываем при загрузке и изменении размера окна
+window.addEventListener('load', adjustHeaderButtons);
+window.addEventListener('resize', adjustHeaderButtons);
+
   function initializeApp() {
     // Установка активного месяца
     elements.monthTabs[currentMonth].classList.add('active');
