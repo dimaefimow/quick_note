@@ -11,6 +11,8 @@ if (window.Telegram?.WebApp?.disableVerticalSwipes) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== ЗАГРУЗКА ПРИЛОЖЕНИЯ ===');
+  
   // Блокировка всплытия событий прокрутки
   const container = document.querySelector('.content-container');
   if (container) {
@@ -30,45 +32,291 @@ document.addEventListener('DOMContentLoaded', function() {
     'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
-  // Данные приложения
-  let financeData = JSON.parse(localStorage.getItem('financeData')) || {};
+  // Флаг изменений для автосохранения
+  let hasUnsavedChanges = false;
+  let saveTimeout = null;
+
+  // ==================== УЛУЧШЕННАЯ ЗАГРУЗКА ДАННЫХ ====================
   
+  function loadDataWithValidation() {
+    console.log('🔍 Загрузка данных из localStorage...');
+    
+    const keys = ['financeData', 'budgetData', 'savingsWidgets', 'fundWidgets', 'achievementsData'];
+    keys.forEach(key => {
+      const value = localStorage.getItem(key);
+      console.log(`${key}:`, value ? `✓ данные есть (${value.length} байт)` : '✗ нет данных');
+    });
+
+    try {
+      // Загрузка с валидацией
+      const financeDataStr = localStorage.getItem('financeData');
+      const budgetDataStr = localStorage.getItem('budgetData');
+      const savingsWidgetsStr = localStorage.getItem('savingsWidgets');
+      const fundWidgetsStr = localStorage.getItem('fundWidgets');
+      const achievementsDataStr = localStorage.getItem('achievementsData');
+
+      // Валидация и парсинг данных
+      financeData = financeDataStr ? JSON.parse(financeDataStr) : {};
+      budgetData = budgetDataStr ? JSON.parse(budgetDataStr) : {
+        totalAmount: 0,
+        days: 0,
+        startDate: null,
+        spent: 0,
+        dailyHistory: {}
+      };
+      savingsWidgets = savingsWidgetsStr ? JSON.parse(savingsWidgetsStr) : [];
+      fundWidgets = fundWidgetsStr ? JSON.parse(fundWidgetsStr) : [];
+      achievementsData = achievementsDataStr ? JSON.parse(achievementsDataStr) : {};
+
+      console.log('✅ Данные успешно загружены');
+      return true;
+    } catch (error) {
+      console.error('❌ Ошибка загрузки данных:', error);
+      
+      // Восстановление из резервной копии
+      if (restoreBackup()) {
+        console.log('✅ Данные восстановлены из резервной копии');
+        return true;
+      }
+      
+      // Инициализация пустых данных
+      initializeEmptyData();
+      console.log('🔄 Инициализированы новые данные');
+      return false;
+    }
+  }
+
+  function initializeEmptyData() {
+    financeData = {};
+    budgetData = {
+      totalAmount: 0,
+      days: 0,
+      startDate: null,
+      spent: 0,
+      dailyHistory: {}
+    };
+    savingsWidgets = [];
+    fundWidgets = [];
+    achievementsData = {};
+    
+    initYearData(currentYear);
+  }
+
+  function validateDataStructure() {
+    // Проверка financeData
+    if (!financeData || typeof financeData !== 'object') {
+      financeData = {};
+    }
+    
+    // Проверка текущего года
+    if (!financeData[currentYear]) {
+      initYearData(currentYear);
+    }
+    
+    // Проверка текущего месяца
+    if (!financeData[currentYear][currentMonth]) {
+      financeData[currentYear][currentMonth] = getDefaultMonthData();
+    }
+    
+    // Проверка других структур
+    if (!budgetData || typeof budgetData !== 'object') {
+      budgetData = getDefaultBudgetData();
+    }
+    
+    if (!Array.isArray(savingsWidgets)) {
+      savingsWidgets = [];
+    }
+    
+    if (!Array.isArray(fundWidgets)) {
+      fundWidgets = [];
+    }
+    
+    if (!achievementsData || typeof achievementsData !== 'object') {
+      achievementsData = {};
+    }
+  }
+
+  function getDefaultMonthData() {
+    return { 
+      income: 0, 
+      expense: 0, 
+      categories: {},
+      capital: 0,
+      expensesHistory: []
+    };
+  }
+
+  function getDefaultBudgetData() {
+    return {
+      totalAmount: 0,
+      days: 0,
+      startDate: null,
+      spent: 0,
+      dailyHistory: {}
+    };
+  }
+
+  // ==================== УЛУЧШЕННОЕ СОХРАНЕНИЕ ====================
+
+  function saveData() {
+    try {
+      // Валидация перед сохранением
+      validateDataStructure();
+      
+      // Сохранение в localStorage
+      localStorage.setItem('financeData', JSON.stringify(financeData));
+      localStorage.setItem('budgetData', JSON.stringify(budgetData));
+      localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+      localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+      localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+      
+      // Резервная копия
+      createBackup();
+      
+      // Время последнего сохранения
+      localStorage.setItem('lastSaveTimestamp', Date.now().toString());
+      
+      console.log('💾 Данные сохранены:', {
+        financeData: Object.keys(financeData).length + ' лет',
+        budgetData: budgetData.totalAmount > 0 ? 'активен' : 'неактивен',
+        savingsWidgets: savingsWidgets.length + ' виджетов',
+        fundWidgets: fundWidgets.length + ' фондов',
+        achievements: Object.keys(achievementsData).length + ' достижений'
+      });
+      
+      hasUnsavedChanges = false;
+      return true;
+    } catch (error) {
+      console.error('❌ Ошибка сохранения:', error);
+      
+      // Попытка сохранить хотя бы основные данные
+      try {
+        const criticalData = {
+          financeData: financeData,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('criticalBackup', JSON.stringify(criticalData));
+        console.log('⚠️ Критические данные сохранены в sessionStorage');
+      } catch (e) {
+        console.error('❌ Не удалось сохранить даже в sessionStorage:', e);
+      }
+      
+      return false;
+    }
+  }
+
+  function markDataChanged() {
+    hasUnsavedChanges = true;
+    
+    // Отложенное сохранение (дебаунс)
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+    
+    saveTimeout = setTimeout(() => {
+      if (hasUnsavedChanges) {
+        saveData();
+      }
+    }, 2000); // Сохраняем через 2 секунды после последнего изменения
+  }
+
+  function createBackup() {
+    try {
+      const backup = {
+        financeData: financeData,
+        budgetData: budgetData,
+        savingsWidgets: savingsWidgets,
+        fundWidgets: fundWidgets,
+        achievementsData: achievementsData,
+        timestamp: Date.now(),
+        version: '1.0'
+      };
+      sessionStorage.setItem('financeBackup', JSON.stringify(backup));
+    } catch (e) {
+      console.error('Не удалось создать резервную копию:', e);
+    }
+  }
+
+  function restoreBackup() {
+    try {
+      const backupStr = sessionStorage.getItem('financeBackup');
+      if (backupStr) {
+        const backup = JSON.parse(backupStr);
+        
+        // Проверяем свежесть бэкапа (не старше 24 часов)
+        if (Date.now() - backup.timestamp < 86400000) {
+          financeData = backup.financeData || {};
+          budgetData = backup.budgetData || getDefaultBudgetData();
+          savingsWidgets = backup.savingsWidgets || [];
+          fundWidgets = backup.fundWidgets || [];
+          achievementsData = backup.achievementsData || {};
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error('Ошибка восстановления из резервной копии:', e);
+    }
+    return false;
+  }
+
+  function checkStorageHealth() {
+    try {
+      // Проверка доступности localStorage
+      const testKey = 'healthCheck';
+      const testValue = 'test';
+      localStorage.setItem(testKey, testValue);
+      const retrieved = localStorage.getItem(testKey);
+      localStorage.removeItem(testKey);
+      
+      if (retrieved !== testValue) {
+        throw new Error('LocalStorage не работает корректно');
+      }
+      
+      // Проверка свободного места
+      let data = '';
+      for (let i = 0; i < 10000; i++) {
+        data += '1234567890';
+      }
+      localStorage.setItem('spaceTest', data);
+      localStorage.removeItem('spaceTest');
+      
+      console.log('✅ LocalStorage работает нормально');
+      return true;
+    } catch (error) {
+      console.error('❌ Проблемы с LocalStorage:', error);
+      return false;
+    }
+  }
+
+  // ==================== ИНИЦИАЛИЗАЦИЯ ДАННЫХ ====================
+
+  // Данные приложения (инициализируются после загрузки)
+  let financeData = {};
+  let budgetData = {};
+  let savingsWidgets = [];
+  let fundWidgets = [];
+  let achievementsData = {};
+
   // Инициализация данных для года
   function initYearData(year) {
     if (!financeData[year]) {
       financeData[year] = {};
       for (let i = 0; i < 12; i++) {
-        financeData[year][i] = { 
-          income: 0, 
-          expense: 0, 
-          categories: {},
-          capital: 0,
-          expensesHistory: []
-        };
+        financeData[year][i] = getDefaultMonthData();
       }
     }
   }
-  
-  // Инициализация текущего года
-  initYearData(currentYear);
-  
-  // Данные бюджета
-  let budgetData = JSON.parse(localStorage.getItem('budgetData')) || {
-    totalAmount: 0,
-    days: 0,
-    startDate: null,
-    spent: 0,
-    dailyHistory: {}
-  };
 
-  // Данные накоплений
-  let savingsWidgets = JSON.parse(localStorage.getItem('savingsWidgets')) || [];
+  // Загрузка данных при старте
+  if (!loadDataWithValidation()) {
+    // Если загрузка не удалась, инициализируем пустые данные
+    initializeEmptyData();
+  }
 
-  // Данные фондов
-  let fundWidgets = JSON.parse(localStorage.getItem('fundWidgets')) || [];
+  // Проверка здоровья хранилища
+  checkStorageHealth();
 
-  // Данные достижений
-  let achievementsData = JSON.parse(localStorage.getItem('achievementsData')) || {};
+  // ==================== ОСТАЛЬНОЙ КОД (С ДОБАВЛЕНИЕМ ВЫЗОВОВ markDataChanged) ====================
 
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
@@ -669,16 +917,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Сохраняем состояние ада в localStorage
     localStorage.setItem('hellMode', 'true');
-  }
-
-  // Функция сохранения данных
-  function saveData() {
-    localStorage.setItem('financeData', JSON.stringify(financeData));
-    localStorage.setItem('budgetData', JSON.stringify(budgetData));
-    localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
-    localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
-    localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
-    updateCategoriesList();
+    markDataChanged(); // Сохраняем изменение
   }
 
   // Форматирование валюты
@@ -702,7 +941,7 @@ document.addEventListener('DOMContentLoaded', function() {
     achievements.forEach(ach => {
       if (!achievementsData[ach.id] && ach.check(data)) {
         achievementsData[ach.id] = true;
-        localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+        markDataChanged(); // Сохраняем разблокировку достижения
         showAchievementUnlocked(ach);
       }
     });
@@ -737,7 +976,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function unlockAchievement(id) {
     if (!achievementsData[id]) {
       achievementsData[id] = true;
-      localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
+      markDataChanged(); // Сохраняем изменение
       const achievement = achievements.find(a => a.id === id);
       if (achievement) showAchievementUnlocked(achievement);
     }
@@ -872,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', function() {
       monthData.expense -= categoryExpense;
       delete monthData.categories[category];
       
-      saveData();
+      markDataChanged(); // Сохраняем изменение
       updateUI();
     }
   }
@@ -974,195 +1213,194 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Отрисовка мини-графиков
   function renderMiniCharts() {
-  const labels = monthNames.map(name => name.substring(0, 3));
-  const capitalData = [];
-  const expenseData = [];
-  const isDark = document.body.classList.contains('dark');
-  
-  for (let i = 0; i < 12; i++) {
-    const monthData = financeData[currentYear][i] || { income: 0, expense: 0, capital: 0 };
-    capitalData.push(monthData.capital);
-    expenseData.push(monthData.expense);
-  }
-  
-  // График капитализации
-  if (miniCapitalChart) miniCapitalChart.destroy();
-  const capitalCtx = elements.miniCapitalChart?.getContext('2d');
-  if (capitalCtx) {
-    const gradient = capitalCtx.createLinearGradient(0, 0, 0, 180);
-    gradient.addColorStop(0, 'rgba(52, 152, 219, 0.8)');
-    gradient.addColorStop(1, 'rgba(52, 152, 219, 0.2)');
+    const labels = monthNames.map(name => name.substring(0, 3));
+    const capitalData = [];
+    const expenseData = [];
+    const isDark = document.body.classList.contains('dark');
     
-    miniCapitalChart = new Chart(capitalCtx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: capitalData,
-          borderColor: gradient,
-          backgroundColor: 'rgba(52, 152, 219, 0.1)',
-          borderWidth: 3,
-          tension: 0.3,
-          fill: true,
-          pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
-          pointBorderColor: '#3498db',
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          pointBorderWidth: 2
-        }]
-      },
-      options: getChartOptions('Капитализация')
-    });
-  }
-  
-  // График расходов
-  if (miniExpenseChart) miniExpenseChart.destroy();
-  const expenseCtx = elements.miniExpenseChart?.getContext('2d');
-  if (expenseCtx) {
-    const gradient = expenseCtx.createLinearGradient(0, 0, 0, 180);
-    gradient.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
-    gradient.addColorStop(1, 'rgba(231, 76, 60, 0.2)');
+    for (let i = 0; i < 12; i++) {
+      const monthData = financeData[currentYear][i] || { income: 0, expense: 0, capital: 0 };
+      capitalData.push(monthData.capital);
+      expenseData.push(monthData.expense);
+    }
     
-    miniExpenseChart = new Chart(expenseCtx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: expenseData,
-          backgroundColor: gradient,
-          borderColor: 'transparent',
-          borderWidth: 0,
-          borderRadius: 4
-        }]
-      },
-      options: getChartOptions('Расходы')
-    });
+    // График капитализации
+    if (miniCapitalChart) miniCapitalChart.destroy();
+    const capitalCtx = elements.miniCapitalChart?.getContext('2d');
+    if (capitalCtx) {
+      const gradient = capitalCtx.createLinearGradient(0, 0, 0, 180);
+      gradient.addColorStop(0, 'rgba(52, 152, 219, 0.8)');
+      gradient.addColorStop(1, 'rgba(52, 152, 219, 0.2)');
+      
+      miniCapitalChart = new Chart(capitalCtx, {
+        type: 'line',
+        data: {
+          labels: labels,
+                  datasets: [{
+            data: capitalData,
+            borderColor: gradient,
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            borderWidth: 3,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
+            pointBorderColor: '#3498db',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBorderWidth: 2
+          }]
+        },
+        options: getChartOptions('Капитализация')
+      });
+    }
+    
+    // График расходов
+    if (miniExpenseChart) miniExpenseChart.destroy();
+    const expenseCtx = elements.miniExpenseChart?.getContext('2d');
+    if (expenseCtx) {
+      const gradient = expenseCtx.createLinearGradient(0, 0, 0, 180);
+      gradient.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
+      gradient.addColorStop(1, 'rgba(231, 76, 60, 0.2)');
+      
+      miniExpenseChart = new Chart(expenseCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: expenseData,
+            backgroundColor: gradient,
+            borderColor: 'transparent',
+            borderWidth: 0,
+            borderRadius: 4
+          }]
+        },
+        options: getChartOptions('Расходы')
+      });
+    }
   }
-}
 
   // Обновленные настройки графиков
-function getChartOptions(title) {
-  const isDark = document.body.classList.contains('dark');
-  const textColor = isDark ? '#eee' : '#333';
-  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-  const tooltipBg = isDark ? '#2a2a2a' : '#fff';
-  
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    devicePixelRatio: 3, // Увеличиваем четкость для уменьшенных графиков
-    plugins: {
-      legend: { 
-        display: false,
-        labels: {
-          color: textColor,
-          font: {
-            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 10 // Уменьшаем размер шрифта
-          }
-        }
-      },
-      tooltip: {
-        backgroundColor: tooltipBg,
-        titleColor: textColor,
-        bodyColor: textColor,
-        borderColor: isDark ? '#444' : '#ddd',
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        callbacks: {
-          label: function(context) {
-            return `${context.dataset.label || ''}: ${context.parsed.y.toLocaleString('ru-RU')} ₽`;
-          }
-        },
-        displayColors: false,
-        titleFont: {
-          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-          size: 12,
-          weight: 'bold'
-        },
-        bodyFont: {
-          family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-          size: 12
-        }
-      },
-      
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: gridColor,
-          drawBorder: false,
-          lineWidth: 1
-        },
-        ticks: {
-          color: textColor,
-          font: {
-            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 9 // Уменьшаем размер шрифта для осей
-          },
-          padding: 3,
-          callback: function(value) {
-            if (value >= 1000000) {
-              return (value / 1000000).toFixed(1) + 'M';
-            } else if (value >= 1000) {
-              return (value / 1000).toFixed(0) + 'k';
-            }
-            return value;
-          }
-        }
-      },
-      x: {
-        grid: {
+  function getChartOptions(title) {
+    const isDark = document.body.classList.contains('dark');
+    const textColor = isDark ? '#eee' : '#333';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const tooltipBg = isDark ? '#2a2a2a' : '#fff';
+    
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      devicePixelRatio: 3,
+      plugins: {
+        legend: { 
           display: false,
-          drawBorder: false
+          labels: {
+            color: textColor,
+            font: {
+              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              size: 10
+            }
+          }
         },
-        ticks: {
-          color: textColor,
-          font: {
-            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
-            size: 9 // Уменьшаем размер шрифта для осей
+        tooltip: {
+          backgroundColor: tooltipBg,
+          titleColor: textColor,
+          bodyColor: textColor,
+          borderColor: isDark ? '#444' : '#ddd',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label || ''}: ${context.parsed.y.toLocaleString('ru-RU')} ₽`;
+            }
           },
-          padding: 3,
-          maxRotation: 45, // Наклон labels для лучшей читаемости
-          minRotation: 45
+          displayColors: false,
+          titleFont: {
+            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            size: 12,
+            weight: 'bold'
+          },
+          bodyFont: {
+            family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+            size: 12
+          }
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: gridColor,
+            drawBorder: false,
+            lineWidth: 1
+          },
+          ticks: {
+            color: textColor,
+            font: {
+              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              size: 9
+            },
+            padding: 3,
+            callback: function(value) {
+              if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M';
+              } else if (value >= 1000) {
+                return (value / 1000).toFixed(0) + 'k';
+              }
+              return value;
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            color: textColor,
+            font: {
+              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              size: 9
+            },
+            padding: 3,
+            maxRotation: 45,
+            minRotation: 45
+          }
+        }
+      },
+      elements: {
+        bar: {
+          borderRadius: 6,
+          borderSkipped: false,
+          borderWidth: 0
+        },
+        line: {
+          tension: 0.3,
+          borderWidth: 3,
+          fill: true
+        },
+        point: {
+          radius: 5,
+          hoverRadius: 7,
+          borderWidth: 2,
+          backgroundColor: 'var(--bg)'
+        }
+      },
+      animation: {
+        duration: 1000,
+        easing: 'easeOutQuart'
+      },
+      layout: {
+        padding: {
+          left: 10,
+          right: 10,
+          top: title ? 10 : 20,
+          bottom: 10
         }
       }
-    },
-    elements: {
-      bar: {
-        borderRadius: 6,
-        borderSkipped: false,
-        borderWidth: 0
-      },
-      line: {
-        tension: 0.3,
-        borderWidth: 3,
-        fill: true
-      },
-      point: {
-        radius: 5,
-        hoverRadius: 7,
-        borderWidth: 2,
-        backgroundColor: 'var(--bg)'
-      }
-    },
-    animation: {
-      duration: 1000,
-      easing: 'easeOutQuart'
-    },
-    layout: {
-      padding: {
-        left: 10,
-        right: 10,
-        top: title ? 10 : 20,
-        bottom: 10
-      }
-    }
-  };
-}
+    };
+  }
 
   // Обновление интерфейса
   function updateUI() {
@@ -1278,7 +1516,6 @@ function getChartOptions(title) {
       widget.addEventListener('click', function() {
         widgetClickCount++;
         if (widgetClickCount >= 15) {
-          // Добавляем вибрацию для эффекта
           if (navigator.vibrate) {
             navigator.vibrate([200, 100, 200, 100, 200]);
           }
@@ -1291,10 +1528,8 @@ function getChartOptions(title) {
 
   // Отрисовка всех виджетов накоплений
   function renderSavingsWidgets() {
-    // Сначала удаляем все существующие виджеты накоплений
     document.querySelectorAll('.savings-widget').forEach(widget => widget.remove());
     
-    // Затем создаем новые виджеты из сохраненных данных
     savingsWidgets.forEach(widget => {
       const widgetElement = document.createElement('div');
       widgetElement.className = 'neumorphic-card widget savings-widget';
@@ -1322,7 +1557,6 @@ function getChartOptions(title) {
       
       elements.widgetsContainer.prepend(widgetElement);
       
-      // Добавляем обработчики для нового виджета
       widgetElement.querySelector('.add-savings-btn').addEventListener('click', addToSavings);
       widgetElement.querySelector('.delete-widget-btn').addEventListener('click', deleteSavingsWidget);
     });
@@ -1330,10 +1564,8 @@ function getChartOptions(title) {
 
   // Отрисовка всех виджетов фондов
   function renderFundWidgets() {
-    // Удаляем все существующие виджеты фондов
     document.querySelectorAll('.fund-widget').forEach(widget => widget.remove());
     
-    // Создаем новые виджеты из сохраненных данных
     fundWidgets.forEach(widget => {
       const widgetElement = document.createElement('div');
       widgetElement.className = 'neumorphic-card widget fund-widget';
@@ -1363,7 +1595,6 @@ function getChartOptions(title) {
       
       elements.widgetsContainer.prepend(widgetElement);
       
-      // Добавляем обработчики для нового виджета
       widgetElement.querySelector('.add-fund-btn').addEventListener('click', subtractFromFund);
       widgetElement.querySelector('.delete-widget-btn').addEventListener('click', deleteFundWidget);
     });
@@ -1379,9 +1610,8 @@ function getChartOptions(title) {
       const widgetIndex = savingsWidgets.findIndex(w => w.id === widgetId);
       if (widgetIndex !== -1) {
         savingsWidgets[widgetIndex].current += amount;
-        localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+        markDataChanged(); // Сохраняем изменение
         
-        // Обновляем только этот виджет
         updateSingleWidget(widgetId);
         
         input.value = '';
@@ -1401,9 +1631,8 @@ function getChartOptions(title) {
       const widgetIndex = fundWidgets.findIndex(w => w.id === widgetId);
       if (widgetIndex !== -1 && fundWidgets[widgetIndex].current >= amount) {
         fundWidgets[widgetIndex].current -= amount;
-        localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+        markDataChanged(); // Сохраняем изменение
         
-        // Обновляем только этот виджет
         updateSingleFundWidget(widgetId);
         
         input.value = '';
@@ -1420,7 +1649,7 @@ function getChartOptions(title) {
     const widgetId = this.dataset.widgetId;
     if (confirm('Удалить этот виджет накоплений?')) {
       savingsWidgets = savingsWidgets.filter(w => w.id !== widgetId);
-      localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+      markDataChanged(); // Сохраняем изменение
       document.querySelector(`.savings-widget[data-widget-id="${widgetId}"]`).remove();
     }
   }
@@ -1430,7 +1659,7 @@ function getChartOptions(title) {
     const widgetId = this.dataset.widgetId;
     if (confirm('Удалить этот фонд?')) {
       fundWidgets = fundWidgets.filter(w => w.id !== widgetId);
-      localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+      markDataChanged(); // Сохраняем изменение
       document.querySelector(`.fund-widget[data-widget-id="${widgetId}"]`).remove();
     }
   }
@@ -1485,9 +1714,8 @@ function getChartOptions(title) {
     };
     
     savingsWidgets.push(newWidget);
-    localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
+    markDataChanged(); // Сохраняем изменение
     
-    // Отрисовываем новый виджет
     renderSavingsWidgets();
   }
 
@@ -1505,7 +1733,7 @@ function getChartOptions(title) {
     };
     
     fundWidgets.push(newWidget);
-    localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
+    markDataChanged(); // Сохраняем изменение
     renderFundWidgets();
   }
 
@@ -1524,7 +1752,7 @@ function getChartOptions(title) {
       monthData.expense -= categoryExpense;
       delete monthData.categories[category];
       
-      saveData();
+      markDataChanged(); // Сохраняем изменение
       updateUI();
     }
   }
@@ -1548,7 +1776,7 @@ function getChartOptions(title) {
       
       input.value = '';
       
-      saveData();
+      markDataChanged(); // Сохраняем изменение
       
       // Обновляем дневные траты в бюджете
       const today = new Date();
@@ -1556,7 +1784,7 @@ function getChartOptions(title) {
       
       if (budgetData.startDate && budgetData.dailyHistory[todayStr]) {
         budgetData.dailyHistory[todayStr].spentToday += expenseVal;
-        localStorage.setItem('budgetData', JSON.stringify(budgetData));
+        markDataChanged(); // Сохраняем изменение
       }
       
       updateUI();
@@ -1569,86 +1797,83 @@ function getChartOptions(title) {
 
   // Отрисовка основного графика расходов
   function renderChart() {
-  const ctx = document.getElementById('barChart')?.getContext('2d');
-  if (!ctx) return;
-  if (chart) chart.destroy();
+    const ctx = document.getElementById('barChart')?.getContext('2d');
+    if (!ctx) return;
+    if (chart) chart.destroy();
 
-  const monthData = financeData[currentYear][currentMonth];
-  const categoryNames = Object.keys(monthData.categories);
-  const values = Object.values(monthData.categories);
-  const isDark = document.body.classList.contains('dark');
+    const monthData = financeData[currentYear][currentMonth];
+    const categoryNames = Object.keys(monthData.categories);
+    const values = Object.values(monthData.categories);
+    const isDark = document.body.classList.contains('dark');
 
-  // Создаем градиенты для каждого бара
-  const backgroundColors = categoryNames.map((_, index) => {
-    const color = categoryColors[index % categoryColors.length];
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, shadeColor(color, -30));
-    return gradient;
-  });
+    const backgroundColors = categoryNames.map((_, index) => {
+      const color = categoryColors[index % categoryColors.length];
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(1, shadeColor(color, -30));
+      return gradient;
+    });
 
-  // Тень для эффекта неоморфизма
-  const shadowColor = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)';
+    const shadowColor = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)';
 
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: categoryNames,
-      datasets: [{
-        label: 'Расходы',
-        data: values,
-        backgroundColor: backgroundColors,
-        borderColor: 'transparent',
-        borderWidth: 0,
-        borderRadius: 6,
-        borderSkipped: false,
-        shadowOffsetX: 3,
-        shadowOffsetY: 3,
-        shadowBlur: 5,
-        shadowColor: shadowColor
-      }]
-    },
-    options: getChartOptions('Расходы по категориям')
-  });
-}
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: categoryNames,
+        datasets: [{
+          label: 'Расходы',
+          data: values,
+          backgroundColor: backgroundColors,
+          borderColor: 'transparent',
+          borderWidth: 0,
+          borderRadius: 6,
+          borderSkipped: false,
+          shadowOffsetX: 3,
+          shadowOffsetY: 3,
+          shadowBlur: 5,
+          shadowColor: shadowColor
+        }]
+      },
+      options: getChartOptions('Расходы по категориям')
+    });
+  }
 
   // Отрисовка графика капитализации
   function renderCapitalChart() {
-  const ctx = document.getElementById('capitalChart')?.getContext('2d');
-  if (!ctx) return;
-  if (capitalChart) capitalChart.destroy();
+    const ctx = document.getElementById('capitalChart')?.getContext('2d');
+    if (!ctx) return;
+    if (capitalChart) capitalChart.destroy();
 
-  const monthData = financeData[currentYear][currentMonth];
-  const capitalValue = monthData.capital || 0;
-  const isDark = document.body.classList.contains('dark');
+    const monthData = financeData[currentYear][currentMonth];
+    const capitalValue = monthData.capital || 0;
+    const isDark = document.body.classList.contains('dark');
 
-  // Создаем градиент для линии
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  gradient.addColorStop(0, '#3498db');
-  gradient.addColorStop(1, '#2c3e50');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, '#3498db');
+    gradient.addColorStop(1, '#2c3e50');
 
-  capitalChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Капитализация'],
-      datasets: [{
-        label: 'Капитализация',
-        data: [capitalValue],
-        backgroundColor: 'rgba(52, 152, 219, 0.2)',
-        borderColor: gradient,
-        borderWidth: 3,
-        tension: 0.3,
-        fill: true,
-        pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
-        pointBorderColor: '#3498db',
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        pointBorderWidth: 2
-      }]
-    },
-    options: getChartOptions('Капитализация')
-  });
-}
+    capitalChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Капитализация'],
+        datasets: [{
+          label: 'Капитализация',
+          data: [capitalValue],
+          backgroundColor: 'rgba(52, 152, 219, 0.2)',
+          borderColor: gradient,
+          borderWidth: 3,
+          tension: 0.3,
+          fill: true,
+          pointBackgroundColor: isDark ? '#1a1a1a' : '#fff',
+          pointBorderColor: '#3498db',
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          pointBorderWidth: 2
+        }]
+      },
+      options: getChartOptions('Капитализация')
+    });
+  }
 
   // Отрисовка годовых графиков
   function renderYearCharts() {
@@ -1801,7 +2026,6 @@ function getChartOptions(title) {
     const startDate = new Date(budgetData.startDate);
     const todayStr = today.toISOString().split('T')[0];
     
-    // Проверяем, что бюджет в текущем месяце
     if (today.getMonth() !== startDate.getMonth() || 
         today.getFullYear() !== startDate.getFullYear()) {
       elements.dailyBudgetAmount.textContent = formatCurrency(0);
@@ -1813,7 +2037,6 @@ function getChartOptions(title) {
       return;
     }
 
-    // Рассчитываем прошедшие дни (включая текущий)
     const elapsedDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
     const remainingDays = Math.max(0, budgetData.days - elapsedDays + 1);
     
@@ -1827,7 +2050,6 @@ function getChartOptions(title) {
       return;
     }
 
-    // Рассчитываем остаток бюджета с учетом перерасходов/экономии
     let remainingAmount = budgetData.totalAmount;
     let totalSpent = 0;
     
@@ -1854,14 +2076,12 @@ function getChartOptions(title) {
       return;
     }
 
-    // Рассчитываем дневный бюджет с учетом остатка
     const dailyBudget = remainingAmount / remainingDays;
     
     elements.dailyBudgetAmount.textContent = formatCurrency(dailyBudget);
     elements.budgetProgress.textContent = 
         `Остаток: ${formatCurrency(remainingAmount)} | ${remainingDays} дн.`;
     
-    // Обновляем прогресс-бары (реверсивные)
     const daysProgress = 100 - (elapsedDays / budgetData.days * 100);
     const fundsProgress = 100 - (totalSpent / budgetData.totalAmount * 100);
     
@@ -1870,15 +2090,14 @@ function getChartOptions(title) {
     if (elements.daysProgressValue) elements.daysProgressValue.textContent = `${Math.round(Math.max(0, daysProgress))}%`;
     if (elements.fundsProgressValue) elements.fundsProgressValue.textContent = `${Math.round(Math.max(0, fundsProgress))}%`;
     
-    // Обновляем историю трат
     if (!budgetData.dailyHistory[todayStr]) {
       budgetData.dailyHistory[todayStr] = {
         date: todayStr,
         dailyBudget: dailyBudget,
         spentToday: 0
       };
+      markDataChanged(); // Сохраняем изменение
     }
-    localStorage.setItem('budgetData', JSON.stringify(budgetData));
   }
 
   // Отрисовка истории трат
@@ -1887,7 +2106,6 @@ function getChartOptions(title) {
     const monthData = financeData[currentYear][currentMonth];
     const history = monthData.expensesHistory || [];
     
-    // Сортируем от последних к старым
     const sortedHistory = [...history].reverse();
     
     sortedHistory.forEach((item, index) => {
@@ -1904,7 +2122,6 @@ function getChartOptions(title) {
       elements.historyList.appendChild(historyItem);
     });
 
-    // Добавляем обработчики для кнопок удаления
     document.querySelectorAll('.delete-history-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const index = parseInt(this.getAttribute('data-index'));
@@ -1919,26 +2136,19 @@ function getChartOptions(title) {
     const expense = monthData.expensesHistory[index];
     
     if (expense) {
-      // Уменьшаем общие расходы
       monthData.expense -= expense.amount;
       
-      // Уменьшаем расходы по категории
       if (monthData.categories[expense.category]) {
         monthData.categories[expense.category] -= expense.amount;
         
-        // Если сумма в категории стала 0, удаляем категорию
         if (monthData.categories[expense.category] <= 0) {
           delete monthData.categories[expense.category];
         }
       }
       
-      // Удаляем запись из истории
       monthData.expensesHistory.splice(index, 1);
       
-      // Обновляем данные в localStorage
-      saveData();
-      
-      // Обновляем интерфейс
+      markDataChanged(); // Сохраняем изменение
       updateUI();
       
       showSuccessMessage(`Трата "${expense.category}" на сумму ${formatCurrency(expense.amount)} удалена`);
@@ -1949,7 +2159,6 @@ function getChartOptions(title) {
   function renderYearSelection() {
     elements.yearsList.innerHTML = '';
     
-    // Получаем все доступные годы
     const years = Object.keys(financeData).sort((a, b) => b - a);
     
     years.forEach(year => {
@@ -1970,7 +2179,7 @@ function getChartOptions(title) {
     const newYear = currentYear + 1;
     if (!financeData[newYear]) {
       initYearData(newYear);
-      localStorage.setItem('financeData', JSON.stringify(financeData));
+      markDataChanged(); // Сохраняем изменение
       renderYearSelection();
       showSuccessMessage(`Год ${newYear} добавлен!`);
     } else {
@@ -1988,14 +2197,12 @@ function getChartOptions(title) {
     categories.forEach(category => {
       const trendData = [];
       
-      // Собираем данные по категории за все месяцы года
       for (let i = 0; i < 12; i++) {
         const monthCatData = financeData[currentYear][i].categories || {};
         trendData.push(monthCatData[category] || 0);
       }
       
       const container = document.createElement('div');
-      //container.className = 'trend-chart-container';
       container.innerHTML = `<h4>${category}</h4><canvas id="trend-${category}"></canvas>`;
       elements.trendsScroll.appendChild(container);
       
@@ -2021,16 +2228,16 @@ function getChartOptions(title) {
         options: {
           ...getChartOptions(''),
           aspectRatio: 1,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            display: false // СКРЫВАЕМ ЛЕГЕНДУ
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
             }
+          }
         }
-      }
+      });
     });
-  });
-}
+  }
 
   // Режим обучения
   function initTutorial() {
@@ -2101,7 +2308,6 @@ function getChartOptions(title) {
       elements.tutorialOverlay.style.display = 'none';
     });
     
-    // Показываем обучение при первом запуске
     if (!localStorage.getItem('tutorialShown')) {
       showTutorialStep(0);
       localStorage.setItem('tutorialShown', 'true');
@@ -2110,28 +2316,64 @@ function getChartOptions(title) {
 
   // Функция для переключения меню
   function toggleMenu(menuElement) {
-    // Скрываем все другие меню
     document.querySelectorAll('.neumorphic-menu').forEach(menu => {
       if (menu !== menuElement) menu.classList.remove('show');
     });
     
-    // Переключаем текущее меню
     const isOpening = !menuElement.classList.contains('show');
     menuElement.classList.toggle('show');
     
-    // Добавляем/убираем класс для body
     if (isOpening) {
       document.body.classList.add('menu-open');
     } else {
       document.body.classList.remove('menu-open');
     }
     
-    // Позиционируем меню по центру экрана
     if (menuElement.classList.contains('show')) {
       menuElement.style.top = '50%';
       menuElement.style.left = '50%';
       menuElement.style.transform = 'translate(-50%, -50%)';
     }
+  }
+
+  // Функция для открытия полноэкранных модальных окон
+  function openFullscreenModal(modalElement) {
+    // Закрыть все другие модальные окна
+    document.querySelectorAll('.neumorphic-menu').forEach(menu => {
+      menu.classList.remove('show');
+    });
+    
+    // Показать затемнение фона
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    if (backdrop) {
+      backdrop.classList.add('show');
+    }
+    
+    // Добавить класс полноэкранного режима и показать модальное окно
+    modalElement.classList.add('fullscreen-modal', 'show');
+    document.body.classList.add('menu-open');
+    
+    // Заблокировать прокрутку основного контента
+    document.getElementById('scrollable').style.overflow = 'hidden';
+  }
+
+  // Функция для закрытия полноэкранных модальных окон
+  function closeFullscreenModal() {
+    // Скрыть все модальные окна
+    document.querySelectorAll('.neumorphic-menu').forEach(menu => {
+      menu.classList.remove('show', 'fullscreen-modal');
+    });
+    
+    // Скрыть затемнение фона
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    if (backdrop) {
+      backdrop.classList.remove('show');
+    }
+    
+    document.body.classList.remove('menu-open');
+    
+    // Разблокировать прокрутку основного контента
+    document.getElementById('scrollable').style.overflow = 'auto';
   }
 
   // Показать слайдер сброса
@@ -2177,14 +2419,12 @@ function getChartOptions(title) {
       const rect = track.getBoundingClientRect();
       let newX = x - rect.left;
       
-      // Ограничиваем движение в пределах трека
       newX = Math.max(0, Math.min(newX, rect.width));
       
       thumb.style.left = `${newX}px`;
       progress.style.width = `${newX}px`;
       currentX = x;
       
-      // Если пользователь провел достаточно далеко
       if (newX >= rect.width * 0.9) {
         endDrag();
         resetApp();
@@ -2199,16 +2439,13 @@ function getChartOptions(title) {
       document.removeEventListener('mouseup', endDrag);
       document.removeEventListener('touchend', endDrag);
       
-      // Возвращаем слайдер в исходное положение
       thumb.style.left = '0';
       progress.style.width = '0';
     }
     
     function resetApp() {
-      // Удаляем модальное окно
       document.body.removeChild(modal);
       
-      // Сбрасываем все данные
       localStorage.clear();
       financeData = {};
       savingsWidgets = [];
@@ -2222,17 +2459,12 @@ function getChartOptions(title) {
         dailyHistory: {}
       };
       
-      // Инициализируем текущий год
       initYearData(currentYear);
       
-      // Показываем сообщение об успешном сбросе
       showSuccessMessage('Все данные сброшены!');
-      
-      // Обновляем интерфейс
       updateUI();
     }
     
-    // Закрытие при клике вне слайдера
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         document.body.removeChild(modal);
@@ -2282,12 +2514,7 @@ function getChartOptions(title) {
             fundWidgets = importedData.fundWidgets;
             achievementsData = importedData.achievementsData;
             
-            localStorage.setItem('financeData', JSON.stringify(financeData));
-            localStorage.setItem('budgetData', JSON.stringify(budgetData));
-            localStorage.setItem('savingsWidgets', JSON.stringify(savingsWidgets));
-            localStorage.setItem('fundWidgets', JSON.stringify(fundWidgets));
-            localStorage.setItem('achievementsData', JSON.stringify(achievementsData));
-            
+            markDataChanged(); // Сохраняем импортированные данные
             updateUI();
             elements.importDataInput.value = '';
             elements.transferDataModal.classList.remove('show');
@@ -2311,7 +2538,7 @@ function getChartOptions(title) {
       if (!isNaN(incomeVal)) {
         monthData.income += incomeVal;
         elements.incomeInput.value = '';
-        saveData();
+        markDataChanged(); // Сохраняем изменение
         updateUI();
         
         elements.addIncomeBtn.classList.add('pulse');
@@ -2323,7 +2550,6 @@ function getChartOptions(title) {
     elements.addCategoryBtn.addEventListener('click', () => {
       const categoryName = elements.newCategoryInput.value.trim();
       if (categoryName) {
-        // Добавляем категорию во все месяцы текущего года
         for (let i = 0; i < 12; i++) {
           const monthData = financeData[currentYear][i];
           if (!monthData.categories[categoryName]) {
@@ -2331,7 +2557,7 @@ function getChartOptions(title) {
           }
         }
         elements.newCategoryInput.value = '';
-        saveData();
+        markDataChanged(); // Сохраняем изменение
         updateUI();
       }
     });
@@ -2359,7 +2585,7 @@ function getChartOptions(title) {
       const capitalVal = parseFloat(elements.capitalInput.value.replace(/\s+/g, '').replace(',', '.'));
       if (!isNaN(capitalVal)) {
         financeData[currentYear][currentMonth].capital = capitalVal;
-        saveData();
+        markDataChanged(); // Сохраняем изменение
         updateUI();
         elements.capitalizationMenu.classList.remove('show');
       }
@@ -2369,14 +2595,14 @@ function getChartOptions(title) {
       elements.capitalizationMenu.classList.remove('show');
     });
 
-    // Настройки/отчеты
+    // Настройки/отчеты - полноэкранный режим
     elements.settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleMenu(elements.settingsMenu);
+      openFullscreenModal(elements.settingsMenu);
     });
 
     elements.closeReportsBtn.addEventListener('click', () => {
-      elements.settingsMenu.classList.remove('show');
+      closeFullscreenModal();
     });
 
     // Бюджет
@@ -2404,7 +2630,7 @@ function getChartOptions(title) {
             }
           }
         };
-        localStorage.setItem('budgetData', JSON.stringify(budgetData));
+        markDataChanged(); // Сохраняем изменение
         elements.setBudgetModal.classList.remove('show');
         updateBudgetWidget();
         
@@ -2429,7 +2655,6 @@ function getChartOptions(title) {
       elements.moreMenu.classList.remove('show');
       toggleMenu(elements.savingsModal);
       
-      // Сбрасываем поля формы при открытии
       elements.savingsName.value = '';
       elements.savingsGoal.value = '';
     });
@@ -2492,25 +2717,25 @@ function getChartOptions(title) {
       elements.yearSelectModal.classList.remove('show');
     });
 
-    // История трат
+    // История трат - полноэкранный режим
     elements.historyBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      toggleMenu(elements.historyModal);
+      openFullscreenModal(elements.historyModal);
     });
     
     elements.closeHistory.addEventListener('click', () => {
-      elements.historyModal.classList.remove('show');
+      closeFullscreenModal();
     });
 
-    // Достижения
+    // Достижения - полноэкранный режим
     elements.achievementsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      toggleMenu(elements.achievementsModal);
+      openFullscreenModal(elements.achievementsModal);
       renderAchievementsList();
     });
 
     elements.closeAchievements.addEventListener('click', () => {
-      elements.achievementsModal.classList.remove('show');
+      closeFullscreenModal();
     });
 
     // Кнопка сброса данных
@@ -2535,7 +2760,7 @@ function getChartOptions(title) {
     // Обработчик для Ghost busters (переключение темы)
     elements.themeToggleBtn.addEventListener('click', () => {
       const now = Date.now();
-      if (now - lastThemeToggleTime < 2000) { // 2 секунды между кликами
+      if (now - lastThemeToggleTime < 2000) {
         themeToggleCount++;
         if (themeToggleCount >= 5) {
           unlockAchievement('ghost_busters');
@@ -2565,24 +2790,21 @@ function getChartOptions(title) {
       lastScrollPosition = currentScroll;
     });
 
-    // Проверка последовательности месяцев для достижения До ре ми фа соль ля си
-    function checkMonthSequence(month) {
-      monthSequence.push(month);
-      
-      // Проверяем, соответствует ли последовательность требуемой
-      if (monthSequence.length > requiredMonthSequence.length) {
-        monthSequence.shift();
-      }
-      
-      if (arraysEqual(monthSequence, requiredMonthSequence)) {
-        unlockAchievement('do_re_mi');
-        monthSequence = [];
-      }
+    // Закрытие по клику на затемненный фон
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', closeFullscreenModal);
     }
+
+    // Закрытие по клавише Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeFullscreenModal();
+      }
+    });
 
     // Закрытие меню при клике вне их
     document.addEventListener('click', (e) => {
-      // Список всех меню
       const menus = [
         elements.categoryMenu,
         elements.capitalizationMenu,
@@ -2597,10 +2819,8 @@ function getChartOptions(title) {
         elements.transferDataModal
       ];
       
-      // Проверяем, был ли клик вне меню
       const clickOutside = !menus.some(menu => menu.contains(e.target));
       
-      // Проверяем, была ли нажата кнопка меню
       const isMenuButton = [
         elements.categoryBtn,
         elements.capitalizationBtn,
@@ -2616,7 +2836,6 @@ function getChartOptions(title) {
         elements.transferDataBtn
       ].some(button => button.contains(e.target));
       
-      // Закрываем все меню, если клик был вне меню и не по кнопке меню
       if (clickOutside && !isMenuButton) {
         menus.forEach(menu => menu.classList.remove('show'));
       }
@@ -2650,33 +2869,29 @@ function getChartOptions(title) {
     });
   }
 
-  // Инициализация приложения
+  // ==================== УЛУЧШЕННАЯ ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
 
   function adjustHeaderButtons() {
-  const headerButtons = document.querySelector('.header-buttons');
-  const buttons = headerButtons.querySelectorAll('.neumorphic-btn.small');
-  
-  // Рассчитываем общую ширину всех кнопок
-  let totalWidth = 0;
-  buttons.forEach(btn => {
-    totalWidth += btn.offsetWidth + 6; // 6px - gap между кнопками
-  });
-  
-  // Если кнопки не помещаются, разрешаем горизонтальную прокрутку
-  if (totalWidth > headerButtons.offsetWidth) {
-    headerButtons.style.overflowX = 'auto';
-    headerButtons.style.justifyContent = 'flex-start';
-  } else {
-    headerButtons.style.overflowX = 'hidden';
-    headerButtons.style.justifyContent = 'center';
+    const headerButtons = document.querySelector('.header-buttons');
+    const buttons = headerButtons.querySelectorAll('.neumorphic-btn.small');
+    
+    let totalWidth = 0;
+    buttons.forEach(btn => {
+      totalWidth += btn.offsetWidth + 6;
+    });
+    
+    if (totalWidth > headerButtons.offsetWidth) {
+      headerButtons.style.overflowX = 'auto';
+      headerButtons.style.justifyContent = 'flex-start';
+    } else {
+      headerButtons.style.overflowX = 'hidden';
+      headerButtons.style.justifyContent = 'center';
+    }
   }
-}
-
-// Вызываем при загрузке и изменении размера окна
-window.addEventListener('load', adjustHeaderButtons);
-window.addEventListener('resize', adjustHeaderButtons);
 
   function initializeApp() {
+    console.log('🚀 Инициализация приложения...');
+    
     // Установка активного месяца
     elements.monthTabs[currentMonth].classList.add('active');
     
@@ -2738,7 +2953,6 @@ window.addEventListener('resize', adjustHeaderButtons);
       }
     };
     
-    // Оптимизация обработчика изменения размера
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
@@ -2749,8 +2963,30 @@ window.addEventListener('resize', adjustHeaderButtons);
     if (!achievementsData['better_than_most']) {
       unlockAchievement('better_than_most');
     }
+
+    // Сохранение при закрытии страницы
+    window.addEventListener('beforeunload', function() {
+      if (hasUnsavedChanges) {
+        console.log('💾 Экстренное сохранение перед закрытием...');
+        saveData();
+      }
+    });
+
+    // Периодическое автосохранение
+    setInterval(() => {
+      if (hasUnsavedChanges) {
+        console.log('💾 Автосохранение...');
+        saveData();
+      }
+    }, 30000); // Каждые 30 секунд
+
+    console.log('✅ Приложение инициализировано');
   }
 
   // Запуск приложения
   initializeApp();
+
+  // Обработчики для кнопок заголовка
+  window.addEventListener('load', adjustHeaderButtons);
+  window.addEventListener('resize', adjustHeaderButtons);
 });
