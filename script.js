@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Проверка здоровья хранилища
   checkStorageHealth();
 
-  // ==================== ОСТАЛЬНОЙ КОД (С ДОБАВЛЕНИЕМ ВЫЗОВОВ markDataChanged) ====================
+  // ==================== ОСТАЛЬНОЙ КОД ====================
 
   // Переменные для графиков
   let chart, capitalChart, yearIncomeChart, yearExpenseChart, yearCapitalChart;
@@ -1153,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderTopCategoriesReport();
   }
 
-  // Отображение самых затратных категорий
+  // Отображение самых затратных категорий с вертикальной прокруткой
   function renderTopCategoriesReport() {
     elements.topCategoriesList.innerHTML = '';
     
@@ -1190,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         monthElement.appendChild(totalElement);
         
         topCategories.forEach(([category, amount], index) => {
-          const percent = Math.round((amount / totalExpense) * 100);
+          const percent = totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0;
           const categoryElement = document.createElement('div');
           categoryElement.className = 'category-item';
           categoryElement.innerHTML = `
@@ -1236,7 +1236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'line',
         data: {
           labels: labels,
-                  datasets: [{
+          datasets: [{
             data: capitalData,
             borderColor: gradient,
             backgroundColor: 'rgba(52, 152, 219, 0.1)',
