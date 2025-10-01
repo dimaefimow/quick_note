@@ -857,52 +857,75 @@ header {
   color: var(--primary);
 }
 
+/* Исправленные стили для вертикальной прокрутки категорий */
 .categories-scroll-container {
   display: flex;
-  overflow-x: auto;
-  gap: 18px;
-  padding-bottom: 18px;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 20px;
+  padding: 20px;
+  height: 400px;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none;
+  perspective: none;
+  align-items: normal;
 }
 
 .categories-scroll-container::-webkit-scrollbar {
-  height: 10px;
+  width: 8px;
 }
 
 .categories-scroll-container::-webkit-scrollbar-track {
   background: rgba(0,0,0,0.05);
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 .categories-scroll-container::-webkit-scrollbar-thumb {
   background: var(--primary);
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
-.categories-list {
-  display: flex;
-  gap: 18px;
-  padding: 12px;
-}
-
+/* Стили для карточек месяцев с вертикальной прокруткой */
 .month-categories {
   background: var(--bg);
   border-radius: var(--border-radius);
-  padding: 18px;
+  padding: 20px;
   box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-  min-width: 300px;
-  flex-shrink: 0;
+  width: 100%;
+  min-width: auto;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  scroll-snap-align: none;
+  transition: var(--transition);
 }
 
+.month-categories:first-of-type,
+.month-categories:not(:first-of-type) {
+  transform: none;
+  opacity: 1;
+  filter: none;
+  box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+}
+
+.month-categories:hover {
+  transform: translateY(-3px);
+  box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+}
+
+/* Заголовок месяца */
 .month-categories h5 {
   margin: 0 0 15px 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--primary);
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 2px solid var(--primary);
+  text-align: center;
+  font-weight: 600;
 }
 
-.category-item {
+.month-categories .category-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -913,12 +936,12 @@ header {
   transition: var(--transition);
 }
 
-.category-item.total {
+.month-categories .category-item.total {
   background: rgba(52, 152, 219, 0.1);
   font-weight: bold;
 }
 
-.category-item:hover {
+.month-categories .category-item:hover {
   transform: translateY(-2px);
   box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
@@ -1567,6 +1590,17 @@ body.dark .mini-chart-widget h4 {
     padding: 15px;
     box-sizing: border-box;
   }
+  
+  /* Адаптация для мобильных устройств */
+  .categories-scroll-container {
+    height: 350px;
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .month-categories {
+    padding: 15px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1652,6 +1686,21 @@ body.dark .mini-chart-widget h4 {
   
   .mini-chart-container {
     height: 150px;
+  }
+  
+  /* Адаптация для очень маленьких экранов */
+  .categories-scroll-container {
+    height: 320px;
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .month-categories {
+    padding: 12px;
+  }
+  
+  .month-categories h5 {
+    font-size: 1.1rem;
   }
 }
 
@@ -2286,10 +2335,10 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   animation: fullscreenModalIn 0.3s ease-out;
 }
 
-/* Кнопка закрытия для полноэкранных модальных окон */
+/* Смещение кнопки закрытия для полноэкранных модальных окон на 1см вниз */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 15px !important;
+  top: 25px !important; /* Смещено на 1см вниз от 15px */
   right: 15px !important;
   z-index: 11 !important;
   width: 40px !important;
@@ -2300,6 +2349,27 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   justify-content: center !important;
   font-size: 1.2rem !important;
   font-weight: bold !important;
+  background: var(--bg) !important;
+  box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light) !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.fullscreen-close-btn:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light) !important;
+}
+
+.fullscreen-close-btn:active {
+  transform: scale(0.95) !important;
+  box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
+}
+
+/* Для темной темы */
+body.dark .fullscreen-close-btn {
+  background: var(--bg) !important;
+  color: var(--text) !important;
 }
 
 /* Затемнение фона для полноэкранных модальных окон */
@@ -2348,10 +2418,13 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 .fullscreen-modal .categories-scroll-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 15px;
-  overflow-x: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: auto;
+  max-height: 60vh;
 }
 
 .fullscreen-modal .month-categories {
@@ -2383,10 +2456,11 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   }
   
   .fullscreen-close-btn {
-    top: 10px !important;
+    top: 20px !important; /* Также смещено на 1см вниз */
     right: 10px !important;
     width: 35px !important;
     height: 35px !important;
+    font-size: 1.1rem !important;
   }
 }
 
