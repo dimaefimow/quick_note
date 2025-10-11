@@ -2297,7 +2297,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   max-height: 100vh !important;
   border-radius: 0 !important;
   margin: 0 !important;
-  padding: 20px !important;
+  padding: 40px 20px 20px 20px !important; /* Увеличили верхний padding в 2 раза */
   z-index: 2000 !important;
   overflow-y: auto !important;
   transform: none !important;
@@ -2305,40 +2305,18 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 
 .fullscreen-modal .modal-header {
   position: sticky;
-  top: 0;
+  top: 40px; /* Увеличили отступ сверху в 2 раза */
   background: var(--bg);
   z-index: 10;
-  padding: 15px 0;
+  padding: 20px 0 15px 0; /* Увеличили верхний padding */
   margin-bottom: 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-.fullscreen-modal .achievements-container,
-.fullscreen-modal #history-list,
-.fullscreen-modal .financial-menu-content {
-  max-height: calc(100vh - 120px) !important;
-  overflow-y: auto !important;
-}
-
-/* Анимация появления полноэкранных модальных окон */
-@keyframes fullscreenModalIn {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fullscreen-modal.show {
-  animation: fullscreenModalIn 0.3s ease-out;
-}
-
-/* Смещение кнопки закрытия для полноэкранных модальных окон на 1см вниз */
+/* Смещение кнопки закрытия для полноэкранных модальных окон под полоску */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 25px !important; /* Смещено на 1см вниз от 15px */
+  top: 75px !important; /* Размещаем под полоской (40px + 20px + 15px) */
   right: 15px !important;
   z-index: 11 !important;
   width: 40px !important;
@@ -2386,6 +2364,22 @@ body.dark .fullscreen-close-btn {
 
 .fullscreen-modal-backdrop.show {
   display: block;
+}
+
+/* Анимация появления полноэкранных модальных окон */
+@keyframes fullscreenModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fullscreen-modal.show {
+  animation: fullscreenModalIn 0.3s ease-out;
 }
 
 /* Адаптация контента для полноэкранного режима */
@@ -2448,15 +2442,16 @@ body.dark .fullscreen-close-btn {
 /* Для очень маленьких экранов */
 @media (max-width: 480px) {
   .fullscreen-modal {
-    padding: 15px !important;
+    padding: 30px 15px 15px 15px !important; /* Увеличили верхний padding */
   }
   
-  .fullscreen-modal .financial-grid {
-    grid-template-columns: 1fr;
+  .fullscreen-modal .modal-header {
+    top: 30px; /* Увеличили отступ сверху */
+    padding: 15px 0 12px 0; /* Увеличили верхний padding */
   }
   
   .fullscreen-close-btn {
-    top: 20px !important; /* Также смещено на 1см вниз */
+    top: 57px !important; /* Размещаем под полоской (30px + 15px + 12px) */
     right: 10px !important;
     width: 35px !important;
     height: 35px !important;
@@ -2466,6 +2461,19 @@ body.dark .fullscreen-close-btn {
 
 /* Для планшетов и выше */
 @media (min-width: 768px) {
+  .fullscreen-modal {
+    padding: 50px 25px 25px 25px !important; /* Увеличили верхний padding */
+  }
+  
+  .fullscreen-modal .modal-header {
+    top: 50px; /* Увеличили отступ сверху */
+    padding: 25px 0 20px 0; /* Увеличили верхний padding */
+  }
+  
+  .fullscreen-close-btn {
+    top: 95px !important; /* Размещаем под полоской (50px + 25px + 20px) */
+  }
+  
   .fullscreen-modal .financial-grid {
     grid-template-columns: repeat(2, 1fr);
   }
