@@ -920,6 +920,36 @@ document.addEventListener('DOMContentLoaded', function() {
     markDataChanged(); // Сохраняем изменение
   }
 
+  // Функция переключения темы
+  function toggleTheme() {
+    const now = Date.now();
+    if (now - lastThemeToggleTime < 2000) {
+      themeToggleCount++;
+      if (themeToggleCount >= 5) {
+        unlockAchievement('ghost_busters');
+        showGhostAnimation();
+        themeToggleCount = 0;
+      }
+    } else {
+      themeToggleCount = 1;
+    }
+    lastThemeToggleTime = now;
+    
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkTheme', document.body.classList.contains('dark'));
+    
+    const icon = elements.themeToggleBtn.querySelector('.theme-icon');
+    if (document.body.classList.contains('dark')) {
+      icon.textContent = '☀️';
+      elements.themeToggleBtn.innerHTML = '<span class="theme-icon">☀️</span> Сменить тему';
+    } else {
+      icon.textContent = '🌙';
+      elements.themeToggleBtn.innerHTML = '<span class="theme-icon">🌙</span> Сменить тему';
+    }
+    
+    renderAllCharts();
+  }
+
   // Форматирование валюты
   function formatCurrency(amount) {
     return amount.toLocaleString('ru-RU') + ' ₽';
@@ -2650,6 +2680,9 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.categoryMenu.classList.remove('show');
     });
 
+    // Переключение темы
+    elements.themeToggleBtn.addEventListener('click', toggleTheme);
+
     // Виджет накоплений
     elements.enableSavingsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
@@ -2756,22 +2789,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     elements.exportDataBtn.addEventListener('click', exportData);
     elements.importDataBtn.addEventListener('click', importData);
-
-    // Обработчик для Ghost busters (переключение темы)
-    elements.themeToggleBtn.addEventListener('click', () => {
-      const now = Date.now();
-      if (now - lastThemeToggleTime < 2000) {
-        themeToggleCount++;
-        if (themeToggleCount >= 5) {
-          unlockAchievement('ghost_busters');
-          showGhostAnimation();
-          themeToggleCount = 0;
-        }
-      } else {
-        themeToggleCount = 1;
-      }
-      lastThemeToggleTime = now;
-    });
 
     // Обработчик для Подземелье и драконы (потягивание вниз)
     let lastScrollPosition = 0;
@@ -2910,24 +2927,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Настройка темы
     if (localStorage.getItem('darkTheme') === 'true') {
       document.body.classList.add('dark');
-      const icon = elements.themeToggleBtn.querySelector('.theme-icon');
-      icon.textContent = '☀️';
+      elements.themeToggleBtn.innerHTML = '<span class="theme-icon">☀️</span> Сменить тему';
+    } else {
+      elements.themeToggleBtn.innerHTML = '<span class="theme-icon">🌙</span> Сменить тему';
     }
-    
-    // Обработчик переключения темы
-    elements.themeToggleBtn.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('darkTheme', document.body.classList.contains('dark'));
-      
-      const icon = elements.themeToggleBtn.querySelector('.theme-icon');
-      if (document.body.classList.contains('dark')) {
-        icon.textContent = '☀️';
-      } else {
-        icon.textContent = '🌙';
-      }
-      
-      renderAllCharts();
-    });
     
     // Обработчик изменения ориентации устройства
     window.addEventListener('orientationchange', function() {
