@@ -2493,3 +2493,16 @@ body.dark .fullscreen-close-btn {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Стили для кнопки темы в меню */
+#theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#theme-toggle-btn .theme-icon {
+  font-size: 18px;
+}
