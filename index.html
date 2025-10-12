@@ -143,14 +143,14 @@
             <button id="capitalization-btn" class="neumorphic-btn small">Капитализация</button>
             <button id="category-btn" class="neumorphic-btn small">Категории ▼</button>
             <button id="settings-btn" class="neumorphic-btn small">Отчёты</button>
-            <button id="theme-toggle-btn" class="neumorphic-btn small theme-toggle">
-              <span class="theme-icon">🌙</span>
-            </button>
             <button id="more-btn" class="neumorphic-btn small">☰</button>
           </div>
         </div>
         
         <div id="more-menu" class="neumorphic-menu">
+          <button id="theme-toggle-btn" class="neumorphic-btn primary">
+            <span class="theme-icon">🌙</span> Сменить тему
+          </button>
           <button id="enable-savings-btn" class="neumorphic-btn primary">Включить накопления</button>
           <button id="enable-fund-btn" class="neumorphic-btn primary">Создать фонд</button>
           <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
@@ -371,26 +371,7 @@
       </section>
       
       <section class="widgets" id="widgets">
-        <template id="widget-template">
-          <div class="neumorphic-card widget">
-            <div class="widget-header">
-              <h3 style="color: ${color}">${cat}</h3>
-              <div class="widget-actions">
-                <button class="undo-expense-btn" data-category="${cat}" title="Отменить последнюю трату">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 10h10a8 8 0 0 1 8 8v1M3 10l5 5m-5-5l5-5"/>
-                  </svg>
-                </button>
-                <button class="delete-widget-btn" data-category="${cat}">×</button>
-              </div>
-            </div>
-            <p>${formatCurrency(val)}</p>
-            <div class="widget-input-group">
-              <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="expense-${cat}">
-              <button class="neumorphic-btn small" data-category="${cat}">+</button>
-            </div>
-          </div>
-        </template>
+        <!-- Виджеты будут добавляться динамически через JavaScript -->
       </section>
       
       <section class="charts">
@@ -428,6 +409,19 @@
           <div class="slider-track">
             <div class="slider-thumb">→</div>
             <div class="slider-progress"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Оверлей обучения -->
+      <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-content">
+          <h3 id="tutorial-title">Добро пожаловать!</h3>
+          <p id="tutorial-text">Это обучение поможет вам освоить приложение.</p>
+          <div class="tutorial-buttons">
+            <button id="tutorial-prev" class="neumorphic-btn">Назад</button>
+            <button id="tutorial-next" class="neumorphic-btn primary">Далее</button>
+            <button id="tutorial-close" class="neumorphic-btn danger">Пропустить</button>
           </div>
         </div>
       </div>
