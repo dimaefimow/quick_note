@@ -2297,26 +2297,29 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   max-height: 100vh !important;
   border-radius: 0 !important;
   margin: 0 !important;
-  padding: 40px 20px 20px 20px !important; /* Увеличили верхний padding в 2 раза */
+  padding: 20px !important;
   z-index: 2000 !important;
   overflow-y: auto !important;
   transform: none !important;
 }
 
+/* Обновленные стили для заголовка в полноэкранных модальных окнах */
 .fullscreen-modal .modal-header {
-  position: sticky;
-  top: 40px; /* Увеличили отступ сверху в 2 раза */
-  background: var(--bg);
-  z-index: 10;
-  padding: 20px 0 15px 0; /* Увеличили верхний padding */
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  position: sticky !important;
+  top: 0 !important;
+  background: var(--bg) !important;
+  z-index: 10 !important;
+  padding: 20px 40px 15px 20px !important;
+  margin: -20px -20px 20px -20px !important;
+  border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+  border-radius: 0 !important;
+  width: calc(100% + 40px) !important;
 }
 
-/* Смещение кнопки закрытия для полноэкранных модальных окон под полоску */
+/* Кнопка закрытия в полноэкранных модальных окнах */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 75px !important; /* Размещаем под полоской (40px + 20px + 15px) */
+  top: 15px !important;
   right: 15px !important;
   z-index: 11 !important;
   width: 40px !important;
@@ -2344,7 +2347,22 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
 }
 
+/* Заголовок в полноэкранных модальных окнах */
+.fullscreen-modal .modal-header h3 {
+  margin: 0 !important;
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+  color: var(--primary) !important;
+  padding-right: 50px !important;
+  width: 100% !important;
+}
+
 /* Для темной темы */
+body.dark .fullscreen-modal .modal-header {
+  background: var(--bg) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+
 body.dark .fullscreen-close-btn {
   background: var(--bg) !important;
   color: var(--text) !important;
@@ -2439,39 +2457,44 @@ body.dark .fullscreen-close-btn {
   max-height: calc(100vh - 150px) !important;
 }
 
-/* Для очень маленьких экранов */
+/* Адаптация для мобильных устройств */
 @media (max-width: 480px) {
-  .fullscreen-modal {
-    padding: 30px 15px 15px 15px !important; /* Увеличили верхний padding */
-  }
-  
   .fullscreen-modal .modal-header {
-    top: 30px; /* Увеличили отступ сверху */
-    padding: 15px 0 12px 0; /* Увеличили верхний padding */
+    padding: 15px 35px 12px 15px !important;
+    margin: -15px -15px 15px -15px !important;
+    width: calc(100% + 30px) !important;
   }
   
   .fullscreen-close-btn {
-    top: 57px !important; /* Размещаем под полоской (30px + 15px + 12px) */
+    top: 10px !important;
     right: 10px !important;
     width: 35px !important;
     height: 35px !important;
     font-size: 1.1rem !important;
   }
+  
+  .fullscreen-modal .modal-header h3 {
+    font-size: 1.2rem !important;
+    padding-right: 40px !important;
+  }
 }
 
 /* Для планшетов и выше */
 @media (min-width: 768px) {
-  .fullscreen-modal {
-    padding: 50px 25px 25px 25px !important; /* Увеличили верхний padding */
-  }
-  
   .fullscreen-modal .modal-header {
-    top: 50px; /* Увеличили отступ сверху */
-    padding: 25px 0 20px 0; /* Увеличили верхний padding */
+    padding: 25px 50px 20px 25px !important;
+    margin: -25px -25px 20px -25px !important;
+    width: calc(100% + 50px) !important;
   }
   
   .fullscreen-close-btn {
-    top: 95px !important; /* Размещаем под полоской (50px + 25px + 20px) */
+    top: 20px !important;
+    right: 20px !important;
+  }
+  
+  .fullscreen-modal .modal-header h3 {
+    font-size: 1.5rem !important;
+    padding-right: 60px !important;
   }
   
   .fullscreen-modal .financial-grid {
