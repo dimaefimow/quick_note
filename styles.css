@@ -2305,21 +2305,21 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   top: 0 !important;
   background: var(--bg) !important;
   z-index: 10 !important;
-  padding: 60px 20px 20px 20px !important;
+  padding: 100px 20px 20px 20px !important;
   margin: -20px -20px 20px -20px !important;
   border-bottom: 1px solid rgba(0,0,0,0.1) !important;
   border-radius: 0 !important;
   width: calc(100% + 40px) !important;
-  min-height: 110px !important;
+  min-height: 150px !important;
   display: flex !important;
   align-items: center !important;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
 }
 
-/* Кнопка закрытия в полноэкранных модальных окнах - СМЕЩЕНА НИЖЕ */
+/* Кнопка закрытия в полноэкранных модальных окнах - ОПУЩЕНА ЕЩЕ НА 40px */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 70px !important;
+  top: 110px !important;
   right: 20px !important;
   z-index: 11 !important;
   width: 45px !important;
@@ -2356,7 +2356,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   padding-right: 70px !important;
   width: 100% !important;
   text-align: center !important;
-  margin-top: 10px !important;
+  margin-top: 15px !important;
 }
 
 /* Для темной темы */
@@ -2474,14 +2474,14 @@ body.dark .fullscreen-close-btn {
 /* Адаптация для мобильных устройств */
 @media (max-width: 480px) {
   .fullscreen-modal .modal-header {
-    padding: 50px 15px 15px 15px !important;
+    padding: 90px 15px 15px 15px !important;
     margin: -15px -15px 15px -15px !important;
     width: calc(100% + 30px) !important;
-    min-height: 95px !important;
+    min-height: 135px !important;
   }
   
   .fullscreen-close-btn {
-    top: 55px !important;
+    top: 95px !important;
     right: 15px !important;
     width: 42px !important;
     height: 42px !important;
@@ -2491,7 +2491,7 @@ body.dark .fullscreen-close-btn {
   .fullscreen-modal .modal-header h3 {
     font-size: 1.2rem !important;
     padding-right: 55px !important;
-    margin-top: 8px !important;
+    margin-top: 12px !important;
   }
 
   .fullscreen-modal .modal-header::before {
@@ -2505,14 +2505,14 @@ body.dark .fullscreen-close-btn {
 /* Для планшетов и выше */
 @media (min-width: 768px) {
   .fullscreen-modal .modal-header {
-    padding: 70px 25px 25px 25px !important;
+    padding: 110px 25px 25px 25px !important;
     margin: -25px -25px 25px -25px !important;
     width: calc(100% + 50px) !important;
-    min-height: 120px !important;
+    min-height: 160px !important;
   }
   
   .fullscreen-close-btn {
-    top: 65px !important;
+    top: 105px !important;
     right: 25px !important;
     width: 50px !important;
     height: 50px !important;
@@ -2522,7 +2522,7 @@ body.dark .fullscreen-close-btn {
   .fullscreen-modal .modal-header h3 {
     font-size: 1.5rem !important;
     padding-right: 75px !important;
-    margin-top: 12px !important;
+    margin-top: 15px !important;
   }
   
   .fullscreen-modal .financial-grid {
