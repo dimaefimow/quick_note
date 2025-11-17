@@ -2296,6 +2296,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   z-index: 2000 !important;
   overflow-y: auto !important;
   transform: none !important;
+  background: var(--bg) !important;
 }
 
 /* Обновленные стили для заголовка в полноэкранных модальных окнах */
@@ -2304,20 +2305,21 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   top: 0 !important;
   background: var(--bg) !important;
   z-index: 10 !important;
-  padding: 40px 20px 15px 20px !important;
+  padding: 60px 20px 20px 20px !important;
   margin: -20px -20px 20px -20px !important;
   border-bottom: 1px solid rgba(0,0,0,0.1) !important;
   border-radius: 0 !important;
   width: calc(100% + 40px) !important;
-  min-height: 85px !important;
+  min-height: 110px !important;
   display: flex !important;
   align-items: center !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
 }
 
-/* Кнопка закрытия в полноэкранных модальных окнах - СМЕЩЕНА ЕЩЕ НИЖЕ */
+/* Кнопка закрытия в полноэкранных модальных окнах - СМЕЩЕНА НИЖЕ */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 40px !important;
+  top: 70px !important;
   right: 20px !important;
   z-index: 11 !important;
   width: 45px !important;
@@ -2354,7 +2356,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   padding-right: 70px !important;
   width: 100% !important;
   text-align: center !important;
-  margin-top: 5px !important;
+  margin-top: 10px !important;
 }
 
 /* Для темной темы */
@@ -2457,17 +2459,29 @@ body.dark .fullscreen-close-btn {
   max-height: calc(100vh - 150px) !important;
 }
 
+/* Убираем любые возможные пробелы */
+.fullscreen-modal .modal-header::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  height: 20px;
+  background: var(--bg);
+  z-index: 9;
+}
+
 /* Адаптация для мобильных устройств */
 @media (max-width: 480px) {
   .fullscreen-modal .modal-header {
-    padding: 35px 15px 12px 15px !important;
+    padding: 50px 15px 15px 15px !important;
     margin: -15px -15px 15px -15px !important;
     width: calc(100% + 30px) !important;
-    min-height: 75px !important;
+    min-height: 95px !important;
   }
   
   .fullscreen-close-btn {
-    top: 30px !important;
+    top: 55px !important;
     right: 15px !important;
     width: 42px !important;
     height: 42px !important;
@@ -2477,21 +2491,28 @@ body.dark .fullscreen-close-btn {
   .fullscreen-modal .modal-header h3 {
     font-size: 1.2rem !important;
     padding-right: 55px !important;
-    margin-top: 3px !important;
+    margin-top: 8px !important;
+  }
+
+  .fullscreen-modal .modal-header::before {
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    height: 15px;
   }
 }
 
 /* Для планшетов и выше */
 @media (min-width: 768px) {
   .fullscreen-modal .modal-header {
-    padding: 45px 25px 20px 25px !important;
-    margin: -25px -25px 20px -25px !important;
+    padding: 70px 25px 25px 25px !important;
+    margin: -25px -25px 25px -25px !important;
     width: calc(100% + 50px) !important;
-    min-height: 95px !important;
+    min-height: 120px !important;
   }
   
   .fullscreen-close-btn {
-    top: 35px !important;
+    top: 65px !important;
     right: 25px !important;
     width: 50px !important;
     height: 50px !important;
@@ -2501,7 +2522,7 @@ body.dark .fullscreen-close-btn {
   .fullscreen-modal .modal-header h3 {
     font-size: 1.5rem !important;
     padding-right: 75px !important;
-    margin-top: 5px !important;
+    margin-top: 12px !important;
   }
   
   .fullscreen-modal .financial-grid {
