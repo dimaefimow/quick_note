@@ -857,7 +857,6 @@ header {
   color: var(--primary);
 }
 
-/* Исправленные стили для вертикальной прокрутки категорий */
 .categories-scroll-container {
   display: flex;
   flex-direction: column;
@@ -886,7 +885,6 @@ header {
   border-radius: 4px;
 }
 
-/* Стили для карточек месяцев с вертикальной прокруткой */
 .month-categories {
   background: var(--bg);
   border-radius: var(--border-radius);
@@ -914,7 +912,6 @@ header {
   box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
 }
 
-/* Заголовок месяца */
 .month-categories h5 {
   margin: 0 0 15px 0;
   font-size: 1.2rem;
@@ -1591,7 +1588,6 @@ body.dark .mini-chart-widget h4 {
     box-sizing: border-box;
   }
   
-  /* Адаптация для мобильных устройств */
   .categories-scroll-container {
     height: 350px;
     padding: 15px;
@@ -1688,7 +1684,6 @@ body.dark .mini-chart-widget h4 {
     height: 150px;
   }
   
-  /* Адаптация для очень маленьких экранов */
   .categories-scroll-container {
     height: 320px;
     padding: 10px;
@@ -2309,26 +2304,29 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   top: 0 !important;
   background: var(--bg) !important;
   z-index: 10 !important;
-  padding: 20px 40px 15px 20px !important;
+  padding: 40px 20px 15px 20px !important;
   margin: -20px -20px 20px -20px !important;
   border-bottom: 1px solid rgba(0,0,0,0.1) !important;
   border-radius: 0 !important;
   width: calc(100% + 40px) !important;
+  min-height: 85px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-/* Кнопка закрытия в полноэкранных модальных окнах */
+/* Кнопка закрытия в полноэкранных модальных окнах - СМЕЩЕНА ЕЩЕ НИЖЕ */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 15px !important;
-  right: 15px !important;
+  top: 40px !important;
+  right: 20px !important;
   z-index: 11 !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 45px !important;
+  height: 45px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 1.2rem !important;
+  font-size: 1.3rem !important;
   font-weight: bold !important;
   background: var(--bg) !important;
   box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light) !important;
@@ -2353,8 +2351,10 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   font-size: 1.4rem !important;
   font-weight: 700 !important;
   color: var(--primary) !important;
-  padding-right: 50px !important;
+  padding-right: 70px !important;
   width: 100% !important;
+  text-align: center !important;
+  margin-top: 5px !important;
 }
 
 /* Для темной темы */
@@ -2460,41 +2460,48 @@ body.dark .fullscreen-close-btn {
 /* Адаптация для мобильных устройств */
 @media (max-width: 480px) {
   .fullscreen-modal .modal-header {
-    padding: 15px 35px 12px 15px !important;
+    padding: 35px 15px 12px 15px !important;
     margin: -15px -15px 15px -15px !important;
     width: calc(100% + 30px) !important;
+    min-height: 75px !important;
   }
   
   .fullscreen-close-btn {
-    top: 10px !important;
-    right: 10px !important;
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 1.1rem !important;
+    top: 30px !important;
+    right: 15px !important;
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 1.25rem !important;
   }
   
   .fullscreen-modal .modal-header h3 {
     font-size: 1.2rem !important;
-    padding-right: 40px !important;
+    padding-right: 55px !important;
+    margin-top: 3px !important;
   }
 }
 
 /* Для планшетов и выше */
 @media (min-width: 768px) {
   .fullscreen-modal .modal-header {
-    padding: 25px 50px 20px 25px !important;
+    padding: 45px 25px 20px 25px !important;
     margin: -25px -25px 20px -25px !important;
     width: calc(100% + 50px) !important;
+    min-height: 95px !important;
   }
   
   .fullscreen-close-btn {
-    top: 20px !important;
-    right: 20px !important;
+    top: 35px !important;
+    right: 25px !important;
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 1.4rem !important;
   }
   
   .fullscreen-modal .modal-header h3 {
     font-size: 1.5rem !important;
-    padding-right: 60px !important;
+    padding-right: 75px !important;
+    margin-top: 5px !important;
   }
   
   .fullscreen-modal .financial-grid {
