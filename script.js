@@ -316,6 +316,308 @@ document.addEventListener('DOMContentLoaded', function() {
   // Проверка здоровья хранилища
   checkStorageHealth();
 
+  // ==================== ЭКСПОРТ В TXT ФАЙЛ ====================
+
+  function exportToTxtFile() {
+    try {
+      const dataToExport = {
+        financeData: financeData,
+        budgetData: budgetData,
+        savingsWidgets: savingsWidgets,
+        fundWidgets: fundWidgets,
+        achievementsData: achievementsData,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+      };
+      
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      
+      // Создаем Blob с текстом
+      const blob = new Blob([dataStr], { type: 'text/plain;charset=utf-8' });
+      
+      // Создаем URL для скачивания
+      const url = URL.createObjectURL(blob);
+      
+      // Создаем временную ссылку для скачивания
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `finance_backup_${new Date().toISOString().split('T')[0]}.txt`;
+      
+      // Добавляем на страницу и кликаем
+      document.body.appendChild(a);
+      a.click();
+      
+      // Очищаем
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      showSuccessMessage('Файл с данными готов к скачиванию!');
+      
+    } catch (error) {
+      console.error('Ошибка экспорта в файл:', error);
+      alert('Не удалось создать файл с данными');
+    }
+  }
+
+  // ==================== ИМПОРТ ИЗ TXT ФАЙЛА ====================
+
+  function importFromTxtFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          const importedData = JSON.parse(content);
+          
+          // Валидация данных
+          if (importedData.financeData && importedData.budgetData) {
+            resolve(importedData);
+          } else {
+            reject(new Error('Некорректный формат файла'));
+          }
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = function() {
+        reject(new Error('Ошибка чтения файла'));
+      };
+      
+      reader.readAsText(file);
+    });
+  }
+
+  // ==================== ОБНОВЛЕННЫЙ UI ДЛЯ ПЕРЕНОСА ДАННЫХ ====================
+
+  function updateTransferDataUI() {
+    // Заменяем текстовое поле на кнопки для работы с файлами
+    elements.transferDataModal.innerHTML = `
+      <div class="modal-header">
+        <h3>Перенос данных</h3>
+        <button id="close-transfer-data" class="neumorphic-btn small fullscreen-close-btn">×</button>
+      </div>
+      
+      <div class="transfer-options">
+        <div class="export-section">
+          <button id="export-txt-btn" class="neumorphic-btn primary">
+            📥 Экспорт в TXT файл
+          </button>
+          <p style="text-align: center; margin-top: 8px; font-size: 0.9rem; opacity: 0.8;">
+            Создаст файл с вашими данными для скачивания
+          </p>
+        </div>
+        
+        <div class="import-section">
+          <div class="file-input-wrapper">
+            <input type="file" id="import-file-input" accept=".txt" class="hidden">
+            <label for="import-file-input" class="file-input-label">
+              📤 Выбрать файл для импорта
+            </label>
+          </div>
+          <p style="text-align: center; margin-top: 8px; font-size: 0.9rem; opacity: 0.8;">
+            Выберите ранее сохраненный TXT файл
+          </p>
+          
+          <div id="import-file-info" class="hidden" style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: var(--border-radius);">
+            <p style="margin: 0; font-size: 0.9rem;">
+              <strong>Выбран файл:</strong> <span id="selected-filename"></span>
+            </p>
+            <button id="confirm-import-btn" class="neumorphic-btn primary" style="margin-top: 10px; width: 100%;">
+              Импортировать данные
+            </button>
+          </div>
+          
+          <div id="import-status" class="hidden" style="margin-top: 15px;"></div>
+        </div>
+      </div>
+    `;
+    
+    setupTransferEventHandlers();
+  }
+
+  // ==================== НАСТРОЙКА ОБРАБОТЧИКОВ СОБЫТИЙ ДЛЯ ПЕРЕНОСА ====================
+
+  function setupTransferEventHandlers() {
+    // Закрытие модального окна
+    document.getElementById('close-transfer-data').addEventListener('click', () => {
+      elements.transferDataModal.classList.remove('show');
+    });
+    
+    // Экспорт в TXT файл
+    document.getElementById('export-txt-btn').addEventListener('click', exportToTxtFile);
+    
+    // Выбор файла для импорта
+    const fileInput = document.getElementById('import-file-input');
+    const fileInfo = document.getElementById('import-file-info');
+    const filenameSpan = document.getElementById('selected-filename');
+    const importStatus = document.getElementById('import-status');
+    
+    let selectedFile = null;
+    
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      
+      if (file) {
+        // Проверяем расширение файла
+        if (!file.name.toLowerCase().endsWith('.txt')) {
+          importStatus.innerHTML = `<p style="color: var(--danger);">Ошибка: выберите файл с расширением .txt</p>`;
+          importStatus.classList.remove('hidden');
+          fileInfo.classList.add('hidden');
+          return;
+        }
+        
+        selectedFile = file;
+        filenameSpan.textContent = file.name;
+        fileInfo.classList.remove('hidden');
+        importStatus.classList.add('hidden');
+      }
+    });
+    
+    // Подтверждение импорта
+    document.getElementById('confirm-import-btn').addEventListener('click', async function() {
+      if (!selectedFile) {
+        alert('Сначала выберите файл');
+        return;
+      }
+      
+      const btn = this;
+      const originalText = btn.textContent;
+      btn.textContent = 'Загрузка...';
+      btn.disabled = true;
+      
+      try {
+        const importedData = await importFromTxtFile(selectedFile);
+        
+        // Запрашиваем подтверждение
+        if (confirm('Вы уверены, что хотите импортировать данные? Текущие данные будут заменены.')) {
+          // Импортируем данные
+          financeData = importedData.financeData || {};
+          budgetData = importedData.budgetData || getDefaultBudgetData();
+          savingsWidgets = importedData.savingsWidgets || [];
+          fundWidgets = importedData.fundWidgets || [];
+          achievementsData = importedData.achievementsData || {};
+          
+          // Сохраняем данные
+          markDataChanged();
+          saveData();
+          
+          // Обновляем интерфейс
+          updateUI();
+          
+          // Показываем успешное сообщение
+          importStatus.innerHTML = `<p style="color: var(--success);">✅ Данные успешно импортированы!</p>`;
+          importStatus.classList.remove('hidden');
+          
+          // Сбрасываем форму
+          fileInput.value = '';
+          fileInfo.classList.add('hidden');
+          selectedFile = null;
+          
+          // Автоматически закрываем через 2 секунды
+          setTimeout(() => {
+            elements.transferDataModal.classList.remove('show');
+          }, 2000);
+        }
+        
+      } catch (error) {
+        console.error('Ошибка импорта:', error);
+        importStatus.innerHTML = `<p style="color: var(--danger);">Ошибка: ${error.message || 'Не удалось загрузить файл'}</p>`;
+        importStatus.classList.remove('hidden');
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    });
+    
+    // Дополнительная обработка для работы в Telegram Mini Apps
+    setupTelegramFileHandling();
+  }
+
+  // ==================== ОСОБАЯ ОБРАБОТКА ДЛЯ TELEGRAM MINI APPS ====================
+
+  function setupTelegramFileHandling() {
+    // В Telegram Mini Apps могут быть ограничения на работу с файлами
+    // Добавляем альтернативный способ через буфер обмена
+    if (window.Telegram?.WebApp) {
+      const importSection = document.querySelector('.import-section');
+      
+      // Добавляем кнопку для вставки из буфера обмена
+      const clipboardDiv = document.createElement('div');
+      clipboardDiv.style.marginTop = '15px';
+      clipboardDiv.innerHTML = `
+        <button id="paste-from-clipboard" class="neumorphic-btn" style="width: 100%;">
+          📋 Вставить из буфера обмена
+        </button>
+        <p style="text-align: center; margin-top: 8px; font-size: 0.9rem; opacity: 0.8;">
+          Альтернативный способ для Telegram
+        </p>
+        <textarea id="clipboard-input" class="neumorphic-input hidden" 
+                  placeholder="Вставьте сюда данные из файла..." 
+                  rows="6" style="margin-top: 10px;"></textarea>
+        <button id="import-from-clipboard" class="neumorphic-btn primary hidden" style="width: 100%; margin-top: 10px;">
+          Импортировать из текста
+        </button>
+      `;
+      
+      importSection.appendChild(clipboardDiv);
+      
+      // Обработчики для работы с буфером обмена
+      document.getElementById('paste-from-clipboard').addEventListener('click', async function() {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            document.getElementById('clipboard-input').value = text;
+            document.getElementById('clipboard-input').classList.remove('hidden');
+            document.getElementById('import-from-clipboard').classList.remove('hidden');
+          }
+        } catch (error) {
+          // Если нет доступа к буферу, показываем текстовое поле
+          document.getElementById('clipboard-input').classList.remove('hidden');
+          document.getElementById('import-from-clipboard').classList.remove('hidden');
+          document.getElementById('clipboard-input').focus();
+        }
+      });
+      
+      document.getElementById('import-from-clipboard').addEventListener('click', function() {
+        const text = document.getElementById('clipboard-input').value.trim();
+        
+        if (!text) {
+          alert('Вставьте данные в текстовое поле');
+          return;
+        }
+        
+        try {
+          const importedData = JSON.parse(text);
+          
+          if (confirm('Вы уверены, что хотите импортировать данные? Текущие данные будут заменены.')) {
+            financeData = importedData.financeData || {};
+            budgetData = importedData.budgetData || getDefaultBudgetData();
+            savingsWidgets = importedData.savingsWidgets || [];
+            fundWidgets = importedData.fundWidgets || [];
+            achievementsData = importedData.achievementsData || {};
+            
+            markDataChanged();
+            saveData();
+            updateUI();
+            
+            showSuccessMessage('Данные успешно импортированы из буфера обмена!');
+            
+            // Закрываем модальное окно
+            setTimeout(() => {
+              elements.transferDataModal.classList.remove('show');
+            }, 1000);
+          }
+        } catch (error) {
+          alert('Ошибка: Некорректный формат данных в буфере обмена');
+        }
+      });
+    }
+  }
+
   // ==================== ОСТАЛЬНОЙ КОД ====================
 
   // Переменные для графиков
@@ -2780,15 +3082,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Перенос данных
     elements.transferDataBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
-      toggleMenu(elements.transferDataModal);
+      
+      // Обновляем UI при каждом открытии
+      updateTransferDataUI();
+      
+      // Показываем модальное окно
+      openFullscreenModal(elements.transferDataModal);
     });
-
-    elements.closeTransferData.addEventListener('click', () => {
-      elements.transferDataModal.classList.remove('show');
-    });
-
-    elements.exportDataBtn.addEventListener('click', exportData);
-    elements.importDataBtn.addEventListener('click', importData);
 
     // Обработчик для Подземелье и драконы (потягивание вниз)
     let lastScrollPosition = 0;
@@ -2873,8 +3173,7 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
       { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
       { element: elements.fundName, handler: elements.saveFundBtn },
-      { element: elements.fundAmount, handler: elements.saveFundBtn },
-      { element: elements.importDataInput, handler: elements.importDataBtn }
+      { element: elements.fundAmount, handler: elements.saveFundBtn }
     ];
 
     enterHandlers.forEach(item => {
@@ -2908,6 +3207,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function initializeApp() {
     console.log('🚀 Инициализация приложения...');
+    
+    // Инициализация UI для переноса данных
+    updateTransferDataUI();
     
     // Установка активного месяца
     elements.monthTabs[currentMonth].classList.add('active');
