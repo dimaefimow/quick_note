@@ -488,26 +488,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  function getChartOptions() {
+  function getChartOptions(isTrendChart = false) {
     const isDark = document.body.classList.contains('dark');
     const textColor = isDark ? '#eee' : '#333';
     const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
     
-    return {
+    const options = {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
       plugins: { 
         legend: { display: false }, 
         tooltip: { 
           backgroundColor: isDark ? '#2a2a2a' : '#fff', 
           titleColor: textColor, 
           bodyColor: textColor, 
-          borderColor: isDark ? '#444' : '#ddd' 
+          borderColor: isDark ? '#444' : '#ddd',
+          callbacks: {
+            label: function(context) {
+              return formatCurrency(context.raw);
+            }
+          }
         } 
       },
       scales: {
         y: { 
-          beginAtZero: true, 
+          beginAtZero: true,
+          min: 0,
           grid: { color: gridColor }, 
           ticks: { 
             color: textColor, 
@@ -516,10 +522,21 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         x: { 
           grid: { display: false }, 
-          ticks: { color: textColor } 
+          ticks: { 
+            color: textColor,
+            maxRotation: isTrendChart ? 45 : 0,
+            minRotation: isTrendChart ? 45 : 0
+          } 
         }
       }
     };
+    
+    // Для трендовых графиков используем другой aspectRatio
+    if (isTrendChart) {
+      options.aspectRatio = 1.5;
+    }
+    
+    return options;
   }
   
   // Основной UI
@@ -589,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <p>${formatCurrency(val)}</p>
         <div class="widget-input-group">
-          <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="expense-${cat}">
+          <input type="number" class="neumorphic-input widget-input" placeholder="Сумма" id="expense-${cat.replace(/\s+/g, '-')}">
           <button class="neumorphic-btn small" data-category="${cat}">+</button>
         </div>
       `;
@@ -612,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.widget-input-group .neumorphic-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const category = this.getAttribute('data-category');
-        const input = document.getElementById(`expense-${category}`);
+        const input = document.getElementById(`expense-${category.replace(/\s+/g, '-')}`);
         const expenseVal = parseCurrency(input.value);
         
         if (!isNaN(expenseVal) && expenseVal > 0) {
@@ -1027,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Тренды
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ ГРАФИКОВ "ДИНАМИКА ТРАТ ПО КАТЕГОРИЯМ"
   function renderCategoryTrends() {
     elements.trendsScroll.innerHTML = '';
     const monthData = financeData[currentYear][currentMonth];
@@ -1044,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    categories.forEach(category => {
+    categories.forEach((category, catIndex) => {
       const trendData = [];
       for (let i = 0; i < 12; i++) {
         const monthCatData = financeData[currentYear][i].categories || {};
@@ -1053,15 +1070,20 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const container = document.createElement('div');
       container.className = 'trend-chart-container';
+      const safeCategoryId = category.replace(/\s+/g, '-');
       container.innerHTML = `
         <h4>${category}</h4>
-        <canvas id="trend-${category}"></canvas>
+        <canvas id="trend-${safeCategoryId}"></canvas>
       `;
       elements.trendsScroll.appendChild(container);
       
-      const ctx = document.getElementById(`trend-${category}`).getContext('2d');
-      const colorIndex = categories.indexOf(category);
-      const color = categoryColors[colorIndex % categoryColors.length];
+      const ctx = document.getElementById(`trend-${safeCategoryId}`).getContext('2d');
+      const colorIndex = catIndex % categoryColors.length;
+      const color = categoryColors[colorIndex];
+      
+      // Находим максимальное значение для установки верхней границы оси Y
+      const maxValue = Math.max(...trendData);
+      const suggestedMax = maxValue > 0 ? maxValue * 1.1 : 100; // Добавляем 10% сверху
       
       new Chart(ctx, {
         type: 'line',
@@ -1077,11 +1099,52 @@ document.addEventListener('DOMContentLoaded', function() {
             fill: true 
           }] 
         },
-        options: { 
-          ...getChartOptions(), 
-          aspectRatio: 1, 
-          maintainAspectRatio: true, 
-          plugins: { legend: { display: false } } 
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          aspectRatio: 1.5,
+          plugins: { 
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: document.body.classList.contains('dark') ? '#2a2a2a' : '#fff',
+              titleColor: document.body.classList.contains('dark') ? '#eee' : '#333',
+              bodyColor: document.body.classList.contains('dark') ? '#eee' : '#333',
+              borderColor: document.body.classList.contains('dark') ? '#444' : '#ddd',
+              callbacks: {
+                label: function(context) {
+                  return `${category}: ${formatCurrency(context.raw)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0,
+              max: suggestedMax,
+              grid: {
+                color: document.body.classList.contains('dark') ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+              },
+              ticks: {
+                color: document.body.classList.contains('dark') ? '#eee' : '#333',
+                callback: function(value) {
+                  if (value >= 1000000) return (value/1000000).toFixed(1) + 'M';
+                  if (value >= 1000) return (value/1000).toFixed(0) + 'k';
+                  return value;
+                }
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: document.body.classList.contains('dark') ? '#eee' : '#333',
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
         }
       });
     });
@@ -1380,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       if ('showOpenFilePicker' in window) {
         const [fileHandle] = await window.showOpenFilePicker({
-          types: [{
+          types: [{             
             description: 'Текстовые файлы',
             accept: { 'text/plain': ['.txt'] }
           }],
@@ -1422,6 +1485,94 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       elements.achievementsList.appendChild(achievementEl);
     });
+  }
+  
+  // Функция для обработки свайпов
+  function setupSwipeToClose() {
+    const modals = document.querySelectorAll('.fullscreen-modal');
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    
+    modals.forEach(modal => {
+      let startX = 0;
+      let startY = 0;
+      let isSwiping = false;
+      
+      modal.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isSwiping = true;
+      });
+      
+      modal.addEventListener('touchmove', function(e) {
+        if (!isSwiping) return;
+        
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = currentX - startX;
+        const diffY = currentY - startY;
+        
+        // Только горизонтальные свайпы
+        if (Math.abs(diffX) > Math.abs(diffY) && diffX > 30) {
+          e.preventDefault();
+          // Добавляем визуальную обратную связь
+          modal.style.transform = `translateX(${Math.min(diffX, 100)}px)`;
+          modal.style.opacity = `${Math.max(0.7, 1 - diffX/200)}`;
+        }
+      });
+      
+      modal.addEventListener('touchend', function(e) {
+        if (!isSwiping) return;
+        
+        const currentX = e.changedTouches[0].clientX;
+        const diffX = currentX - startX;
+        
+        // Если свайп достаточно длинный, закрываем
+        if (diffX > 80) {
+          // Анимация закрытия
+          modal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+          modal.style.transform = 'translateX(100%)';
+          modal.style.opacity = '0';
+          
+          setTimeout(() => {
+            closeFullscreenModal();
+            modal.style.transition = '';
+            modal.style.transform = '';
+            modal.style.opacity = '';
+          }, 300);
+        } else {
+          // Возвращаем на место
+          modal.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+          modal.style.transform = 'translateX(0)';
+          modal.style.opacity = '1';
+          
+          setTimeout(() => {
+            modal.style.transition = '';
+          }, 200);
+        }
+        
+        isSwiping = false;
+      });
+    });
+    
+    // Свайп по фону
+    if (backdrop) {
+      backdrop.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        isSwiping = true;
+      });
+      
+      backdrop.addEventListener('touchmove', function(e) {
+        if (!isSwiping) return;
+        
+        const currentX = e.touches[0].clientX;
+        const diffX = currentX - startX;
+        
+        if (diffX > 50) {
+          closeFullscreenModal();
+          isSwiping = false;
+        }
+      });
+    }
   }
   
   // Обработчики событий
@@ -1489,8 +1640,6 @@ document.addEventListener('DOMContentLoaded', function() {
       e.stopPropagation();
       openFullscreenModal(elements.settingsMenu);
     });
-    
-    elements.closeReportsBtn.addEventListener('click', closeFullscreenModal);
     
     // Бюджет
     elements.budgetSettingsBtn.addEventListener('click', (e) => {
@@ -1602,16 +1751,12 @@ document.addEventListener('DOMContentLoaded', function() {
       openFullscreenModal(elements.historyModal);
     });
     
-    elements.closeHistory.addEventListener('click', closeFullscreenModal);
-    
     // Достижения
     elements.achievementsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       openFullscreenModal(elements.achievementsModal);
       renderAchievementsList();
     });
-    
-    elements.closeAchievements.addEventListener('click', closeFullscreenModal);
     
     // Сброс
     elements.resetBtn.addEventListener('click', () => {
@@ -1762,6 +1907,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Настраиваем обработчики событий
     setupEventHandlers();
+    
+    // Настраиваем свайпы для мобильных устройств
+    setTimeout(setupSwipeToClose, 1000);
     
     // Обновляем интерфейс
     updateUI();
