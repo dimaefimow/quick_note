@@ -154,8 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
     transferDataModal: document.getElementById('transfer-data-modal'),
     closeTransferData: document.getElementById('close-transfer-data'),
     exportDataBtn: document.getElementById('export-data-btn'),
+    fileInput: document.getElementById('file-input'),
     importDataBtn: document.getElementById('import-data-btn'),
-    importDataInput: document.getElementById('import-data-input')
+    selectedFileName: document.getElementById('selected-file-name')
   };
   
   function formatCurrency(amount) { return amount.toLocaleString('ru-RU') + ' ₽'; }
@@ -760,29 +761,260 @@ document.addEventListener('DOMContentLoaded', function() {
     modal.addEventListener('click', (e) => { if (e.target === modal) document.body.removeChild(modal); });
   }
   
-  function exportData() {
-    const dataToExport = { financeData, budgetData, savingsWidgets, fundWidgets, achievementsData };
-    navigator.clipboard.writeText(JSON.stringify(dataToExport, null, 2)).then(() => showSuccessMessage('Данные скопированы!'));
+  // Функция для экспорта данных в файл
+  function exportDataToFile() {
+    const dataToExport = {
+      financeData,
+      budgetData,
+      savingsWidgets,
+      fundWidgets,
+      achievementsData,
+      exportDate: new Date().toISOString(),
+      appVersion: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([dataStr], { type: 'text/plain;charset=utf-8' });
+    
+    // Для iOS/Telegram используем специальный подход
+    if (window.Telegram?.WebApp?.platform === 'ios' || /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      // Альтернативный метод для iOS
+      exportForIOS(blob, dataStr);
+    } else {
+      // Стандартный метод для других платформ
+      exportForDesktop(blob);
+    }
   }
   
-  function importData() {
-    const importDataStr = elements.importDataInput.value.trim();
-    if (!importDataStr) { alert('Вставьте данные для импорта'); return; }
+  function exportForDesktop(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance_data_${currentYear}_${new Date().getTime()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    URL.revokeObjectURL(url);
+    showSuccessMessage('Файл создан! Сохраните его на устройстве.');
+  }
+  
+  function exportForIOS(blob, dataStr) {
+    // Попробуем создать файл через FileReader
+    const reader = new FileReader();
+    reader.onloadend = function() {
+      try {
+        // Создаем временную ссылку для скачивания
+        const url = reader.result;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance_data_${currentYear}.txt`;
+        a.style.display = 'none';
+        
+        document.body.appendChild(a);
+        
+        // Для iOS пробуем стандартный клик
+        if (typeof a.click === 'function') {
+          a.click();
+        } else {
+          // Альтернативный метод
+          const event = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          a.dispatchEvent(event);
+        }
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+        }, 100);
+        
+        showSuccessMessage('Файл подготовлен для сохранения');
+      } catch (e) {
+        // Если не работает, покажем данные для ручного копирования
+        showDataForManualCopy(dataStr);
+      }
+    };
+    
+    reader.onerror = function() {
+      showDataForManualCopy(dataStr);
+    };
+    
+    reader.readAsDataURL(blob);
+  }
+  
+  function showDataForManualCopy(dataStr) {
+    // Создаем текстовое поле для копирования
+    const textArea = document.createElement('textarea');
+    textArea.value = dataStr;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '100%';
+    textArea.style.height = '100%';
+    textArea.style.zIndex = '9999';
+    textArea.style.opacity = '0.01';
+    
+    document.body.appendChild(textArea);
+    textArea.select();
+    textArea.focus();
+    
     try {
-      const importedData = JSON.parse(importDataStr);
-      if (importedData.financeData && importedData.budgetData && importedData.savingsWidgets && importedData.fundWidgets && importedData.achievementsData) {
-        financeData = importedData.financeData;
-        budgetData = importedData.budgetData;
-        savingsWidgets = importedData.savingsWidgets;
-        fundWidgets = importedData.fundWidgets;
-        achievementsData = importedData.achievementsData;
-        markDataChanged();
-        updateUI();
-        elements.importDataInput.value = '';
-        elements.transferDataModal.classList.remove('show');
-        showSuccessMessage('Данные успешно импортированы!');
-      } else alert('Некорректный формат данных');
-    } catch (e) { alert('Ошибка при импорте данных'); }
+      const successful = document.execCommand('copy');
+      if (successful) {
+        showSuccessMessage('Данные скопированы! Вставьте в текстовый файл.');
+      } else {
+        // Если не удалось скопировать, покажем данные в модальном окне
+        showDataInModal(dataStr);
+      }
+    } catch (err) {
+      showDataInModal(dataStr);
+    }
+    
+    setTimeout(() => {
+      document.body.removeChild(textArea);
+    }, 100);
+  }
+  
+  function showDataInModal(dataStr) {
+    const modal = document.createElement('div');
+    modal.className = 'data-modal';
+    modal.innerHTML = `
+      <div class="data-modal-content">
+        <h3>Данные для экспорта</h3>
+        <textarea class="data-textarea" readonly>${dataStr}</textarea>
+        <button class="neumorphic-btn primary copy-data-btn">Копировать</button>
+        <button class="neumorphic-btn close-data-btn">Закрыть</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('.copy-data-btn').addEventListener('click', function() {
+      const textarea = modal.querySelector('.data-textarea');
+      textarea.select();
+      document.execCommand('copy');
+      showSuccessMessage('Данные скопированы!');
+    });
+    
+    modal.querySelector('.close-data-btn').addEventListener('click', function() {
+      document.body.removeChild(modal);
+    });
+    
+    // Стили для модального окна
+    const style = document.createElement('style');
+    style.textContent = `
+      .data-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .data-modal-content {
+        background: var(--bg);
+        padding: 20px;
+        border-radius: var(--border-radius);
+        max-width: 90%;
+        max-height: 80%;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .data-textarea {
+        width: 100%;
+        height: 300px;
+        padding: 10px;
+        border-radius: 10px;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--shadow-dark);
+        resize: none;
+        font-family: monospace;
+      }
+      .data-modal .button-group {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Функция для импорта данных из файла
+  function importDataFromFile(file) {
+    if (!file) {
+      alert('Выберите файл для импорта');
+      return;
+    }
+    
+    // Проверяем расширение файла
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+      alert('Пожалуйста, выберите текстовый файл (.txt)');
+      elements.fileInput.value = '';
+      elements.selectedFileName.textContent = 'Файл не выбран';
+      elements.importDataBtn.disabled = true;
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        
+        // Проверяем структуру данных
+        if (importedData.financeData && importedData.budgetData && 
+            importedData.savingsWidgets && importedData.fundWidgets && 
+            importedData.achievementsData) {
+          
+          // Запрашиваем подтверждение
+          if (confirm('Импортировать данные? Текущие данные будут заменены.')) {
+            financeData = importedData.financeData;
+            budgetData = importedData.budgetData;
+            savingsWidgets = importedData.savingsWidgets;
+            fundWidgets = importedData.fundWidgets;
+            achievementsData = importedData.achievementsData;
+            
+            // Устанавливаем текущий год из данных
+            if (financeData[currentYear]) {
+              // Текущий год уже есть в данных
+            } else {
+              // Берем последний доступный год
+              const years = Object.keys(financeData).map(y => parseInt(y)).sort((a, b) => b - a);
+              if (years.length > 0) {
+                currentYear = years[0];
+              }
+            }
+            
+            markDataChanged();
+            updateUI();
+            elements.fileInput.value = '';
+            elements.selectedFileName.textContent = 'Файл не выбран';
+            elements.importDataBtn.disabled = true;
+            elements.transferDataModal.classList.remove('show');
+            showSuccessMessage('Данные успешно импортированы!');
+          }
+        } else {
+          alert('Некорректный формат файла. Убедитесь, что это файл экспорта из этого приложения.');
+        }
+      } catch (error) {
+        alert('Ошибка при чтении файла: ' + error.message);
+      }
+    };
+    
+    reader.onerror = function() {
+      alert('Ошибка при чтении файла');
+    };
+    
+    reader.readAsText(file);
   }
   
   function setupEventHandlers() {
@@ -882,8 +1114,24 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.resetBtn.addEventListener('click', () => { elements.moreMenu.classList.remove('show'); showResetSlider(); });
     elements.transferDataBtn.addEventListener('click', () => { elements.moreMenu.classList.remove('show'); toggleMenu(elements.transferDataModal); });
     elements.closeTransferData.addEventListener('click', () => elements.transferDataModal.classList.remove('show'));
-    elements.exportDataBtn.addEventListener('click', exportData);
-    elements.importDataBtn.addEventListener('click', importData);
+    
+    // Экспорт данных
+    elements.exportDataBtn.addEventListener('click', exportDataToFile);
+    
+    // Обработка выбора файла
+    elements.fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        elements.selectedFileName.textContent = `Выбран: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        elements.importDataBtn.disabled = false;
+      }
+    });
+    
+    // Импорт данных
+    elements.importDataBtn.addEventListener('click', function() {
+      const file = elements.fileInput.files[0];
+      importDataFromFile(file);
+    });
     
     let lastScrollPosition = 0;
     const scrollable = document.getElementById('scrollable');
