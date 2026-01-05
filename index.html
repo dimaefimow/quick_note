@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#3498db">
   <title>Финансовая аналитика</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
 </head>
 <body>
   <div id="fullscreen-backdrop" class="fullscreen-modal-backdrop"></div>
@@ -36,10 +40,17 @@
         <div id="transfer-data-modal" class="neumorphic-menu">
           <h3>Перенос данных</h3>
           <div class="transfer-options">
-            <button id="export-data-btn" class="neumorphic-btn primary">Экспорт данных</button>
+            <button id="export-data-btn" class="neumorphic-btn primary">📥 Экспорт в файл</button>
+            
             <div class="import-section">
-              <textarea id="import-data-input" class="neumorphic-input" placeholder="Вставьте данные для импорта" rows="5"></textarea>
-              <button id="import-data-btn" class="neumorphic-btn primary">Импорт данных</button>
+              <div class="file-input-container">
+                <input type="file" id="file-input" accept=".txt" style="display: none;">
+                <label for="file-input" class="neumorphic-btn primary file-upload-btn">
+                  📤 Выбрать файл для импорта
+                </label>
+                <div id="selected-file-name" class="file-name-display">Файл не выбран</div>
+              </div>
+              <button id="import-data-btn" class="neumorphic-btn primary" disabled>Импорт данных</button>
             </div>
           </div>
           <button id="close-transfer-data" class="neumorphic-btn">Закрыть</button>
@@ -189,7 +200,7 @@
         
         <div id="set-budget-modal" class="neumorphic-menu">
           <h3>Установить бюджет</h3>
-          <input type="number" id="budget-amount" placeholder="Общая сумму" class="neumorphic-input" />
+          <input type="number" id="budget-amount" placeholder="Общая сумма" class="neumorphic-input" />
           <input type="number" id="budget-days" placeholder="Количество дней" class="neumorphic-input" />
           <div class="button-group">
             <button id="save-budget-btn" class="neumorphic-btn primary">Сохранить</button>
@@ -205,7 +216,12 @@
         <div class="neumorphic-card"><h2>Капитал</h2><p id="capital-display">0 ₽</p></div>
       </section>
       
-      <section class="widgets" id="widgets"></section>
+      <section class="widgets" id="widgets">
+        <div class="empty-state">
+          <h3>Нет категорий</h3>
+          <p>Добавьте категории для отслеживания расходов</p>
+        </div>
+      </section>
       
       <section class="charts">
         <div class="chart-container"><canvas id="barChart"></canvas></div>
@@ -213,7 +229,14 @@
       
       <section class="category-trends">
         <h3>Динамика трат по категориям</h3>
-        <div class="trends-container"><div class="trends-scroll" id="trends-scroll"></div></div>
+        <div class="trends-container">
+          <div class="trends-scroll" id="trends-scroll">
+            <div class="empty-state">
+              <h3>Нет данных</h3>
+              <p>Добавьте расходы по категориям для отображения динамики</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <div id="year-summary" class="neumorphic-menu year-summary">
@@ -251,5 +274,29 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
+  
+  <!-- Скрипт для Telegram Web App -->
+  <script>
+    // Инициализация Telegram Web App
+    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      
+      // Расширяем на весь экран
+      Telegram.WebApp.expand();
+      
+      // Настраиваем интерфейс
+      Telegram.WebApp.setHeaderColor('#3498db');
+      Telegram.WebApp.setBackgroundColor('#f0f4f8');
+      Telegram.WebApp.enableClosingConfirmation();
+      
+      // Логируем для отладки
+      console.log('Telegram Web App initialized:', {
+        platform: Telegram.WebApp.platform,
+        version: Telegram.WebApp.version,
+        viewportHeight: Telegram.WebApp.viewportHeight,
+        viewportStableHeight: Telegram.WebApp.viewportStableHeight
+      });
+    }
+  </script>
 </body>
 </html>
