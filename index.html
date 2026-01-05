@@ -5,133 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Финансовая аналитика</title>
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    html, body {
-      overflow: hidden;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    #scrollable {
-      height: 100vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .app {
-      min-height: 100%;
-    }
-    
-    /* Обновленные стили для мини-графиков */
-    .mini-charts-container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin: 20px 0;
-      width: 100%;
-    }
-
-    .mini-chart-widget {
-      background: var(--bg);
-      border-radius: var(--border-radius);
-      padding: 15px;
-      box-shadow: 3px 3px 6px var(--shadow-dark), 
-                  -3px -3px 6px var(--shadow-light);
-      transition: var(--transition);
-      width: 50%; /* Уменьшаем ширину в 2 раза */
-      margin: 0 auto; /* Центрируем графики */
-      overflow: hidden;
-    }
-
-    .mini-chart-widget h4 {
-      margin: 0 0 12px 0;
-      font-size: 1rem;
-      text-align: center;
-      color: var(--primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 0 10px;
-    }
-
-    .mini-chart-container {
-      position: relative;
-      height: 180px;
-      width: 100%;
-    }
-
-    /* Адаптация для мобильных устройств */
-    @media (max-width: 767px) {
-      .mini-charts-container {
-        margin: 15px 0;
-        width: 100%;
-        padding: 0;
-        overflow-x: hidden;
-      }
-      
-      .mini-chart-widget {
-        padding: 12px;
-        width: 90%; /* На мобильных делаем немного шире */
-        min-width: 0;
-        flex-shrink: 0;
-      }
-      
-      .mini-chart-widget h4 {
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-      }
-      
-      .mini-chart-container {
-        height: 150px;
-      }
-    }
-
-    /* Для очень маленьких экранов */
-    @media (max-width: 400px) {
-      .mini-chart-widget {
-        padding: 10px;
-        width: 95%; /* На очень маленьких экранах почти на всю ширину */
-      }
-      
-      .mini-chart-widget h4 {
-        font-size: 0.85rem;
-      }
-      
-      .mini-chart-container {
-        height: 130px;
-      }
-    }
-
-    /* Горизонтальная прокрутка для планшетов и десктопов */
-    @media (min-width: 768px) {
-      .mini-charts-container {
-        flex-direction: row;
-        justify-content: center; /* Центрируем графики */
-        flex-wrap: wrap; /* Разрешаем перенос на новую строку */
-        overflow-x: visible;
-        padding-bottom: 15px;
-      }
-      
-      .mini-chart-widget {
-        min-width: 280px; /* Уменьшаем минимальную ширину */
-        flex-shrink: 0;
-        width: 45%; /* Ширина около половины контейнера */
-        margin: 0 2.5%; /* Небольшие отступы между графиками */
-      }
-    }
-    
-    body.dark .mini-chart-widget {
-      background: var(--bg);
-      box-shadow: 3px 3px 6px var(--shadow-dark), 
-                  -3px -3px 6px var(--shadow-light);
-    }
-    
-    body.dark .mini-chart-widget h4 {
-      color: var(--primary);
-    }
-  </style>
 </head>
 <body>
-  <!-- Затемнение фона для полноэкранных модальных окон -->
   <div id="fullscreen-backdrop" class="fullscreen-modal-backdrop"></div>
 
   <div id="scrollable">
@@ -148,9 +23,7 @@
         </div>
         
         <div id="more-menu" class="neumorphic-menu">
-          <button id="theme-toggle-btn" class="neumorphic-btn primary">
-            <span class="theme-icon">🌙</span> Сменить тему
-          </button>
+          <button id="theme-toggle-btn" class="neumorphic-btn primary"><span class="theme-icon">🌙</span> Сменить тему</button>
           <button id="enable-savings-btn" class="neumorphic-btn primary">Включить накопления</button>
           <button id="enable-fund-btn" class="neumorphic-btn primary">Создать фонд</button>
           <button id="year-select-btn" class="neumorphic-btn primary">Выбрать год</button>
@@ -160,7 +33,6 @@
           <button id="reset-btn" class="neumorphic-btn danger">Сброс</button>
         </div>
         
-        <!-- Модальное окно переноса данных -->
         <div id="transfer-data-modal" class="neumorphic-menu">
           <h3>Перенос данных</h3>
           <div class="transfer-options">
@@ -182,7 +54,6 @@
           </div>
         </div>
         
-        <!-- Модальное окно истории трат (на весь экран) -->
         <div id="history-modal" class="neumorphic-menu fullscreen-modal">
           <div class="modal-header">
             <h3>История трат</h3>
@@ -191,7 +62,6 @@
           <div id="history-list"></div>
         </div>
         
-        <!-- Модальное окно отчётов (на весь экран) -->
         <div id="settings-menu" class="neumorphic-menu financial-menu fullscreen-modal">
           <div class="modal-header">
             <h3>Финансовые отчёты</h3>
@@ -199,53 +69,30 @@
           </div>
           
           <div class="financial-grid">
-            <div class="financial-card">
-              <h3>Средний доход</h3>
-              <p id="avg-income" class="financial-value">0 ₽</p>
-            </div>
-            <div class="financial-card">
-              <h3>Средний расход</h3>
-              <p id="avg-expense" class="financial-value">0 ₽</p>
-            </div>
-            <div class="financial-card">
-              <h3>Лучший месяц</h3>
-              <p id="best-month" class="financial-value">Нет данных</p>
-            </div>
-            <div class="financial-card">
-              <h3>Общий доход</h3>
-              <p id="total-income" class="financial-value">0 ₽</p>
-            </div>
-            <div class="financial-card">
-              <h3>Общий расход</h3>
-              <p id="total-expense" class="financial-value">0 ₽</p>
-            </div>
+            <div class="financial-card"><h3>Средний доход</h3><p id="avg-income" class="financial-value">0 ₽</p></div>
+            <div class="financial-card"><h3>Средний расход</h3><p id="avg-expense" class="financial-value">0 ₽</p></div>
+            <div class="financial-card"><h3>Лучший месяц</h3><p id="best-month" class="financial-value">Нет данных</p></div>
+            <div class="financial-card"><h3>Общий доход</h3><p id="total-income" class="financial-value">0 ₽</p></div>
+            <div class="financial-card"><h3>Общий расход</h3><p id="total-expense" class="financial-value">0 ₽</p></div>
           </div>
           
-          <!-- Обновленный блок мини-графиков -->
           <div class="mini-charts-container">
             <div class="mini-chart-widget">
               <h4>Капитализация по месяцам</h4>
-              <div class="mini-chart-container">
-                <canvas id="miniCapitalChart"></canvas>
-              </div>
+              <div class="mini-chart-container"><canvas id="miniCapitalChart"></canvas></div>
             </div>
             <div class="mini-chart-widget">
               <h4>Расходы по месяцам</h4>
-              <div class="mini-chart-container">
-                <canvas id="miniExpenseChart"></canvas>
-              </div>
+              <div class="mini-chart-container"><canvas id="miniExpenseChart"></canvas></div>
             </div>
           </div>
           
           <div class="top-categories-report">
             <h4>Топ трат категории</h4>
-            <div class="categories-scroll-container">
-              <div id="top-categories-list" class="categories-list"></div>
-            </div>
+            <div class="categories-scroll-container"><div id="top-categories-list" class="categories-list"></div></div>
           </div>
         </div>
 
-        <!-- Модальное окно достижений (на весь экран) -->
         <div id="achievements-modal" class="neumorphic-menu fullscreen-modal">
           <div class="modal-header">
             <h3>Достижения</h3>
@@ -274,9 +121,7 @@
           <button id="save-capital-btn" class="neumorphic-btn primary">Сохранить</button>
           <button id="cancel-capital-btn" class="neumorphic-btn">Отмена</button>
         </div>
-        <div class="chart-container">
-          <canvas id="capitalChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="capitalChart"></canvas></div>
       </div>
 
       <div id="savings-modal" class="neumorphic-menu">
@@ -314,7 +159,7 @@
           <button class="month-tab neumorphic-btn" data-month="10">Ноя</button>
           <button class="month-tab neumorphic-btn" data-month="11">Дек</button>
         </div>
-        <div id="current-year-display" class="year-display" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
+        <div id="current-year-display" class="year-display"></div>
       </section>
 
       <section class="inputs">
@@ -334,21 +179,11 @@
           <p id="budget-progress">Не задано</p>
           
           <div class="budget-progress-container">
-            <div class="progress-info">
-              <span>Дни: </span>
-              <span id="days-progress-value">0%</span>
-            </div>
-            <div class="savings-progress-container">
-              <div class="savings-progress-bar days-progress" style="width: 0%"></div>
-            </div>
+            <div class="progress-info"><span>Дни: </span><span id="days-progress-value">0%</span></div>
+            <div class="savings-progress-container"><div class="savings-progress-bar days-progress"></div></div>
             
-            <div class="progress-info">
-              <span>Средства: </span>
-              <span id="funds-progress-value">0%</span>
-            </div>
-            <div class="savings-progress-container">
-              <div class="savings-progress-bar funds-progress" style="width: 0%"></div>
-            </div>
+            <div class="progress-info"><span>Средства: </span><span id="funds-progress-value">0%</span></div>
+            <div class="savings-progress-container"><div class="savings-progress-bar funds-progress"></div></div>
           </div>
         </div>
         
@@ -370,38 +205,25 @@
         <div class="neumorphic-card"><h2>Капитал</h2><p id="capital-display">0 ₽</p></div>
       </section>
       
-      <section class="widgets" id="widgets">
-        <!-- Виджеты будут добавляться динамически через JavaScript -->
-      </section>
+      <section class="widgets" id="widgets"></section>
       
       <section class="charts">
-        <div class="chart-container">
-          <canvas id="barChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="barChart"></canvas></div>
       </section>
       
       <section class="category-trends">
         <h3>Динамика трат по категориям</h3>
-        <div class="trends-container">
-          <div class="trends-scroll" id="trends-scroll"></div>
-        </div>
+        <div class="trends-container"><div class="trends-scroll" id="trends-scroll"></div></div>
       </section>
 
       <div id="year-summary" class="neumorphic-menu year-summary">
         <h2>Годовой отчёт</h2>
-        <div class="chart-container">
-          <canvas id="yearIncomeChart"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas id="yearExpenseChart"></canvas>
-        </div>
-        <div class="chart-container">
-          <canvas id="yearCapitalChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="yearIncomeChart"></canvas></div>
+        <div class="chart-container"><canvas id="yearExpenseChart"></canvas></div>
+        <div class="chart-container"><canvas id="yearCapitalChart"></canvas></div>
         <button id="close-year-summary" class="neumorphic-btn">Закрыть</button>
       </div>
 
-      <!-- Модальное окно сброса данных -->
       <div id="reset-modal" class="reset-modal" style="display: none;">
         <div class="reset-slider-container">
           <h3>Сбросить все данные</h3>
@@ -413,7 +235,6 @@
         </div>
       </div>
 
-      <!-- Оверлей обучения -->
       <div id="tutorial-overlay" class="tutorial-overlay">
         <div class="tutorial-content">
           <h3 id="tutorial-title">Добро пожаловать!</h3>
