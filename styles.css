@@ -88,7 +88,7 @@ header { padding-top: 32px; margin-bottom: 22px; }
   box-shadow: 
     6px 6px 12px var(--shadow-dark), 
     -6px -6px 12px var(--shadow-light),
-    0 2px 4px rgba(0, 0, 0, 0.1); /* Добавлена дополнительная тень */
+    0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
@@ -1007,8 +1007,15 @@ body.dark .mini-chart-widget h4 { color: var(--primary); }
   border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 body.dark .modal-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
-.modal-header h3 { margin: 0; font-size: 1.3rem; }
-.modal-header .neumorphic-btn.small { min-width: auto; padding: 6px 10px; }
+.modal-header h3 { 
+  margin: 0; 
+  font-size: 1.3rem; 
+  color: var(--primary);
+  text-align: center;
+  width: 100%;
+}
+
+/* УДАЛЕННЫ КНОПКИ ЗАКРЫТИЯ ИЗ МОДАЛЬНЫХ ОКОН */
 
 .tutorial-overlay {
   display: none;
@@ -1134,6 +1141,7 @@ body.dark .transfer-options > div {
 .neumorphic-btn { pointer-events: auto !important; cursor: pointer !important; }
 .neumorphic-input { pointer-events: auto !important; }
 
+/* СТИЛИ ДЛЯ ПОЛНОЭКРАННЫХ МОДАЛЬНЫХ ОКОН СО СВАЙПОМ */
 .fullscreen-modal {
   position: fixed !important;
   top: 0 !important;
@@ -1147,57 +1155,39 @@ body.dark .transfer-options > div {
   padding: 20px !important;
   z-index: 2000 !important;
   overflow-y: auto !important;
-  transform: none !important;
+  transform: translateX(0) !important;
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
+  will-change: transform, opacity;
+  touch-action: pan-y !important;
 }
+
 .fullscreen-modal .modal-header {
   position: sticky !important;
   top: 0 !important;
   background: var(--bg) !important;
   z-index: 10 !important;
-  padding: 20px 40px 15px 20px !important;
+  padding: 20px !important;
   margin: -20px -20px 20px -20px !important;
   border-bottom: 1px solid rgba(0,0,0,0.1) !important;
   border-radius: 0 !important;
   width: calc(100% + 40px) !important;
+  text-align: center !important;
 }
-.fullscreen-close-btn {
-  position: absolute !important;
-  top: 15px !important;
-  right: 15px !important;
-  z-index: 11 !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1.2rem !important;
-  font-weight: bold !important;
-  background: var(--bg) !important;
-  box-shadow: 
-    4px 4px 8px var(--shadow-dark), 
-    -4px -4px 8px var(--shadow-light),
-    0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  border: none !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
+
+body.dark .fullscreen-modal .modal-header { 
+  background: var(--bg) !important; 
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important; 
 }
-.fullscreen-close-btn:hover { 
-  transform: scale(1.15) !important; 
-  box-shadow: 
-    5px 5px 10px var(--shadow-dark), 
-    -5px -5px 10px var(--shadow-light),
-    0 3px 6px rgba(0, 0, 0, 0.15) !important; 
+
+.fullscreen-modal .modal-header h3 { 
+  margin: 0 !important; 
+  font-size: 1.4rem !important; 
+  font-weight: 700 !important; 
+  color: var(--primary) !important; 
+  width: 100% !important;
+  text-align: center !important;
 }
-.fullscreen-close-btn:active { 
-  transform: scale(0.95) !important; 
-  box-shadow: 
-    inset 3px 3px 6px var(--shadow-dark), 
-    inset -3px -3px 6px var(--shadow-light) !important; 
-}
-.fullscreen-modal .modal-header h3 { margin: 0 !important; font-size: 1.4rem !important; font-weight: 700 !important; color: var(--primary) !important; padding-right: 50px !important; width: 100% !important; }
-body.dark .fullscreen-modal .modal-header { background: var(--bg) !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
-body.dark .fullscreen-close-btn { background: var(--bg) !important; color: var(--text) !important; }
+
 .fullscreen-modal-backdrop {
   position: fixed;
   top: 0;
@@ -1209,16 +1199,44 @@ body.dark .fullscreen-close-btn { background: var(--bg) !important; color: var(-
   display: none;
 }
 .fullscreen-modal-backdrop.show { display: block; }
+
+/* Индикатор свайпа для модальных окон */
+.swipe-indicator {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: var(--primary);
+  font-size: 0.9rem;
+  opacity: 0.7;
+  animation: pulse 2s infinite;
+  pointer-events: none;
+  z-index: 11;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
 @keyframes fullscreenModalIn {
-  from { opacity: 0; transform: translateY(100%); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .fullscreen-modal.show { animation: fullscreenModalIn 0.3s ease-out; }
 
 @media (max-width: 480px) {
-  .fullscreen-modal .modal-header { padding: 15px 35px 12px 15px !important; margin: -15px -15px 15px -15px !important; width: calc(100% + 30px) !important; }
-  .fullscreen-close-btn { top: 10px !important; right: 10px !important; width: 35px !important; height: 35px !important; font-size: 1.1rem !important; }
-  .fullscreen-modal .modal-header h3 { font-size: 1.2rem !important; padding-right: 40px !important; }
+  .fullscreen-modal .modal-header { 
+    padding: 15px !important; 
+    margin: -15px -15px 15px -15px !important; 
+    width: calc(100% + 30px) !important; 
+  }
+  .fullscreen-modal .modal-header h3 { font-size: 1.2rem !important; }
+  .swipe-indicator {
+    font-size: 0.8rem;
+    top: 10px;
+    right: 15px;
+  }
 }
 
 /* Стили для файлового ввода и iOS-специфичных элементов */
