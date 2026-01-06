@@ -22,8 +22,16 @@ document.addEventListener('DOMContentLoaded', function() {
   let touchStartY = 0;
   let touchEndX = 0;
   let touchEndY = 0;
+  let touchStartTime = 0;
   const SWIPE_THRESHOLD = 100; // минимальное расстояние для свайпа
   const MAX_VERTICAL_DEVIATION = 30; // максимальное отклонение по вертикали
+  
+  // Новые переменные для управления свайпом назад
+  let isFullscreenModalOpen = false;
+  let modalSwipeEnabled = false;
+  let swipeBackActive = false;
+  let swipeBackProgress = 0;
+  let isSwiping = false;
   
   function loadData() {
     try {
@@ -1116,99 +1124,250 @@ document.addEventListener('DOMContentLoaded', function() {
     menuElement.classList.toggle('show');
   }
   
+  // Новая улучшенная функция для открытия полноэкранного модального окна
   function openFullscreenModal(modalElement) {
     document.querySelectorAll('.neumorphic-menu').forEach(menu => menu.classList.remove('show'));
     document.getElementById('fullscreen-backdrop').classList.add('show');
     modalElement.classList.add('fullscreen-modal', 'show');
     document.getElementById('scrollable').style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
+    
+    isFullscreenModalOpen = true;
+    modalSwipeEnabled = true;
+    swipeBackActive = false;
+    swipeBackProgress = 0;
     
     // Добавляем индикатор свайпа
     addSwipeIndicator(modalElement);
   }
   
+  // Новая улучшенная функция для закрытия полноэкранного модального окна
   function closeFullscreenModal() {
     document.querySelectorAll('.neumorphic-menu').forEach(menu => {
       menu.classList.remove('show', 'fullscreen-modal');
+      menu.style.transform = '';
+      menu.style.opacity = '';
+      menu.style.transition = '';
     });
     document.getElementById('fullscreen-backdrop').classList.remove('show');
     document.getElementById('scrollable').style.overflow = 'auto';
+    document.body.classList.remove('modal-open');
+    
+    isFullscreenModalOpen = false;
+    modalSwipeEnabled = false;
+    swipeBackActive = false;
+    swipeBackProgress = 0;
+    isSwiping = false;
     
     // Удаляем индикатор свайпа
     removeSwipeIndicator();
+    
+    // Восстанавливаем бэкдроп
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    if (backdrop) {
+      backdrop.style.opacity = '';
+      backdrop.style.transition = '';
+    }
   }
   
-  // Функции для обработки свайпов
+  // Функция для анимации свайпа назад
+  function handleSwipeBackAnimation(modalElement, progress) {
+    const width = window.innerWidth;
+    const translateX = progress * width;
+    const opacity = 1 - (progress * 0.7);
+    
+    modalElement.style.transform = `translateX(${translateX}px)`;
+    modalElement.style.opacity = `${opacity}`;
+    modalElement.style.transition = 'none'; // Отключаем transition во время свайпа
+    
+    // Показываем предыдущую страницу под модальным окном
+    const backdrop = document.getElementById('fullscreen-backdrop');
+    if (backdrop) {
+      backdrop.style.opacity = `${1 - (progress * 0.8)}`;
+      backdrop.style.transition = 'none';
+    }
+    
+    // Показываем индикатор завершения
+    const swipeCompleteIndicator = modalElement.querySelector('.swipe-complete-indicator');
+    if (swipeCompleteIndicator) {
+      if (progress > 0.7) {
+        swipeCompleteIndicator.style.opacity = '1';
+      } else {
+        swipeCompleteIndicator.style.opacity = '0';
+      }
+    }
+  }
+  
+  // Функция для добавления индикатора свайпа
   function addSwipeIndicator(modalElement) {
-    // Создаем индикатор свайпа
+    // Удаляем старые индикаторы
+    const oldIndicator = modalElement.querySelector('.swipe-indicator');
+    if (oldIndicator) oldIndicator.remove();
+    
+    const oldCompleteIndicator = modalElement.querySelector('.swipe-complete-indicator');
+    if (oldCompleteIndicator) oldCompleteIndicator.remove();
+    
+    // Создаем улучшенный индикатор свайпа
     const swipeIndicator = document.createElement('div');
     swipeIndicator.className = 'swipe-indicator';
-    swipeIndicator.innerHTML = '← Свайпните для закрытия';
-    modalElement.appendChild(swipeIndicator);
+    swipeIndicator.innerHTML = 'Свайпните для закрытия';
     
-    // Добавляем обработчики событий
-    modalElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-    modalElement.addEventListener('touchmove', handleTouchMove, { passive: true });
-    modalElement.addEventListener('touchend', handleTouchEnd);
+    // Создаем индикатор завершения
+    const swipeCompleteIndicator = document.createElement('div');
+    swipeCompleteIndicator.className = 'swipe-complete-indicator';
+    swipeCompleteIndicator.innerHTML = '✓';
+    swipeCompleteIndicator.style.opacity = '0';
+    swipeCompleteIndicator.style.transition = 'opacity 0.2s ease';
+    
+    modalElement.appendChild(swipeIndicator);
+    modalElement.appendChild(swipeCompleteIndicator);
   }
   
   function removeSwipeIndicator() {
-    const indicators = document.querySelectorAll('.swipe-indicator');
+    const indicators = document.querySelectorAll('.swipe-indicator, .swipe-complete-indicator');
     indicators.forEach(indicator => indicator.remove());
-    
-    // Удаляем обработчики событий
-    const modals = document.querySelectorAll('.fullscreen-modal');
-    modals.forEach(modal => {
-      modal.removeEventListener('touchstart', handleTouchStart);
-      modal.removeEventListener('touchmove', handleTouchMove);
-      modal.removeEventListener('touchend', handleTouchEnd);
-    });
   }
   
+  // Обработчики касаний
   function handleTouchStart(e) {
+    if (!modalSwipeEnabled || !isFullscreenModalOpen) return;
+    
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+    
+    // Сбрасываем предыдущий прогресс свайпа
+    swipeBackActive = false;
+    swipeBackProgress = 0;
+    isSwiping = false;
   }
   
   function handleTouchMove(e) {
-    if (!touchStartX) return;
+    if (!modalSwipeEnabled || !isFullscreenModalOpen || !touchStartX) return;
     
     touchEndX = e.touches[0].clientX;
     touchEndY = e.touches[0].clientY;
     
     // Получаем текущий модальный элемент
     const modalElement = e.currentTarget;
+    const currentModal = modalElement.classList.contains('fullscreen-modal') ? 
+                        modalElement : modalElement.closest('.fullscreen-modal');
+    
+    if (!currentModal) return;
     
     // Рассчитываем разницу
     const diffX = touchEndX - touchStartX;
     const diffY = Math.abs(touchEndY - touchStartY);
     
-    // Если горизонтальное движение больше вертикального и это свайп вправо
+    // Если это горизонтальный свайп вправо
     if (Math.abs(diffX) > diffY && diffX > 0) {
-      // Добавляем визуальную обратную связь
-      const translateX = Math.min(diffX, window.innerWidth * 0.3); // Максимум 30% экрана
-      modalElement.style.transform = `translateX(${translateX}px)`;
-      modalElement.style.opacity = `${1 - (translateX / (window.innerWidth * 0.3)) * 0.5}`;
+      swipeBackActive = true;
+      isSwiping = true;
+      
+      // Предотвращаем вертикальную прокрутку и масштабирование
+      e.preventDefault();
+      
+      // Рассчитываем прогресс (0-1)
+      const maxSwipe = window.innerWidth * 0.5;
+      swipeBackProgress = Math.min(1, Math.abs(diffX) / maxSwipe);
+      
+      // Применяем анимацию
+      handleSwipeBackAnimation(currentModal, swipeBackProgress);
+      
+      // Показываем индикатор завершения
+      if (swipeBackProgress > 0.7) {
+        currentModal.classList.add('swipe-complete');
+      } else {
+        currentModal.classList.remove('swipe-complete');
+      }
+    } else if (isSwiping) {
+      // Если мы уже начали свайп, но движемся вертикально, блокируем
+      e.preventDefault();
     }
   }
   
   function handleTouchEnd(e) {
-    if (!touchStartX || !touchEndX) return;
+    if (!modalSwipeEnabled || !isFullscreenModalOpen || !touchStartX) return;
     
     const diffX = touchEndX - touchStartX;
     const diffY = Math.abs(touchEndY - touchStartY);
+    const timeDiff = Date.now() - touchStartTime;
     
-    // Если это горизонтальный свайп и движение достаточно большое
-    if (Math.abs(diffX) > diffY && diffX > SWIPE_THRESHOLD) {
-      // Свайп вправо - закрываем модальное окно
-      closeFullscreenModal();
+    // Получаем текущий модальный элемент
+    const modalElement = e.currentTarget;
+    const currentModal = modalElement.classList.contains('fullscreen-modal') ? 
+                        modalElement : modalElement.closest('.fullscreen-modal');
+    
+    if (!currentModal) return;
+    
+    // Проверяем был ли это свайп вправо для закрытия
+    const isSwipeRight = Math.abs(diffX) > diffY && diffX > SWIPE_THRESHOLD;
+    const isFastSwipe = timeDiff < 300 && diffX > 50;
+    
+    if ((swipeBackActive && swipeBackProgress > 0.5) || isSwipeRight || isFastSwipe) {
+      // Анимация закрытия
+      const closeAnimation = () => {
+        closeFullscreenModal();
+      };
       
-      // Сбрасываем параметры трансформации
-      e.currentTarget.style.transform = '';
-      e.currentTarget.style.opacity = '';
+      // Если свайп был достаточно быстрым или завершенным, анимируем закрытие
+      if (swipeBackProgress > 0.7 || isFastSwipe) {
+        currentModal.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+        currentModal.style.transform = `translateX(${window.innerWidth}px)`;
+        currentModal.style.opacity = '0';
+        
+        const backdrop = document.getElementById('fullscreen-backdrop');
+        if (backdrop) {
+          backdrop.style.transition = 'opacity 0.2s ease';
+          backdrop.style.opacity = '0';
+        }
+        
+        setTimeout(closeAnimation, 200);
+      } else {
+        // Плавное возвращение на место
+        currentModal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        currentModal.style.transform = '';
+        currentModal.style.opacity = '';
+        currentModal.classList.remove('swipe-complete');
+        
+        const backdrop = document.getElementById('fullscreen-backdrop');
+        if (backdrop) {
+          backdrop.style.transition = 'opacity 0.3s ease';
+          backdrop.style.opacity = '';
+        }
+        
+        // Убираем transition после анимации
+        setTimeout(() => {
+          if (currentModal) {
+            currentModal.style.transition = '';
+          }
+          if (backdrop) {
+            backdrop.style.transition = '';
+          }
+        }, 300);
+      }
     } else {
       // Возвращаем модальное окно на место
-      e.currentTarget.style.transform = '';
-      e.currentTarget.style.opacity = '';
+      currentModal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      currentModal.style.transform = '';
+      currentModal.style.opacity = '';
+      currentModal.classList.remove('swipe-complete');
+      
+      const backdrop = document.getElementById('fullscreen-backdrop');
+      if (backdrop) {
+        backdrop.style.transition = 'opacity 0.3s ease';
+        backdrop.style.opacity = '';
+      }
+      
+      // Убираем transition после анимации
+      setTimeout(() => {
+        if (currentModal) {
+          currentModal.style.transition = '';
+        }
+        if (backdrop) {
+          backdrop.style.transition = '';
+        }
+      }, 300);
     }
     
     // Сбрасываем значения
@@ -1216,14 +1375,35 @@ document.addEventListener('DOMContentLoaded', function() {
     touchStartY = 0;
     touchEndX = 0;
     touchEndY = 0;
+    swipeBackActive = false;
+    swipeBackProgress = 0;
+    isSwiping = false;
   }
   
-  // Добавляем обработку свайпа для мобильных устройств
+  // Функция для блокировки вертикальных свайпов при открытом модальном окне
+  function preventVerticalScroll(e) {
+    if (isFullscreenModalOpen && modalSwipeEnabled && isSwiping) {
+      e.preventDefault();
+      return false;
+    }
+  }
+  
+  // Настройка обработчиков свайпа
   function setupSwipeHandlers() {
+    // Блокируем вертикальные свайпы при открытом модальном окне
+    document.addEventListener('touchmove', preventVerticalScroll, { passive: false });
+    
+    // Для всех модальных окон добавляем обработчики свайпа
+    document.querySelectorAll('.fullscreen-modal').forEach(modal => {
+      modal.addEventListener('touchstart', handleTouchStart, { passive: true });
+      modal.addEventListener('touchmove', handleTouchMove, { passive: false });
+      modal.addEventListener('touchend', handleTouchEnd);
+    });
+    
     // Обработка свайпа для меню категорий
     if (elements.categoryMenu) {
       elements.categoryMenu.addEventListener('touchstart', handleTouchStart, { passive: true });
-      elements.categoryMenu.addEventListener('touchmove', handleTouchMove, { passive: true });
+      elements.categoryMenu.addEventListener('touchmove', handleTouchMove, { passive: false });
       elements.categoryMenu.addEventListener('touchend', function(e) {
         handleTouchEnd(e);
         if (touchEndX - touchStartX > SWIPE_THRESHOLD && 
@@ -1486,415 +1666,421 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       if ('showOpenFilePicker' in window) {
         const [fileHandle] = await window.showOpenFilePicker({
-          types: [{           description: 'Текстовые файлы',
-          accept: { 'text/plain': ['.txt'] }
-        }],
-        multiple: false
-      });
+          types: [{           
+            description: 'Текстовые файлы',
+            accept: { 'text/plain': ['.txt'] }
+          }],
+          multiple: false
+        });
+        
+        const file = await fileHandle.getFile();
+        importDataFromFile(file);
+        return true;
+      }
       
-      const file = await fileHandle.getFile();
-      importDataFromFile(file);
-      return true;
+      // Если File System API не доступен, используем стандартный input
+      elements.fileInput.click();
+      return false;
+      
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Import error:', error);
+        alert('Ошибка при выборе файла');
+      }
+      return false;
     }
-    
-    // Если File System API не доступен, используем стандартный input
-    elements.fileInput.click();
-    return false;
-    
-  } catch (error) {
-    if (error.name !== 'AbortError') {
-      console.error('Import error:', error);
-      alert('Ошибка при выборе файла');
-    }
-    return false;
   }
-}
-
-// Достижения список
-function renderAchievementsList() {
-  elements.achievementsList.innerHTML = '';
   
-  achievements.forEach(ach => {
-    const unlocked = achievementsData[ach.id];
-    const achievementEl = document.createElement('div');
-    achievementEl.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'} ${ach.secret && !unlocked ? 'secret' : ''}`;
-    achievementEl.innerHTML = `
-      <div class="achievement-icon">${ach.emoji}</div>
-      <div class="achievement-info">
-        <h4>${ach.title}</h4>
-        <p>${ach.secret && !unlocked ? 'Секретное достижение' : ach.description}</p>
-      </div>
-    `;
-    elements.achievementsList.appendChild(achievementEl);
-  });
-}
-
-// Обработчики событий
-function setupEventHandlers() {
-  // Добавление дохода
-  elements.addIncomeBtn.addEventListener('click', () => {
-    const incomeVal = parseCurrency(elements.incomeInput.value);
-    if (!isNaN(incomeVal) && incomeVal > 0) {
-      financeData[currentYear][currentMonth].income += incomeVal;
-      elements.incomeInput.value = '';
-      markDataChanged();
-      updateUI();
-    }
-  });
+  // Достижения список
+  function renderAchievementsList() {
+    elements.achievementsList.innerHTML = '';
+    
+    achievements.forEach(ach => {
+      const unlocked = achievementsData[ach.id];
+      const achievementEl = document.createElement('div');
+      achievementEl.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'} ${ach.secret && !unlocked ? 'secret' : ''}`;
+      achievementEl.innerHTML = `
+        <div class="achievement-icon">${ach.emoji}</div>
+        <div class="achievement-info">
+          <h4>${ach.title}</h4>
+          <p>${ach.secret && !unlocked ? 'Секретное достижение' : ach.description}</p>
+        </div>
+      `;
+      elements.achievementsList.appendChild(achievementEl);
+    });
+  }
   
-  // Добавление категории
-  elements.addCategoryBtn.addEventListener('click', () => {
-    const categoryName = elements.newCategoryInput.value.trim();
-    if (categoryName) {
-      for (let i = 0; i < 12; i++) {
-        if (!financeData[currentYear][i].categories[categoryName]) {
-          financeData[currentYear][i].categories[categoryName] = 0;
+  // Обработчики событий
+  function setupEventHandlers() {
+    // Добавление дохода
+    elements.addIncomeBtn.addEventListener('click', () => {
+      const incomeVal = parseCurrency(elements.incomeInput.value);
+      if (!isNaN(incomeVal) && incomeVal > 0) {
+        financeData[currentYear][currentMonth].income += incomeVal;
+        elements.incomeInput.value = '';
+        markDataChanged();
+        updateUI();
+      }
+    });
+    
+    // Добавление категории
+    elements.addCategoryBtn.addEventListener('click', () => {
+      const categoryName = elements.newCategoryInput.value.trim();
+      if (categoryName) {
+        for (let i = 0; i < 12; i++) {
+          if (!financeData[currentYear][i].categories[categoryName]) {
+            financeData[currentYear][i].categories[categoryName] = 0;
+          }
+        }
+        elements.newCategoryInput.value = '';
+        markDataChanged();
+        updateUI();
+      }
+    });
+    
+    // Категории меню
+    elements.categoryBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      elements.categoryMenu.classList.toggle('show');
+      elements.settingsMenu.classList.remove('show');
+      elements.moreMenu.classList.remove('show');
+    });
+    
+    elements.closeCategoryWidget.addEventListener('click', () => {
+      elements.categoryMenu.classList.remove('show');
+    });
+    
+    // Капитализация
+    elements.capitalizationBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu(elements.capitalizationMenu);
+    });
+    
+    elements.saveCapitalBtn.addEventListener('click', () => {
+      const capitalVal = parseCurrency(elements.capitalInput.value);
+      if (!isNaN(capitalVal)) {
+        financeData[currentYear][currentMonth].capital = capitalVal;
+        markDataChanged();
+        updateUI();
+        elements.capitalizationMenu.classList.remove('show');
+      }
+    });
+    
+    elements.cancelCapitalBtn.addEventListener('click', () => {
+      elements.capitalizationMenu.classList.remove('show');
+    });
+    
+    // Отчеты
+    elements.settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFullscreenModal(elements.settingsMenu);
+    });
+    
+    // Бюджет
+    elements.budgetSettingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu(elements.setBudgetModal);
+    });
+    
+    elements.saveBudgetBtn.addEventListener('click', () => {
+      const amount = parseCurrency(elements.budgetAmount.value);
+      const days = parseInt(elements.budgetDays.value);
+      
+      if (!isNaN(amount) && !isNaN(days) && days > 0) {
+        const today = new Date();
+        budgetData = { 
+          totalAmount: amount, 
+          days, 
+          startDate: today.toISOString(), 
+          spent: 0, 
+          dailyHistory: { 
+            [today.toISOString().split('T')[0]]: { 
+              date: today.toISOString().split('T')[0], 
+              dailyBudget: amount / days, 
+              spentToday: 0 
+            } 
+          } 
+        };
+        markDataChanged();
+        elements.setBudgetModal.classList.remove('show');
+        updateBudgetWidget();
+        showSuccessMessage('Бюджет установлен!');
+      }
+    });
+    
+    elements.cancelBudgetBtn.addEventListener('click', () => {
+      elements.setBudgetModal.classList.remove('show');
+    });
+    
+    // Главное меню
+    elements.moreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      elements.moreMenu.classList.toggle('show');
+    });
+    
+    // Тема
+    elements.themeToggleBtn.addEventListener('click', toggleTheme);
+    
+    // Накопления
+    elements.enableSavingsBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.savingsModal);
+    });
+    
+    elements.saveSavingsBtn.addEventListener('click', () => {
+      const name = elements.savingsName.value.trim() || `Накопления ${savingsWidgets.length + 1}`;
+      const goal = parseCurrency(elements.savingsGoal.value);
+      createNewSavingsWidget(name, goal, 0);
+      elements.savingsModal.classList.remove('show');
+    });
+    
+    elements.cancelSavingsBtn.addEventListener('click', () => {
+      elements.savingsModal.classList.remove('show');
+    });
+    
+    // Фонды
+    elements.enableFundBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.fundModal);
+    });
+    
+    elements.saveFundBtn.addEventListener('click', () => {
+      const name = elements.fundName.value.trim() || `Фонд ${fundWidgets.length + 1}`;
+      const amount = parseCurrency(elements.fundAmount.value);
+      if (!isNaN(amount) && amount > 0) {
+        createNewFundWidget(name, amount, amount);
+        elements.fundModal.classList.remove('show');
+      }
+    });
+    
+    elements.cancelFundBtn.addEventListener('click', () => {
+      elements.fundModal.classList.remove('show');
+    });
+    
+    // Месяцы
+    elements.monthTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        elements.monthTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentMonth = parseInt(tab.dataset.month);
+        checkMonthSequence(currentMonth);
+        updateUI();
+      });
+    });
+    
+    // Год
+    elements.yearSelectBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.yearSelectModal);
+      renderYearSelection();
+    });
+    
+    elements.addYearBtn.addEventListener('click', addNewYear);
+    
+    // История
+    elements.historyBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      openFullscreenModal(elements.historyModal);
+    });
+    
+    // Достижения
+    elements.achievementsBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      openFullscreenModal(elements.achievementsModal);
+      renderAchievementsList();
+    });
+    
+    // Сброс
+    elements.resetBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      showResetSlider();
+    });
+    
+    // Перенос данных
+    elements.transferDataBtn.addEventListener('click', () => {
+      elements.moreMenu.classList.remove('show');
+      toggleMenu(elements.transferDataModal);
+      
+      // Добавляем инструкции для iOS если нужно
+      if ((isIOS || isTelegramIOS) && elements.exportSection) {
+        const existingInstructions = elements.exportSection.querySelector('.ios-instructions');
+        if (!existingInstructions) {
+          const iosInstructions = document.createElement('div');
+          iosInstructions.className = 'ios-instructions';
+          iosInstructions.innerHTML = `
+            <h4><span>📱</span> Для iOS пользователей</h4>
+            <p>Нажмите кнопку экспорта и выберите "Поделиться" → "Сохранить в Файлы"</p>
+          `;
+          elements.exportSection.appendChild(iosInstructions);
         }
       }
-      elements.newCategoryInput.value = '';
-      markDataChanged();
-      updateUI();
-    }
-  });
-  
-  // Категории меню
-  elements.categoryBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    elements.categoryMenu.classList.toggle('show');
-    elements.settingsMenu.classList.remove('show');
-    elements.moreMenu.classList.remove('show');
-  });
-  
-  elements.closeCategoryWidget.addEventListener('click', () => {
-    elements.categoryMenu.classList.remove('show');
-  });
-  
-  // Капитализация
-  elements.capitalizationBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleMenu(elements.capitalizationMenu);
-  });
-  
-  elements.saveCapitalBtn.addEventListener('click', () => {
-    const capitalVal = parseCurrency(elements.capitalInput.value);
-    if (!isNaN(capitalVal)) {
-      financeData[currentYear][currentMonth].capital = capitalVal;
-      markDataChanged();
-      updateUI();
-      elements.capitalizationMenu.classList.remove('show');
-    }
-  });
-  
-  elements.cancelCapitalBtn.addEventListener('click', () => {
-    elements.capitalizationMenu.classList.remove('show');
-  });
-  
-  // Отчеты
-  elements.settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openFullscreenModal(elements.settingsMenu);
-  });
-  
-  // Бюджет
-  elements.budgetSettingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleMenu(elements.setBudgetModal);
-  });
-  
-  elements.saveBudgetBtn.addEventListener('click', () => {
-    const amount = parseCurrency(elements.budgetAmount.value);
-    const days = parseInt(elements.budgetDays.value);
-    
-    if (!isNaN(amount) && !isNaN(days) && days > 0) {
-      const today = new Date();
-      budgetData = { 
-        totalAmount: amount, 
-        days, 
-        startDate: today.toISOString(), 
-        spent: 0, 
-        dailyHistory: { 
-          [today.toISOString().split('T')[0]]: { 
-            date: today.toISOString().split('T')[0], 
-            dailyBudget: amount / days, 
-            spentToday: 0 
-          } 
-        } 
-      };
-      markDataChanged();
-      elements.setBudgetModal.classList.remove('show');
-      updateBudgetWidget();
-      showSuccessMessage('Бюджет установлен!');
-    }
-  });
-  
-  elements.cancelBudgetBtn.addEventListener('click', () => {
-    elements.setBudgetModal.classList.remove('show');
-  });
-  
-  // Главное меню
-  elements.moreBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    elements.moreMenu.classList.toggle('show');
-  });
-  
-  // Тема
-  elements.themeToggleBtn.addEventListener('click', toggleTheme);
-  
-  // Накопления
-  elements.enableSavingsBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    toggleMenu(elements.savingsModal);
-  });
-  
-  elements.saveSavingsBtn.addEventListener('click', () => {
-    const name = elements.savingsName.value.trim() || `Накопления ${savingsWidgets.length + 1}`;
-    const goal = parseCurrency(elements.savingsGoal.value);
-    createNewSavingsWidget(name, goal, 0);
-    elements.savingsModal.classList.remove('show');
-  });
-  
-  elements.cancelSavingsBtn.addEventListener('click', () => {
-    elements.savingsModal.classList.remove('show');
-  });
-  
-  // Фонды
-  elements.enableFundBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    toggleMenu(elements.fundModal);
-  });
-  
-  elements.saveFundBtn.addEventListener('click', () => {
-    const name = elements.fundName.value.trim() || `Фонд ${fundWidgets.length + 1}`;
-    const amount = parseCurrency(elements.fundAmount.value);
-    if (!isNaN(amount) && amount > 0) {
-      createNewFundWidget(name, amount, amount);
-      elements.fundModal.classList.remove('show');
-    }
-  });
-  
-  elements.cancelFundBtn.addEventListener('click', () => {
-    elements.fundModal.classList.remove('show');
-  });
-  
-  // Месяцы
-  elements.monthTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      elements.monthTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentMonth = parseInt(tab.dataset.month);
-      checkMonthSequence(currentMonth);
-      updateUI();
     });
-  });
-  
-  // Год
-  elements.yearSelectBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    toggleMenu(elements.yearSelectModal);
-    renderYearSelection();
-  });
-  
-  elements.addYearBtn.addEventListener('click', addNewYear);
-  
-  // История
-  elements.historyBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    openFullscreenModal(elements.historyModal);
-  });
-  
-  // Достижения
-  elements.achievementsBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    openFullscreenModal(elements.achievementsModal);
-    renderAchievementsList();
-  });
-  
-  // Сброс
-  elements.resetBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    showResetSlider();
-  });
-  
-  // Перенос данных
-  elements.transferDataBtn.addEventListener('click', () => {
-    elements.moreMenu.classList.remove('show');
-    toggleMenu(elements.transferDataModal);
     
-    // Добавляем инструкции для iOS если нужно
-    if ((isIOS || isTelegramIOS) && elements.exportSection) {
-      const existingInstructions = elements.exportSection.querySelector('.ios-instructions');
-      if (!existingInstructions) {
-        const iosInstructions = document.createElement('div');
-        iosInstructions.className = 'ios-instructions';
-        iosInstructions.innerHTML = `
-          <h4><span>📱</span> Для iOS пользователей</h4>
-          <p>Нажмите кнопку экспорта и выберите "Поделиться" → "Сохранить в Файлы"</p>
-        `;
-        elements.exportSection.appendChild(iosInstructions);
-      }
-    }
-  });
-  
-  // Экспорт данных
-  elements.exportDataBtn.addEventListener('click', exportDataToFile);
-  
-  // Импорт через File System API
-  if (elements.importFilesBtn) {
-    elements.importFilesBtn.addEventListener('click', async () => {
-      try {
-        await importWithFileSystemAPI();
-      } catch (error) {
-        console.error('Import error:', error);
-      }
-    });
-  }
-  
-  // Обработка выбора файла
-  elements.fileInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      elements.selectedFileName.textContent = 
-        `Выбран: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-      elements.importDataBtn.disabled = false;
-    }
-  });
-  
-  // Импорт данных
-  elements.importDataBtn.addEventListener('click', function() {
-    const file = elements.fileInput.files[0];
-    importDataFromFile(file);
-  });
-  
-  // Drag для достижения
-  let lastScrollPosition = 0;
-  const scrollable = document.getElementById('scrollable');
-  scrollable.addEventListener('scroll', () => {
-    const currentScroll = scrollable.scrollTop;
-    if (currentScroll <= 0 && lastScrollPosition <= 0) {
-      pullAttempts++;
-      if (pullAttempts >= 3) { 
-        unlockAchievement('dungeons_and_dragons'); 
-        pullAttempts = 0; 
-      }
-    } else {
-      pullAttempts = 0;
-    }
-    lastScrollPosition = currentScroll;
-  });
-  
-  // Закрытие модальных окон по клику на бэкдроп
-  document.getElementById('fullscreen-backdrop').addEventListener('click', closeFullscreenModal);
-  
-  // Закрытие по Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFullscreenModal();
-  });
-  
-  // Закрытие по клику вне меню
-  document.addEventListener('click', (e) => {
-    const menus = [
-      elements.categoryMenu, elements.capitalizationMenu, elements.settingsMenu, 
-      elements.setBudgetModal, elements.moreMenu, elements.savingsModal, 
-      elements.fundModal, elements.yearSelectModal, elements.historyModal, 
-      elements.achievementsModal, elements.transferDataModal
-    ];
+    // Экспорт данных
+    elements.exportDataBtn.addEventListener('click', exportDataToFile);
     
-    const clickOutside = !menus.some(menu => menu && menu.contains(e.target));
-    const isMenuButton = [
-      elements.categoryBtn, elements.capitalizationBtn, elements.settingsBtn, 
-      elements.budgetSettingsBtn, elements.moreBtn, elements.enableSavingsBtn, 
-      elements.enableFundBtn, elements.yearSelectBtn, elements.historyBtn, 
-      elements.achievementsBtn, elements.resetBtn, elements.transferDataBtn
-    ].some(button => button && button.contains(e.target));
-    
-    if (clickOutside && !isMenuButton) {
-      menus.forEach(menu => {
-        if (menu) menu.classList.remove('show');
+    // Импорт через File System API
+    if (elements.importFilesBtn) {
+      elements.importFilesBtn.addEventListener('click', async () => {
+        try {
+          await importWithFileSystemAPI();
+        } catch (error) {
+          console.error('Import error:', error);
+        }
       });
     }
-  });
-  
-  // Обработка нажатия Enter в полях ввода
-  elements.incomeInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      elements.addIncomeBtn.click();
-    }
-  });
-  
-  elements.newCategoryInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      elements.addCategoryBtn.click();
-    }
-  });
-}
-
-// Инициализация приложения
-function initializeApp() {
-  console.log('Initializing app...');
-  
-  // Загружаем данные
-  if (!loadData()) {
-    console.log('Creating new data structure...');
-    financeData = {}; 
-    budgetData = getDefaultBudgetData(); 
-    savingsWidgets = []; 
-    fundWidgets = []; 
-    achievementsData = {};
-  }
-  
-  // Инициализируем текущий год
-  initYearData(currentYear);
-  
-  // Устанавливаем активный месяц
-  elements.monthTabs[currentMonth]?.classList.add('active');
-  
-  // Восстанавливаем тему
-  if (localStorage.getItem('darkTheme') === 'true') {
-    document.body.classList.add('dark');
-    elements.themeToggleBtn.innerHTML = '<span class="theme-icon">☀️</span> Сменить тему';
-  }
-  
-  // Настраиваем обработчики событий
-  setupEventHandlers();
-  
-  // Настраиваем обработчики свайпов
-  setupSwipeHandlers();
-  
-  // Обновляем интерфейс
-  updateUI();
-  
-  // Разблокируем достижение "Лучше большинства"
-  if (!achievementsData['better_than_most']) {
-    unlockAchievement('better_than_most');
-  }
-  
-  // Автосохранение
-  window.addEventListener('beforeunload', () => {
-    if (hasUnsavedChanges) saveData();
-  });
-  
-  // Периодическое автосохранение
-  setInterval(() => {
-    if (hasUnsavedChanges) {
-      saveData();
-      console.log('Auto-saved data');
-    }
-  }, 30000);
-  
-  // Инициализация Telegram Web App
-  if (window.Telegram?.WebApp) {
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    Telegram.WebApp.setHeaderColor('#3498db');
-    Telegram.WebApp.setBackgroundColor('#f0f4f8');
-    Telegram.WebApp.enableClosingConfirmation();
     
-    console.log('Telegram Web App initialized');
+    // Обработка выбора файла
+    elements.fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        elements.selectedFileName.textContent = 
+          `Выбран: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        elements.importDataBtn.disabled = false;
+      }
+    });
+    
+    // Импорт данных
+    elements.importDataBtn.addEventListener('click', function() {
+      const file = elements.fileInput.files[0];
+      importDataFromFile(file);
+    });
+    
+    // Drag для достижения
+    let lastScrollPosition = 0;
+    const scrollable = document.getElementById('scrollable');
+    scrollable.addEventListener('scroll', () => {
+      const currentScroll = scrollable.scrollTop;
+      if (currentScroll <= 0 && lastScrollPosition <= 0) {
+        pullAttempts++;
+        if (pullAttempts >= 3) { 
+          unlockAchievement('dungeons_and_dragons'); 
+          pullAttempts = 0; 
+        }
+      } else {
+        pullAttempts = 0;
+      }
+      lastScrollPosition = currentScroll;
+    });
+    
+    // Закрытие модальных окон по клику на бэкдроп
+    document.getElementById('fullscreen-backdrop').addEventListener('click', closeFullscreenModal);
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeFullscreenModal();
+    });
+    
+    // Закрытие по клику вне меню
+    document.addEventListener('click', (e) => {
+      const menus = [
+        elements.categoryMenu, elements.capitalizationMenu, elements.settingsMenu, 
+        elements.setBudgetModal, elements.moreMenu, elements.savingsModal, 
+        elements.fundModal, elements.yearSelectModal, elements.historyModal, 
+        elements.achievementsModal, elements.transferDataModal
+      ];
+      
+      const clickOutside = !menus.some(menu => menu && menu.contains(e.target));
+      const isMenuButton = [
+        elements.categoryBtn, elements.capitalizationBtn, elements.settingsBtn, 
+        elements.budgetSettingsBtn, elements.moreBtn, elements.enableSavingsBtn, 
+        elements.enableFundBtn, elements.yearSelectBtn, elements.historyBtn, 
+        elements.achievementsBtn, elements.resetBtn, elements.transferDataBtn
+      ].some(button => button && button.contains(e.target));
+      
+      if (clickOutside && !isMenuButton) {
+        menus.forEach(menu => {
+          if (menu) menu.classList.remove('show');
+        });
+      }
+    });
+    
+    // Обработка нажатия Enter в полях ввода
+    elements.incomeInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        elements.addIncomeBtn.click();
+      }
+    });
+    
+    elements.newCategoryInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        elements.addCategoryBtn.click();
+      }
+    });
   }
   
-  console.log('App initialized successfully');
-}
-
-// Запуск приложения
-initializeApp();
+  // Инициализация приложения
+  function initializeApp() {
+    console.log('Initializing app...');
+    
+    // Загружаем данные
+    if (!loadData()) {
+      console.log('Creating new data structure...');
+      financeData = {}; 
+      budgetData = getDefaultBudgetData(); 
+      savingsWidgets = []; 
+      fundWidgets = []; 
+      achievementsData = {};
+    }
+    
+    // Инициализируем текущий год
+    initYearData(currentYear);
+    
+    // Устанавливаем активный месяц
+    elements.monthTabs[currentMonth]?.classList.add('active');
+    
+    // Восстанавливаем тему
+    if (localStorage.getItem('darkTheme') === 'true') {
+      document.body.classList.add('dark');
+      elements.themeToggleBtn.innerHTML = '<span class="theme-icon">☀️</span> Сменить тему';
+    }
+    
+    // Настраиваем обработчики событий
+    setupEventHandlers();
+    
+    // Настраиваем обработчики свайпов
+    setupSwipeHandlers();
+    
+    // Обновляем интерфейс
+    updateUI();
+    
+    // Разблокируем достижение "Лучше большинства"
+    if (!achievementsData['better_than_most']) {
+      unlockAchievement('better_than_most');
+    }
+    
+    // Автосохранение
+    window.addEventListener('beforeunload', () => {
+      if (hasUnsavedChanges) saveData();
+    });
+    
+    // Периодическое автосохранение
+    setInterval(() => {
+      if (hasUnsavedChanges) {
+        saveData();
+        console.log('Auto-saved data');
+      }
+    }, 30000);
+    
+    // Инициализация Telegram Web App
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.setHeaderColor('#3498db');
+      Telegram.WebApp.setBackgroundColor('#f0f4f8');
+      Telegram.WebApp.enableClosingConfirmation();
+      
+      // Дополнительная блокировка свайпов для Telegram
+      if (Telegram.WebApp.disableHorizontalSwipes) {
+        Telegram.WebApp.disableHorizontalSwipes();
+      }
+      
+      console.log('Telegram Web App initialized');
+    }
+    
+    console.log('App initialized successfully');
+  }
+  
+  // Запуск приложения
+  initializeApp();
 });
