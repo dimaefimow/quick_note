@@ -17,22 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isTelegramIOS = window.Telegram?.WebApp?.platform === 'ios';
   
-  // Переменные для отслеживания свайпа
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
-  let touchStartTime = 0;
-  const SWIPE_THRESHOLD = 100; // минимальное расстояние для свайпа
-  const MAX_VERTICAL_DEVIATION = 30; // максимальное отклонение по вертикали
-  
-  // Новые переменные для управления свайпом назад
-  let isFullscreenModalOpen = false;
-  let modalSwipeEnabled = false;
-  let swipeBackActive = false;
-  let swipeBackProgress = 0;
-  let isSwiping = false;
-  
   function loadData() {
     try {
       financeData = JSON.parse(localStorage.getItem('financeData')) || {};
@@ -187,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cancelFundBtn: document.getElementById('cancel-fund-btn'),
     
     // Закрытие
+    closeReportsBtn: document.getElementById('close-reports-btn'),
     closeCategoryWidget: document.getElementById('close-category-widget'),
     
     // Прогресс-бары
@@ -200,12 +185,14 @@ document.addEventListener('DOMContentLoaded', function() {
     yearSelectModal: document.getElementById('year-select-modal'),
     yearsList: document.getElementById('years-list'),
     addYearBtn: document.getElementById('add-year-btn'),
+    closeYearSelect: document.getElementById('close-year-select'),
     currentYearDisplay: document.getElementById('current-year-display'),
     
     // История
     historyBtn: document.getElementById('history-btn'),
     historyModal: document.getElementById('history-modal'),
     historyList: document.getElementById('history-list'),
+    closeHistory: document.getElementById('close-history'),
     
     // Тренды
     trendsScroll: document.getElementById('trends-scroll'),
@@ -214,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     achievementsBtn: document.getElementById('achievements-btn'),
     achievementsModal: document.getElementById('achievements-modal'),
     achievementsList: document.getElementById('achievements-list'),
+    closeAchievements: document.getElementById('close-achievements'),
     
     // Сброс
     resetBtn: document.getElementById('reset-btn'),
@@ -221,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Перенос данных
     transferDataBtn: document.getElementById('transfer-data-btn'),
     transferDataModal: document.getElementById('transfer-data-modal'),
+    closeTransferData: document.getElementById('close-transfer-data'),
     exportDataBtn: document.getElementById('export-data-btn'),
     importDataBtn: document.getElementById('import-data-btn'),
     importFilesBtn: document.getElementById('import-files-btn'),
@@ -1105,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
     successMsg.textContent = message;
     document.body.appendChild(successMsg);
     
-    setTimeout(() => successMsg.classList.add('show'), 100);
+    setTimeout(() => { successMsg.classList.add('show'); }, 100);
     setTimeout(() => { 
       successMsg.classList.remove('show'); 
       setTimeout(() => {
@@ -1124,294 +1113,19 @@ document.addEventListener('DOMContentLoaded', function() {
     menuElement.classList.toggle('show');
   }
   
-  // Новая улучшенная функция для открытия полноэкранного модального окна
   function openFullscreenModal(modalElement) {
     document.querySelectorAll('.neumorphic-menu').forEach(menu => menu.classList.remove('show'));
     document.getElementById('fullscreen-backdrop').classList.add('show');
     modalElement.classList.add('fullscreen-modal', 'show');
     document.getElementById('scrollable').style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
-    
-    isFullscreenModalOpen = true;
-    modalSwipeEnabled = true;
-    swipeBackActive = false;
-    swipeBackProgress = 0;
-    
-    // Добавляем индикатор свайпа
-    addSwipeIndicator(modalElement);
   }
   
-  // Новая улучшенная функция для закрытия полноэкранного модального окна
   function closeFullscreenModal() {
     document.querySelectorAll('.neumorphic-menu').forEach(menu => {
       menu.classList.remove('show', 'fullscreen-modal');
-      menu.style.transform = '';
-      menu.style.opacity = '';
-      menu.style.transition = '';
     });
     document.getElementById('fullscreen-backdrop').classList.remove('show');
     document.getElementById('scrollable').style.overflow = 'auto';
-    document.body.classList.remove('modal-open');
-    
-    isFullscreenModalOpen = false;
-    modalSwipeEnabled = false;
-    swipeBackActive = false;
-    swipeBackProgress = 0;
-    isSwiping = false;
-    
-    // Удаляем индикатор свайпа
-    removeSwipeIndicator();
-    
-    // Восстанавливаем бэкдроп
-    const backdrop = document.getElementById('fullscreen-backdrop');
-    if (backdrop) {
-      backdrop.style.opacity = '';
-      backdrop.style.transition = '';
-    }
-  }
-  
-  // Функция для анимации свайпа назад
-  function handleSwipeBackAnimation(modalElement, progress) {
-    const width = window.innerWidth;
-    const translateX = progress * width;
-    const opacity = 1 - (progress * 0.7);
-    
-    modalElement.style.transform = `translateX(${translateX}px)`;
-    modalElement.style.opacity = `${opacity}`;
-    modalElement.style.transition = 'none'; // Отключаем transition во время свайпа
-    
-    // Показываем предыдущую страницу под модальным окном
-    const backdrop = document.getElementById('fullscreen-backdrop');
-    if (backdrop) {
-      backdrop.style.opacity = `${1 - (progress * 0.8)}`;
-      backdrop.style.transition = 'none';
-    }
-    
-    // Показываем индикатор завершения
-    const swipeCompleteIndicator = modalElement.querySelector('.swipe-complete-indicator');
-    if (swipeCompleteIndicator) {
-      if (progress > 0.7) {
-        swipeCompleteIndicator.style.opacity = '1';
-      } else {
-        swipeCompleteIndicator.style.opacity = '0';
-      }
-    }
-  }
-  
-  // Функция для добавления индикатора свайпа
-  function addSwipeIndicator(modalElement) {
-    // Удаляем старые индикаторы
-    const oldIndicator = modalElement.querySelector('.swipe-indicator');
-    if (oldIndicator) oldIndicator.remove();
-    
-    const oldCompleteIndicator = modalElement.querySelector('.swipe-complete-indicator');
-    if (oldCompleteIndicator) oldCompleteIndicator.remove();
-    
-    // Создаем улучшенный индикатор свайпа
-    const swipeIndicator = document.createElement('div');
-    swipeIndicator.className = 'swipe-indicator';
-    swipeIndicator.innerHTML = 'Свайпните для закрытия';
-    
-    // Создаем индикатор завершения
-    const swipeCompleteIndicator = document.createElement('div');
-    swipeCompleteIndicator.className = 'swipe-complete-indicator';
-    swipeCompleteIndicator.innerHTML = '✓';
-    swipeCompleteIndicator.style.opacity = '0';
-    swipeCompleteIndicator.style.transition = 'opacity 0.2s ease';
-    
-    modalElement.appendChild(swipeIndicator);
-    modalElement.appendChild(swipeCompleteIndicator);
-  }
-  
-  function removeSwipeIndicator() {
-    const indicators = document.querySelectorAll('.swipe-indicator, .swipe-complete-indicator');
-    indicators.forEach(indicator => indicator.remove());
-  }
-  
-  // Обработчики касаний
-  function handleTouchStart(e) {
-    if (!modalSwipeEnabled || !isFullscreenModalOpen) return;
-    
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchStartTime = Date.now();
-    
-    // Сбрасываем предыдущий прогресс свайпа
-    swipeBackActive = false;
-    swipeBackProgress = 0;
-    isSwiping = false;
-  }
-  
-  function handleTouchMove(e) {
-    if (!modalSwipeEnabled || !isFullscreenModalOpen || !touchStartX) return;
-    
-    touchEndX = e.touches[0].clientX;
-    touchEndY = e.touches[0].clientY;
-    
-    // Получаем текущий модальный элемент
-    const modalElement = e.currentTarget;
-    const currentModal = modalElement.classList.contains('fullscreen-modal') ? 
-                        modalElement : modalElement.closest('.fullscreen-modal');
-    
-    if (!currentModal) return;
-    
-    // Рассчитываем разницу
-    const diffX = touchEndX - touchStartX;
-    const diffY = Math.abs(touchEndY - touchStartY);
-    
-    // Если это горизонтальный свайп вправо
-    if (Math.abs(diffX) > diffY && diffX > 0) {
-      swipeBackActive = true;
-      isSwiping = true;
-      
-      // Предотвращаем вертикальную прокрутку и масштабирование
-      e.preventDefault();
-      
-      // Рассчитываем прогресс (0-1)
-      const maxSwipe = window.innerWidth * 0.5;
-      swipeBackProgress = Math.min(1, Math.abs(diffX) / maxSwipe);
-      
-      // Применяем анимацию
-      handleSwipeBackAnimation(currentModal, swipeBackProgress);
-      
-      // Показываем индикатор завершения
-      if (swipeBackProgress > 0.7) {
-        currentModal.classList.add('swipe-complete');
-      } else {
-        currentModal.classList.remove('swipe-complete');
-      }
-    } else if (isSwiping) {
-      // Если мы уже начали свайп, но движемся вертикально, блокируем
-      e.preventDefault();
-    }
-  }
-  
-  function handleTouchEnd(e) {
-    if (!modalSwipeEnabled || !isFullscreenModalOpen || !touchStartX) return;
-    
-    const diffX = touchEndX - touchStartX;
-    const diffY = Math.abs(touchEndY - touchStartY);
-    const timeDiff = Date.now() - touchStartTime;
-    
-    // Получаем текущий модальный элемент
-    const modalElement = e.currentTarget;
-    const currentModal = modalElement.classList.contains('fullscreen-modal') ? 
-                        modalElement : modalElement.closest('.fullscreen-modal');
-    
-    if (!currentModal) return;
-    
-    // Проверяем был ли это свайп вправо для закрытия
-    const isSwipeRight = Math.abs(diffX) > diffY && diffX > SWIPE_THRESHOLD;
-    const isFastSwipe = timeDiff < 300 && diffX > 50;
-    
-    if ((swipeBackActive && swipeBackProgress > 0.5) || isSwipeRight || isFastSwipe) {
-      // Анимация закрытия
-      const closeAnimation = () => {
-        closeFullscreenModal();
-      };
-      
-      // Если свайп был достаточно быстрым или завершенным, анимируем закрытие
-      if (swipeBackProgress > 0.7 || isFastSwipe) {
-        currentModal.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-        currentModal.style.transform = `translateX(${window.innerWidth}px)`;
-        currentModal.style.opacity = '0';
-        
-        const backdrop = document.getElementById('fullscreen-backdrop');
-        if (backdrop) {
-          backdrop.style.transition = 'opacity 0.2s ease';
-          backdrop.style.opacity = '0';
-        }
-        
-        setTimeout(closeAnimation, 200);
-      } else {
-        // Плавное возвращение на место
-        currentModal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-        currentModal.style.transform = '';
-        currentModal.style.opacity = '';
-        currentModal.classList.remove('swipe-complete');
-        
-        const backdrop = document.getElementById('fullscreen-backdrop');
-        if (backdrop) {
-          backdrop.style.transition = 'opacity 0.3s ease';
-          backdrop.style.opacity = '';
-        }
-        
-        // Убираем transition после анимации
-        setTimeout(() => {
-          if (currentModal) {
-            currentModal.style.transition = '';
-          }
-          if (backdrop) {
-            backdrop.style.transition = '';
-          }
-        }, 300);
-      }
-    } else {
-      // Возвращаем модальное окно на место
-      currentModal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-      currentModal.style.transform = '';
-      currentModal.style.opacity = '';
-      currentModal.classList.remove('swipe-complete');
-      
-      const backdrop = document.getElementById('fullscreen-backdrop');
-      if (backdrop) {
-        backdrop.style.transition = 'opacity 0.3s ease';
-        backdrop.style.opacity = '';
-      }
-      
-      // Убираем transition после анимации
-      setTimeout(() => {
-        if (currentModal) {
-          currentModal.style.transition = '';
-        }
-        if (backdrop) {
-          backdrop.style.transition = '';
-        }
-      }, 300);
-    }
-    
-    // Сбрасываем значения
-    touchStartX = 0;
-    touchStartY = 0;
-    touchEndX = 0;
-    touchEndY = 0;
-    swipeBackActive = false;
-    swipeBackProgress = 0;
-    isSwiping = false;
-  }
-  
-  // Функция для блокировки вертикальных свайпов при открытом модальном окне
-  function preventVerticalScroll(e) {
-    if (isFullscreenModalOpen && modalSwipeEnabled && isSwiping) {
-      e.preventDefault();
-      return false;
-    }
-  }
-  
-  // Настройка обработчиков свайпа
-  function setupSwipeHandlers() {
-    // Блокируем вертикальные свайпы при открытом модальном окне
-    document.addEventListener('touchmove', preventVerticalScroll, { passive: false });
-    
-    // Для всех модальных окон добавляем обработчики свайпа
-    document.querySelectorAll('.fullscreen-modal').forEach(modal => {
-      modal.addEventListener('touchstart', handleTouchStart, { passive: true });
-      modal.addEventListener('touchmove', handleTouchMove, { passive: false });
-      modal.addEventListener('touchend', handleTouchEnd);
-    });
-    
-    // Обработка свайпа для меню категорий
-    if (elements.categoryMenu) {
-      elements.categoryMenu.addEventListener('touchstart', handleTouchStart, { passive: true });
-      elements.categoryMenu.addEventListener('touchmove', handleTouchMove, { passive: false });
-      elements.categoryMenu.addEventListener('touchend', function(e) {
-        handleTouchEnd(e);
-        if (touchEndX - touchStartX > SWIPE_THRESHOLD && 
-            Math.abs(touchEndY - touchStartY) < MAX_VERTICAL_DEVIATION) {
-          elements.categoryMenu.classList.remove('show');
-        }
-      });
-    }
   }
   
   // Сброс данных
@@ -1666,7 +1380,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       if ('showOpenFilePicker' in window) {
         const [fileHandle] = await window.showOpenFilePicker({
-          types: [{           
+          types: [{
             description: 'Текстовые файлы',
             accept: { 'text/plain': ['.txt'] }
           }],
@@ -1776,6 +1490,8 @@ document.addEventListener('DOMContentLoaded', function() {
       openFullscreenModal(elements.settingsMenu);
     });
     
+    elements.closeReportsBtn.addEventListener('click', closeFullscreenModal);
+    
     // Бюджет
     elements.budgetSettingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1876,6 +1592,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     elements.addYearBtn.addEventListener('click', addNewYear);
+    elements.closeYearSelect.addEventListener('click', () => {
+      elements.yearSelectModal.classList.remove('show');
+    });
     
     // История
     elements.historyBtn.addEventListener('click', () => {
@@ -1883,12 +1602,16 @@ document.addEventListener('DOMContentLoaded', function() {
       openFullscreenModal(elements.historyModal);
     });
     
+    elements.closeHistory.addEventListener('click', closeFullscreenModal);
+    
     // Достижения
     elements.achievementsBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       openFullscreenModal(elements.achievementsModal);
       renderAchievementsList();
     });
+    
+    elements.closeAchievements.addEventListener('click', closeFullscreenModal);
     
     // Сброс
     elements.resetBtn.addEventListener('click', () => {
@@ -1914,6 +1637,10 @@ document.addEventListener('DOMContentLoaded', function() {
           elements.exportSection.appendChild(iosInstructions);
         }
       }
+    });
+    
+    elements.closeTransferData.addEventListener('click', () => {
+      elements.transferDataModal.classList.remove('show');
     });
     
     // Экспорт данных
@@ -1963,15 +1690,13 @@ document.addEventListener('DOMContentLoaded', function() {
       lastScrollPosition = currentScroll;
     });
     
-    // Закрытие модальных окон по клику на бэкдроп
+    // Закрытие модальных окон
     document.getElementById('fullscreen-backdrop').addEventListener('click', closeFullscreenModal);
     
-    // Закрытие по Escape
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeFullscreenModal();
     });
     
-    // Закрытие по клику вне меню
     document.addEventListener('click', (e) => {
       const menus = [
         elements.categoryMenu, elements.capitalizationMenu, elements.settingsMenu, 
@@ -2038,9 +1763,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Настраиваем обработчики событий
     setupEventHandlers();
     
-    // Настраиваем обработчики свайпов
-    setupSwipeHandlers();
-    
     // Обновляем интерфейс
     updateUI();
     
@@ -2069,11 +1791,6 @@ document.addEventListener('DOMContentLoaded', function() {
       Telegram.WebApp.setHeaderColor('#3498db');
       Telegram.WebApp.setBackgroundColor('#f0f4f8');
       Telegram.WebApp.enableClosingConfirmation();
-      
-      // Дополнительная блокировка свайпов для Telegram
-      if (Telegram.WebApp.disableHorizontalSwipes) {
-        Telegram.WebApp.disableHorizontalSwipes();
-      }
       
       console.log('Telegram Web App initialized');
     }
