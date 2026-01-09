@@ -129,10 +129,10 @@
       color: var(--primary);
     }
 
-    /* Кнопка закрытия для полноэкранных модальных окон - поднята на 90px вверх */
+    /* Кнопка закрытия для полноэкранных модальных окон - поднята на 30px вверх */
     .fullscreen-close-btn {
       position: absolute !important;
-      top: 65px !important; /* Было 155px, поднято на 90px вверх (155 - 90 = 65) */
+      top: 125px !important; /* Было 155px, поднято на 30px вверх */
       right: 15px !important;
       z-index: 11 !important;
       width: 40px !important;
@@ -152,7 +152,7 @@
 
     @media (max-width: 480px) {
       .fullscreen-close-btn {
-        top: 60px !important; /* Было 150px, поднято на 90px вверх (150 - 90 = 60) */
+        top: 120px !important; /* Было 150px, поднято на 30px вверх для мобильных */
         right: 10px !important;
         width: 35px !important;
         height: 35px !important;
@@ -162,7 +162,7 @@
 
     @media (min-width: 768px) {
       .fullscreen-close-btn {
-        top: 70px !important; /* Было 160px, поднято на 90px вверх (160 - 90 = 70) */
+        top: 130px !important; /* Было 160px, поднято на 30px вверх для планшетов */
         right: 20px !important;
       }
     }
@@ -177,69 +177,63 @@
       box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
     }
 
-    /* Увеличиваем шапку модального окна и сдвигаем на 90px вверх */
+    /* Увеличиваем шапку модального окна, чтобы она доходила до кнопки закрытия */
     .fullscreen-modal .modal-header {
       position: sticky !important;
       top: 0 !important;
       background: var(--bg) !important;
       z-index: 10 !important;
-      padding: 15px 40px 15px 20px !important; /* Уменьшена верхняя паддинг на 10px */
+      padding: 25px 40px 15px 20px !important; /* Увеличена верхняя паддинг */
       margin: -20px -20px 20px -20px !important;
       border-bottom: 1px solid rgba(0,0,0,0.1) !important;
       border-radius: 0 !important;
       width: calc(100% + 40px) !important;
-      min-height: 90px !important; /* Уменьшена высота шапки (150 - 60 = 90px) */
+      min-height: 150px !important; /* Уменьшена высота, так как кнопка поднята */
       display: flex !important;
       align-items: flex-start !important; /* Выравнивание по верху */
       justify-content: space-between !important;
-      transform: translateY(-60px) !important; /* Сдвиг шапки на 60px вверх */
     }
 
-    /* Сдвигаем заголовок вверх внутри шапки */
+    /* Сдвигаем заголовок вниз внутри шапки */
     .fullscreen-modal .modal-header h3 {
-      margin: 5px 0 0 0 !important; /* Сдвигаем заголовок вверх (20 - 15 = 5px) */
+      margin: 20px 0 0 0 !important; /* Сдвигаем заголовок вниз, но меньше (так как кнопка выше) */
       font-size: 1.4rem !important;
       font-weight: 700 !important;
       color: var(--primary) !important;
       padding-right: 50px !important;
       width: 100% !important;
       text-align: center !important;
-      transform: translateY(30px) !important; /* Компенсация сдвига шапки */
     }
 
     /* Для мобильных устройств */
     @media (max-width: 480px) {
       .fullscreen-modal .modal-header {
-        padding: 10px 35px 12px 15px !important; /* Уменьшена верхняя паддинг */
+        padding: 20px 35px 12px 15px !important;
         margin: -15px -15px 15px -15px !important;
         width: calc(100% + 30px) !important;
-        min-height: 80px !important; /* Уменьшена высота шапки (140 - 60 = 80px) */
-        transform: translateY(-50px) !important; /* Сдвиг шапки на 50px вверх */
+        min-height: 140px !important; /* Чуть меньше для мобильных */
       }
       
       .fullscreen-modal .modal-header h3 {
-        margin: 0 0 0 0 !important; /* Сдвигаем заголовок вверх */
+        margin: 15px 0 0 0 !important;
         font-size: 1.2rem !important;
         padding-right: 40px !important;
-        transform: translateY(25px) !important; /* Компенсация сдвига шапки */
       }
     }
 
     /* Для планшетов и десктопов */
     @media (min-width: 768px) {
       .fullscreen-modal .modal-header {
-        padding: 20px 50px 20px 25px !important; /* Уменьшена верхняя паддинг */
+        padding: 30px 50px 20px 25px !important;
         margin: -25px -25px 20px -25px !important;
         width: calc(100% + 50px) !important;
-        min-height: 100px !important; /* Уменьшена высота шапки (160 - 60 = 100px) */
-        transform: translateY(-70px) !important; /* Сдвиг шапки на 70px вверх */
+        min-height: 160px !important; /* Уменьшена высота */
       }
       
       .fullscreen-modal .modal-header h3 {
-        margin: 10px 0 0 0 !important; /* Сдвигаем заголовок вверх */
+        margin: 25px 0 0 0 !important;
         font-size: 1.5rem !important;
         padding-right: 60px !important;
-        transform: translateY(35px) !important; /* Компенсация сдвига шапки */
       }
     }
   </style>
