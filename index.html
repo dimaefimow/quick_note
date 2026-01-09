@@ -129,10 +129,10 @@
       color: var(--primary);
     }
 
-    /* Кнопка закрытия для полноэкранных модальных окон - опущена на 2 см */
+    /* Кнопка закрытия для полноэкранных модальных окон - опущена на 4 см (2 раза ниже) */
     .fullscreen-close-btn {
       position: absolute !important;
-      top: 55px !important; /* Опущено на 2 см (20px) вниз */
+      top: 75px !important; /* Было 35px, опущено на 4 см (40px) вниз */
       right: 15px !important;
       z-index: 11 !important;
       width: 40px !important;
@@ -152,7 +152,7 @@
 
     @media (max-width: 480px) {
       .fullscreen-close-btn {
-        top: 50px !important; /* Опущено на 2 см (20px) вниз для мобильных */
+        top: 70px !important; /* Было 30px, опущено на 4 см (40px) вниз для мобильных */
         right: 10px !important;
         width: 35px !important;
         height: 35px !important;
@@ -162,7 +162,7 @@
 
     @media (min-width: 768px) {
       .fullscreen-close-btn {
-        top: 60px !important; /* Опущено на 2 см (20px) вниз для планшетов */
+        top: 80px !important; /* Было 40px, опущено на 4 см (40px) вниз для планшетов */
         right: 20px !important;
       }
     }
