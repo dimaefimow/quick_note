@@ -2142,9 +2142,10 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   width: calc(100% + 40px) !important;
 }
 
+/* КНОПКА ЗАКРЫТИЯ - ОПУЩЕНА НА 2 СМ ВНИЗ */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 35px !important; /* Смещено на 2 см вниз (было 15px) */
+  top: 55px !important; /* Было 35px, опущено на 2 см (20px) вниз */
   right: 15px !important;
   z-index: 11 !important;
   width: 40px !important;
@@ -2276,6 +2277,7 @@ body.dark .fullscreen-close-btn {
   max-height: calc(100vh - 150px) !important;
 }
 
+/* Мобильные устройства */
 @media (max-width: 480px) {
   .fullscreen-modal .modal-header {
     padding: 15px 35px 12px 15px !important;
@@ -2283,8 +2285,9 @@ body.dark .fullscreen-close-btn {
     width: calc(100% + 30px) !important;
   }
   
+  /* КНОПКА ЗАКРЫТИЯ ДЛЯ МОБИЛЬНЫХ - ОПУЩЕНА НА 2 СМ */
   .fullscreen-close-btn {
-    top: 30px !important; /* Смещено на 2 см вниз (было 10px) */
+    top: 50px !important; /* Было 30px, опущено на 2 см (20px) вниз */
     right: 10px !important;
     width: 35px !important;
     height: 35px !important;
@@ -2297,6 +2300,7 @@ body.dark .fullscreen-close-btn {
   }
 }
 
+/* Планшеты и десктопы */
 @media (min-width: 768px) {
   .fullscreen-modal .modal-header {
     padding: 25px 50px 20px 25px !important;
@@ -2304,8 +2308,9 @@ body.dark .fullscreen-close-btn {
     width: calc(100% + 50px) !important;
   }
   
+  /* КНОПКА ЗАКРЫТИЯ ДЛЯ ПЛАНШЕТОВ - ОПУЩЕНА НА 2 СМ */
   .fullscreen-close-btn {
-    top: 40px !important; /* Смещено на 2 см вниз (было 20px) */
+    top: 60px !important; /* Было 40px, опущено на 2 см (20px) вниз */
     right: 20px !important;
   }
   
