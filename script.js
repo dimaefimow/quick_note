@@ -710,9 +710,11 @@ document.addEventListener('DOMContentLoaded', function() {
     transferDataBtn: document.getElementById('transfer-data-btn'),
     transferDataModal: document.getElementById('transfer-data-modal'),
     closeTransferData: document.getElementById('close-transfer-data'),
-    // Новые элементы для упрощенного переноса данных
+    exportDataBtn: document.getElementById('export-data-btn'),
+    importDataBtn: document.getElementById('import-data-btn'),
+    importDataInput: document.getElementById('import-data-input'),
+    // Новые элементы для улучшенного переноса данных
     exportFileBtn: null,
-    exportClipboardBtn: null,
     importFileBtn: null,
     fileInput: null,
     selectedFileName: null,
@@ -720,232 +722,15 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSliderValue: 0
   };
 
-  // ==================== СВАЙП ДЛЯ ЗАКРЫТИЯ ВМЕСТО КНОПОК ====================
+  // ==================== УЛУЧШЕННЫЙ МОДУЛЬ ПЕРЕНОСА ДАННЫХ ====================
 
-  function setupSwipeToClose() {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-    let isSwiping = false;
-    let currentModal = null;
-    const swipeThreshold = 100; // Минимальное расстояние свайпа для закрытия
-    const verticalThreshold = 30; // Максимальное вертикальное отклонение
-    
-    // Создаем индикатор свайпа
-    const swipeIndicator = document.createElement('div');
-    swipeIndicator.id = 'swipe-indicator';
-    swipeIndicator.className = 'swipe-indicator';
-    swipeIndicator.innerHTML = `
-      <div class="swipe-arrow">←</div>
-      <span class="swipe-text">Свайпните вправо для закрытия</span>
-    `;
-    document.body.appendChild(swipeIndicator);
-    
-    // Показать индикатор свайпа
-    function showSwipeIndicator() {
-      swipeIndicator.classList.add('show');
-      setTimeout(() => {
-        swipeIndicator.classList.remove('show');
-      }, 2000);
-    }
-    
-    // Скрыть индикатор свайпа
-    function hideSwipeIndicator() {
-      swipeIndicator.classList.remove('show');
-    }
-    
-    // Анимация закрытия свайпом
-    function swipeCloseModal(modal) {
-      if (!modal || !modal.classList.contains('show')) return;
-      
-      // Добавляем анимацию выезда
-      modal.classList.add('swipe-out');
-      
-      // Скрываем индикатор
-      hideSwipeIndicator();
-      
-      // Закрываем модальное окно после анимации
-      setTimeout(() => {
-        closeFullscreenModal();
-        modal.classList.remove('swipe-out');
-      }, 300);
-    }
-    
-    // Обработчик начала касания
-    function handleTouchStart(e) {
-      const modal = document.querySelector('.fullscreen-modal.show');
-      if (!modal) return;
-      
-      currentModal = modal;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      isSwiping = true;
-      
-      // Показываем индикатор свайпа
-      showSwipeIndicator();
-    }
-    
-    // Обработчик движения пальца
-    function handleTouchMove(e) {
-      if (!isSwiping || !currentModal) return;
-      
-      touchEndX = e.touches[0].clientX;
-      touchEndY = e.touches[0].clientY;
-      
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-      
-      // Проверяем, что свайп преимущественно горизонтальный
-      if (Math.abs(deltaY) < verticalThreshold) {
-        // Анимация сдвига модального окна при свайпе вправо
-        if (deltaX > 0) {
-          const translateX = Math.min(deltaX, 150);
-          currentModal.style.transform = `translateX(${translateX}px)`;
-          currentModal.style.opacity = Math.max(0.5, 1 - (translateX / 300));
-        }
-        
-        e.preventDefault(); // Предотвращаем вертикальную прокрутку
-      }
-    }
-    
-    // Обработчик окончания касания
-    function handleTouchEnd() {
-      if (!isSwiping || !currentModal) return;
-      
-      isSwiping = false;
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-      
-      // Проверяем условия для закрытия
-      if (deltaX > swipeThreshold && Math.abs(deltaY) < verticalThreshold) {
-        // Свайп вправо - закрыть
-        swipeCloseModal(currentModal);
-      } else {
-        // Сброс анимации
-        currentModal.style.transform = '';
-        currentModal.style.opacity = '';
-      }
-      
-      currentModal = null;
-      hideSwipeIndicator();
-    }
-    
-    // Добавляем обработчики событий для сенсорных устройств
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
-    
-    // Также добавляем поддержку мыши для десктопов
-    let mouseStartX = 0;
-    let mouseStartY = 0;
-    let mouseIsDown = false;
-    
-    document.addEventListener('mousedown', (e) => {
-      const modal = document.querySelector('.fullscreen-modal.show');
-      if (!modal) return;
-      
-      currentModal = modal;
-      mouseStartX = e.clientX;
-      mouseStartY = e.clientY;
-      mouseIsDown = true;
-      
-      showSwipeIndicator();
-    });
-    
-    document.addEventListener('mousemove', (e) => {
-      if (!mouseIsDown || !currentModal) return;
-      
-      const mouseEndX = e.clientX;
-      const mouseEndY = e.clientY;
-      const deltaX = mouseEndX - mouseStartX;
-      const deltaY = mouseEndY - mouseStartY;
-      
-      if (Math.abs(deltaY) < verticalThreshold) {
-        if (deltaX > 0) {
-          const translateX = Math.min(deltaX, 150);
-          currentModal.style.transform = `translateX(${translateX}px)`;
-          currentModal.style.opacity = Math.max(0.5, 1 - (translateX / 300));
-        }
-      }
-    });
-    
-    document.addEventListener('mouseup', (e) => {
-      if (!mouseIsDown || !currentModal) return;
-      
-      mouseIsDown = false;
-      const mouseEndX = e.clientX;
-      const mouseEndY = e.clientY;
-      const deltaX = mouseEndX - mouseStartX;
-      const deltaY = mouseEndY - mouseStartY;
-      
-      if (deltaX > swipeThreshold && Math.abs(deltaY) < verticalThreshold) {
-        swipeCloseModal(currentModal);
-      } else {
-        currentModal.style.transform = '';
-        currentModal.style.opacity = '';
-      }
-      
-      currentModal = null;
-      hideSwipeIndicator();
-    });
-    
-    // Показать индикатор при открытии модального окна
-    const originalOpenFullscreenModal = openFullscreenModal;
-    window.openFullscreenModal = function(modalElement) {
-      originalOpenFullscreenModal(modalElement);
-      setTimeout(showSwipeIndicator, 300);
-    };
-    
-    // Скрыть индикатор при закрытии
-    const originalCloseFullscreenModal = closeFullscreenModal;
-    window.closeFullscreenModal = function() {
-      originalCloseFullscreenModal();
-      hideSwipeIndicator();
-    };
-    
-    // Добавляем кнопку "Закрыть" внизу для альтернативного закрытия
-    function addCloseButtonToModals() {
-      const modals = [
-        elements.settingsMenu,
-        elements.historyModal,
-        elements.achievementsModal,
-        elements.transferDataModal
-      ];
-      
-      modals.forEach(modal => {
-        if (modal) {
-          const closeButton = document.createElement('div');
-          closeButton.className = 'swipe-close-hint';
-          closeButton.innerHTML = `
-            <button class="neumorphic-btn primary close-modal-btn">
-              Закрыть
-            </button>
-            <p class="hint-text">Или свайпните вправо</p>
-          `;
-          modal.appendChild(closeButton);
-          
-          // Обработчик для кнопки закрытия
-          modal.querySelector('.close-modal-btn')?.addEventListener('click', () => {
-            closeFullscreenModal();
-          });
-        }
-      });
-    }
-    
-    // Инициализация кнопок закрытия
-    addCloseButtonToModals();
-  }
-
-  // ==================== УПРОЩЕННЫЙ МОДУЛЬ ПЕРЕНОСА ДАННЫХ ====================
-
-  // Инициализация упрощенного модуля переноса данных
+  // Инициализация улучшенного модуля переноса данных
   function initTransferDataModule() {
     // Обновляем HTML модального окна переноса данных
     elements.transferDataModal.innerHTML = `
       <div class="modal-header">
         <h3>Перенос данных</h3>
-        <div class="header-placeholder"></div>
+        <button id="close-transfer-data" class="neumorphic-btn small fullscreen-close-btn">×</button>
       </div>
       <div class="transfer-options">
         <div class="export-section">
@@ -961,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         <div class="import-section">
           <h4>📥 Импорт данных</h4>
-          <p>Загрузите файл с данными для восстановления</p>
+          <p>Загрузите файл с данными или вставьте текст</p>
           
           <div class="file-upload-area">
             <div class="file-input-wrapper">
@@ -978,6 +763,15 @@ document.addEventListener('DOMContentLoaded', function() {
               📥 Импортировать файл
             </button>
           </div>
+          
+          <div class="text-import-area">
+            <p>Или вставьте данные вручную:</p>
+            <textarea id="import-data-input" class="neumorphic-input" 
+                      placeholder="Вставьте текст с данными..." rows="5"></textarea>
+            <button id="import-text-btn" class="neumorphic-btn primary">
+              📝 Импортировать текст
+            </button>
+          </div>
         </div>
       </div>
       
@@ -985,20 +779,17 @@ document.addEventListener('DOMContentLoaded', function() {
         <p><small>📊 Экспортируется: финансы, бюджеты, накопления, фонды, достижения</small></p>
         <p><small>⚠️ Импорт полностью заменит текущие данные</small></p>
       </div>
-      <div class="swipe-close-hint">
-        <button class="neumorphic-btn primary close-modal-btn">
-          Закрыть
-        </button>
-        <p class="hint-text">Или свайпните вправо</p>
-      </div>
     `;
 
     // Обновляем ссылки на элементы
     elements.exportFileBtn = document.getElementById('export-file-btn');
     elements.exportClipboardBtn = document.getElementById('export-clipboard-btn');
     elements.importFileBtn = document.getElementById('import-file-btn');
+    elements.importTextBtn = document.getElementById('import-text-btn');
     elements.fileInput = document.getElementById('file-input');
     elements.selectedFileName = document.getElementById('selected-file-name');
+    elements.closeTransferData = document.getElementById('close-transfer-data');
+    elements.importDataInput = document.getElementById('import-data-input');
     
     // Настройка обработчиков событий
     setupTransferDataHandlers();
@@ -1025,13 +816,22 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    // Обработчик для кнопки закрытия в модальном окне
-    elements.transferDataModal.querySelector('.close-modal-btn')?.addEventListener('click', () => {
+    // Импорт из текста
+    elements.importTextBtn.addEventListener('click', importDataFromText);
+    
+    // Закрытие модального окна
+    elements.closeTransferData.addEventListener('click', () => {
       elements.transferDataModal.classList.remove('show');
       // Сбрасываем состояние
       elements.fileInput.value = '';
       elements.selectedFileName.textContent = 'Файл не выбран';
       elements.importFileBtn.disabled = true;
+      elements.importDataInput.value = '';
+    });
+    
+    // Автоматическая активация кнопки импорта при вводе текста
+    elements.importDataInput.addEventListener('input', function() {
+      elements.importTextBtn.disabled = this.value.trim().length === 0;
     });
   }
 
@@ -1174,6 +974,23 @@ document.addEventListener('DOMContentLoaded', function() {
     reader.readAsText(file);
   }
 
+  // Импорт данных из текста
+  function importDataFromText() {
+    const dataStr = elements.importDataInput.value.trim();
+    if (!dataStr) {
+      alert('Вставьте данные для импорта');
+      return;
+    }
+    
+    try {
+      const importedData = JSON.parse(dataStr);
+      processImportedData(importedData);
+    } catch (error) {
+      alert('Ошибка при разборе данных: ' + error.message);
+      console.error('Import error:', error);
+    }
+  }
+
   // Обработка импортированных данных
   function processImportedData(importedData) {
     // Проверяем структуру данных
@@ -1210,6 +1027,8 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.fileInput.value = '';
       elements.selectedFileName.textContent = 'Файл не выбран';
       elements.importFileBtn.disabled = true;
+      elements.importDataInput.value = '';
+      elements.importTextBtn.disabled = true;
       elements.transferDataModal.classList.remove('show');
       
       showSuccessMessage('Данные успешно импортированы!');
@@ -1249,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Добавить стили для упрощенного модуля переноса данных
+  // Добавить стили для улучшенного модуля переноса данных
   function addTransferDataStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -1332,6 +1151,16 @@ document.addEventListener('DOMContentLoaded', function() {
         color: var(--text);
         opacity: 0.7;
         font-size: 0.9rem;
+      }
+      
+      .text-import-area {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0,0,0,0.1);
+      }
+      
+      body.dark .text-import-area {
+        border-top: 1px solid rgba(255,255,255,0.1);
       }
       
       .data-info {
@@ -3295,6 +3124,10 @@ document.addEventListener('DOMContentLoaded', function() {
       openFullscreenModal(elements.settingsMenu);
     });
 
+    elements.closeReportsBtn.addEventListener('click', () => {
+      closeFullscreenModal();
+    });
+
     // Бюджет
     elements.budgetSettingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -3415,6 +3248,10 @@ document.addEventListener('DOMContentLoaded', function() {
       elements.moreMenu.classList.remove('show');
       openFullscreenModal(elements.historyModal);
     });
+    
+    elements.closeHistory.addEventListener('click', () => {
+      closeFullscreenModal();
+    });
 
     // Достижения - полноэкранный режим
     elements.achievementsBtn.addEventListener('click', () => {
@@ -3423,13 +3260,17 @@ document.addEventListener('DOMContentLoaded', function() {
       renderAchievementsList();
     });
 
+    elements.closeAchievements.addEventListener('click', () => {
+      closeFullscreenModal();
+    });
+
     // Кнопка сброса данных
     elements.resetBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       showResetSlider();
     });
 
-    // Перенос данных - упрощенная версия
+    // Перенос данных - улучшенная версия
     elements.transferDataBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       openFullscreenModal(elements.transferDataModal);
@@ -3518,7 +3359,8 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
       { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
       { element: elements.fundName, handler: elements.saveFundBtn },
-      { element: elements.fundAmount, handler: elements.saveFundBtn }
+      { element: elements.fundAmount, handler: elements.saveFundBtn },
+      { element: elements.importDataInput, handler: elements.importTextBtn }
     ];
 
     enterHandlers.forEach(item => {
@@ -3553,10 +3395,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function initializeApp() {
     console.log('🚀 Инициализация приложения...');
     
-    // Инициализация свайпов для закрытия вместо кнопок
-    setupSwipeToClose();
-    
-    // Инициализация упрощенного модуля переноса данных
+    // Инициализация улучшенного модуля переноса данных
     initTransferDataModule();
     
     // Установка активного месяца
