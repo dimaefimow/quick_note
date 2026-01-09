@@ -129,10 +129,10 @@
       color: var(--primary);
     }
 
-    /* Кнопка закрытия для полноэкранных модальных окон - поднята на 30px вверх */
+    /* Кнопка закрытия для полноэкранных модальных окон - в правом нижнем углу шапки */
     .fullscreen-close-btn {
       position: absolute !important;
-      top: 125px !important; /* Было 155px, поднято на 30px вверх */
+      bottom: 10px !important; /* Размещаем внизу шапки */
       right: 15px !important;
       z-index: 11 !important;
       width: 40px !important;
@@ -152,7 +152,7 @@
 
     @media (max-width: 480px) {
       .fullscreen-close-btn {
-        top: 120px !important; /* Было 150px, поднято на 30px вверх для мобильных */
+        bottom: 8px !important; /* Для мобильных */
         right: 10px !important;
         width: 35px !important;
         height: 35px !important;
@@ -162,7 +162,7 @@
 
     @media (min-width: 768px) {
       .fullscreen-close-btn {
-        top: 130px !important; /* Было 160px, поднято на 30px вверх для планшетов */
+        bottom: 15px !important; /* Для планшетов и десктопов */
         right: 20px !important;
       }
     }
@@ -183,39 +183,40 @@
       top: 0 !important;
       background: var(--bg) !important;
       z-index: 10 !important;
-      padding: 25px 40px 15px 20px !important; /* Увеличена верхняя паддинг */
+      padding: 20px 40px 40px 20px !important; /* Увеличили нижнюю паддинг */
       margin: -20px -20px 20px -20px !important;
       border-bottom: 1px solid rgba(0,0,0,0.1) !important;
       border-radius: 0 !important;
       width: calc(100% + 40px) !important;
-      min-height: 150px !important; /* Уменьшена высота, так как кнопка поднята */
+      min-height: 120px !important; /* Уменьшили высоту, так как кнопка выше */
       display: flex !important;
-      align-items: flex-start !important; /* Выравнивание по верху */
+      align-items: flex-start !important;
       justify-content: space-between !important;
+      box-sizing: border-box !important;
     }
 
-    /* Сдвигаем заголовок вниз внутри шапки */
+    /* Сдвигаем заголовок вниз внутри шапки, но оставляем место для кнопки */
     .fullscreen-modal .modal-header h3 {
-      margin: 20px 0 0 0 !important; /* Сдвигаем заголовок вниз, но меньше (так как кнопка выше) */
+      margin: 0 !important; /* Убрали верхний отступ */
+      padding: 0 50px 0 0 !important;
       font-size: 1.4rem !important;
       font-weight: 700 !important;
       color: var(--primary) !important;
-      padding-right: 50px !important;
       width: 100% !important;
       text-align: center !important;
+      align-self: center !important; /* Центрируем по вертикали */
     }
 
     /* Для мобильных устройств */
     @media (max-width: 480px) {
       .fullscreen-modal .modal-header {
-        padding: 20px 35px 12px 15px !important;
+        padding: 15px 35px 35px 15px !important;
         margin: -15px -15px 15px -15px !important;
         width: calc(100% + 30px) !important;
-        min-height: 140px !important; /* Чуть меньше для мобильных */
+        min-height: 100px !important; /* Чуть меньше для мобильных */
       }
       
       .fullscreen-modal .modal-header h3 {
-        margin: 15px 0 0 0 !important;
         font-size: 1.2rem !important;
         padding-right: 40px !important;
       }
@@ -224,14 +225,14 @@
     /* Для планшетов и десктопов */
     @media (min-width: 768px) {
       .fullscreen-modal .modal-header {
-        padding: 30px 50px 20px 25px !important;
+        padding: 25px 50px 45px 25px !important;
         margin: -25px -25px 20px -25px !important;
         width: calc(100% + 50px) !important;
-        min-height: 160px !important; /* Уменьшена высота */
+        min-height: 140px !important; /* Уменьшена высота */
       }
       
       .fullscreen-modal .modal-header h3 {
-        margin: 25px 0 0 0 !important;
+        margin: 0 !important;
         font-size: 1.5rem !important;
         padding-right: 60px !important;
       }
