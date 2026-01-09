@@ -359,7 +359,7 @@ header {
 }
 
 .widget[style*="--widget-color: #9b59b6"] {
-  box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 20px 5px #9b59b6;
+  box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-dark), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 20px 5px #9b59b6;
 }
 
 .widget[style*="--widget-color: #1abc9c"] {
@@ -1777,11 +1777,6 @@ body.dark .modal-header {
   font-size: 1.3rem;
 }
 
-.modal-header .neumorphic-btn.small {
-  min-width: auto;
-  padding: 6px 10px;
-}
-
 .tutorial-overlay {
   display: none;
   position: fixed;
@@ -2113,6 +2108,87 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   pointer-events: auto !important;
 }
 
+/* ==================== СТИЛИ ДЛЯ СВАЙПОВ ВМЕСТО КНОПОК ЗАКРЫТИЯ ==================== */
+
+/* Индикатор свайпа */
+.swipe-indicator {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.swipe-indicator.show {
+  opacity: 1;
+}
+
+.swipe-arrow {
+  font-size: 2rem;
+  color: var(--primary);
+  animation: swipeArrow 1.5s ease-in-out infinite;
+  margin-bottom: 5px;
+}
+
+.swipe-text {
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  box-shadow: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+}
+
+@keyframes swipeArrow {
+  0%, 100% {
+    transform: translateX(-10px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(10px);
+    opacity: 1;
+  }
+}
+
+/* Анимация закрытия свайпом */
+.swipe-out {
+  animation: swipeOutRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes swipeOutRight {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Убираем старые кнопки закрытия */
+.fullscreen-close-btn {
+  display: none !important;
+}
+
+/* Улучшаем стили для мобильных свайпов */
+.fullscreen-modal {
+  touch-action: pan-y pinch-zoom;
+}
+
+.fullscreen-modal .modal-header {
+  padding: 20px 20px 15px 20px !important;
+  margin: -20px -20px 20px -20px !important;
+  width: calc(100% + 40px) !important;
+}
+
 /* Стили для полноэкранных модальных окон */
 .fullscreen-modal {
   position: fixed !important;
@@ -2128,6 +2204,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   z-index: 2000 !important;
   overflow-y: auto !important;
   transform: none !important;
+  transition: transform 0.2s ease, opacity 0.2s ease !important;
 }
 
 .fullscreen-modal .modal-header {
@@ -2142,36 +2219,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   width: calc(100% + 40px) !important;
 }
 
-.fullscreen-close-btn {
-  position: absolute !important;
-  top: 15px !important;
-  right: 15px !important;
-  z-index: 11 !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1.2rem !important;
-  font-weight: bold !important;
-  background: var(--bg) !important;
-  box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light) !important;
-  border: none !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-}
-
-.fullscreen-close-btn:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light) !important;
-}
-
-.fullscreen-close-btn:active {
-  transform: scale(0.95) !important;
-  box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
-}
-
 .fullscreen-modal .modal-header h3 {
   margin: 0 !important;
   font-size: 1.4rem !important;
@@ -2184,11 +2231,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 body.dark .fullscreen-modal .modal-header {
   background: var(--bg) !important;
   border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-}
-
-body.dark .fullscreen-close-btn {
-  background: var(--bg) !important;
-  color: var(--text) !important;
 }
 
 .fullscreen-modal-backdrop {
@@ -2276,6 +2318,40 @@ body.dark .fullscreen-close-btn {
   max-height: calc(100vh - 150px) !important;
 }
 
+/* Кнопка закрытия внизу для альтернативного закрытия */
+.swipe-close-hint {
+  position: fixed;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 2002;
+  padding: 0 20px;
+}
+
+.swipe-close-hint .neumorphic-btn {
+  width: 200px;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.hint-text {
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* Заглушка для выравнивания заголовка */
+.header-placeholder {
+  width: 40px;
+  height: 1px;
+  visibility: hidden;
+}
+
 @media (max-width: 480px) {
   .fullscreen-modal .modal-header {
     padding: 15px 35px 12px 15px !important;
@@ -2283,17 +2359,32 @@ body.dark .fullscreen-close-btn {
     width: calc(100% + 30px) !important;
   }
   
-  .fullscreen-close-btn {
-    top: 10px !important;
-    right: 10px !important;
-    width: 35px !important;
-    height: 35px !important;
-    font-size: 1.1rem !important;
-  }
-  
   .fullscreen-modal .modal-header h3 {
     font-size: 1.2rem !important;
     padding-right: 40px !important;
+  }
+  
+  .swipe-indicator {
+    top: 15px;
+  }
+  
+  .swipe-arrow {
+    font-size: 1.5rem;
+  }
+  
+  .swipe-text {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+  
+  .swipe-close-hint {
+    bottom: 20px;
+  }
+  
+  .swipe-close-hint .neumorphic-btn {
+    width: 180px;
+    font-size: 0.9rem;
+    padding: 10px 15px;
   }
 }
 
@@ -2302,11 +2393,6 @@ body.dark .fullscreen-close-btn {
     padding: 25px 50px 20px 25px !important;
     margin: -25px -25px 20px -25px !important;
     width: calc(100% + 50px) !important;
-  }
-  
-  .fullscreen-close-btn {
-    top: 20px !important;
-    right: 20px !important;
   }
   
   .fullscreen-modal .modal-header h3 {
@@ -2325,6 +2411,18 @@ body.dark .fullscreen-close-btn {
   
   .fullscreen-modal .mini-chart-widget {
     width: calc(50% - 10px);
+  }
+  
+  .swipe-indicator {
+    top: 25px;
+  }
+  
+  .swipe-arrow {
+    font-size: 2.5rem;
+  }
+  
+  .swipe-text {
+    font-size: 1rem;
   }
 }
 
@@ -2346,7 +2444,7 @@ body.dark .fullscreen-close-btn {
   font-size: 18px;
 }
 
-/* ==================== СТИЛИ ДЛЯ УЛУЧШЕННОГО МОДУЛЯ ПЕРЕНОСА ДАННЫХ ==================== */
+/* ==================== УПРОЩЕННЫЕ СТИЛИ ДЛЯ МОДУЛЯ ПЕРЕНОСА ДАННЫХ ==================== */
 
 .transfer-options {
   display: flex;
@@ -2447,30 +2545,6 @@ body.dark .file-input-label:hover {
   opacity: 0.7;
   font-size: 0.9rem;
   min-height: 20px;
-}
-
-.text-import-area {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0,0,0,0.1);
-}
-
-body.dark .text-import-area {
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.text-import-area p {
-  margin: 0 0 10px 0;
-  color: var(--text);
-  opacity: 0.8;
-  font-size: 0.9rem;
-}
-
-.text-import-area textarea {
-  margin-bottom: 15px;
-  resize: vertical;
-  min-height: 100px;
-  max-height: 200px;
 }
 
 .data-info {
@@ -2621,20 +2695,12 @@ body.dark .file-info-display {
   width: 100%;
 }
 
-#import-data-input {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-#import-file-btn:disabled,
-#import-text-btn:disabled {
+#import-file-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-#import-file-btn:disabled:hover,
-#import-text-btn:disabled:hover {
+#import-file-btn:disabled:hover {
   transform: none;
   background: var(--primary);
 }
@@ -2804,10 +2870,6 @@ body.dark .file-info-display {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
 
-#import-text-btn {
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-}
-
 #export-file-btn:hover {
   background: linear-gradient(135deg, #2980b9, #21618c);
 }
@@ -2816,8 +2878,9 @@ body.dark .file-info-display {
   background: linear-gradient(135deg, #27ae60, #219653);
 }
 
-#import-text-btn:hover {
-  background: linear-gradient(135deg, #8e44ad, #7d3c98);
+.file-input-label:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 @media (min-width: 768px) {
@@ -2830,19 +2893,4 @@ body.dark .file-info-display {
   .export-section, .import-section {
     height: fit-content;
   }
-  
-  .import-section {
-    grid-column: span 2;
-  }
-}
-
-.file-input-label:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-#import-data-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
 }
