@@ -176,6 +176,66 @@
       transform: scale(0.95) !important;
       box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
     }
+
+    /* Увеличиваем шапку модального окна, чтобы она доходила до кнопки закрытия */
+    .fullscreen-modal .modal-header {
+      position: sticky !important;
+      top: 0 !important;
+      background: var(--bg) !important;
+      z-index: 10 !important;
+      padding: 25px 40px 15px 20px !important; /* Увеличена верхняя паддинг */
+      margin: -20px -20px 20px -20px !important;
+      border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+      border-radius: 0 !important;
+      width: calc(100% + 40px) !important;
+      min-height: 180px !important; /* Увеличена минимальная высота */
+      display: flex !important;
+      align-items: flex-start !important; /* Выравнивание по верху */
+      justify-content: space-between !important;
+    }
+
+    /* Сдвигаем заголовок вниз внутри шапки */
+    .fullscreen-modal .modal-header h3 {
+      margin: 40px 0 0 0 !important; /* Сдвигаем заголовок вниз */
+      font-size: 1.4rem !important;
+      font-weight: 700 !important;
+      color: var(--primary) !important;
+      padding-right: 50px !important;
+      width: 100% !important;
+      text-align: center !important;
+    }
+
+    /* Для мобильных устройств */
+    @media (max-width: 480px) {
+      .fullscreen-modal .modal-header {
+        padding: 20px 35px 12px 15px !important;
+        margin: -15px -15px 15px -15px !important;
+        width: calc(100% + 30px) !important;
+        min-height: 170px !important; /* Чуть меньше для мобильных */
+      }
+      
+      .fullscreen-modal .modal-header h3 {
+        margin: 35px 0 0 0 !important;
+        font-size: 1.2rem !important;
+        padding-right: 40px !important;
+      }
+    }
+
+    /* Для планшетов и десктопов */
+    @media (min-width: 768px) {
+      .fullscreen-modal .modal-header {
+        padding: 30px 50px 20px 25px !important;
+        margin: -25px -25px 20px -25px !important;
+        width: calc(100% + 50px) !important;
+        min-height: 190px !important;
+      }
+      
+      .fullscreen-modal .modal-header h3 {
+        margin: 45px 0 0 0 !important;
+        font-size: 1.5rem !important;
+        padding-right: 60px !important;
+      }
+    }
   </style>
 </head>
 <body>
