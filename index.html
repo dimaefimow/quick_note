@@ -129,10 +129,10 @@
       color: var(--primary);
     }
 
-    /* Кнопка закрытия для полноэкранных модальных окон - опущена на 20 пикселей */
+    /* Кнопка закрытия для полноэкранных модальных окон - ОПУЩЕНА НА 40px (2 см) */
     .fullscreen-close-btn {
       position: absolute !important;
-      bottom: 45px !important; /* Опущена на 20px (было 25px) */
+      top: calc(60px + 40px) !important; /* Опущена на 40px (2 см) от заголовка */
       right: 20px !important;
       z-index: 11 !important;
       width: 45px !important;
@@ -152,7 +152,7 @@
 
     @media (max-width: 480px) {
       .fullscreen-close-btn {
-        bottom: 40px !important; /* Опущена на 20px (было 20px) */
+        top: calc(50px + 40px) !important; /* Опущена на 40px (2 см) для мобильных */
         right: 15px !important;
         width: 40px !important;
         height: 40px !important;
@@ -162,7 +162,7 @@
 
     @media (min-width: 768px) {
       .fullscreen-close-btn {
-        bottom: 50px !important; /* Опущена на 20px (было 30px) */
+        top: calc(70px + 40px) !important; /* Опущена на 40px (2 см) для планшетов */
         right: 25px !important;
         width: 48px !important;
         height: 48px !important;
@@ -180,25 +180,25 @@
       box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light) !important;
     }
 
-    /* Шапка модального окна - увеличена нижняя паддинг для кнопки */
+    /* Шапка модального окна */
     .fullscreen-modal .modal-header {
       position: sticky !important;
       top: 0 !important;
       background: var(--bg) !important;
       z-index: 10 !important;
-      padding: 30px 40px 70px 20px !important; /* Увеличена нижняя паддинг на 20px (было 50px) */
+      padding: 30px 40px 70px 20px !important;
       margin: -20px -20px 25px -20px !important;
       border-bottom: 1px solid rgba(0,0,0,0.1) !important;
       border-radius: 0 !important;
       width: calc(100% + 40px) !important;
-      min-height: 160px !important; /* Увеличена высота на 20px (было 140px) */
+      min-height: 160px !important;
       display: flex !important;
       align-items: flex-start !important;
       justify-content: space-between !important;
       box-sizing: border-box !important;
     }
 
-    /* Заголовок - смещен вниз */
+    /* Заголовок */
     .fullscreen-modal .modal-header h3 {
       margin: 15px 0 0 0 !important;
       padding: 0 60px 0 0 !important;
@@ -213,10 +213,10 @@
     /* Для мобильных устройств */
     @media (max-width: 480px) {
       .fullscreen-modal .modal-header {
-        padding: 25px 35px 65px 15px !important; /* Увеличена нижняя паддинг на 20px (было 45px) */
+        padding: 25px 35px 65px 15px !important;
         margin: -15px -15px 20px -15px !important;
         width: calc(100% + 30px) !important;
-        min-height: 150px !important; /* Увеличена высота на 20px (было 130px) */
+        min-height: 150px !important;
       }
       
       .fullscreen-modal .modal-header h3 {
@@ -229,10 +229,10 @@
     /* Для планшетов и десктопов */
     @media (min-width: 768px) {
       .fullscreen-modal .modal-header {
-        padding: 35px 50px 80px 25px !important; /* Увеличена нижняя паддинг на 20px (было 60px) */
+        padding: 35px 50px 80px 25px !important;
         margin: -25px -25px 30px -25px !important;
         width: calc(100% + 50px) !important;
-        min-height: 180px !important; /* Увеличена высота на 20px (было 160px) */
+        min-height: 180px !important;
       }
       
       .fullscreen-modal .modal-header h3 {
