@@ -1,3 +1,4 @@
+/* styles.css */
 :root {
   --bg: #f0f4f8;
   --text: #333;
@@ -2113,7 +2114,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   pointer-events: auto !important;
 }
 
-/* Стили для полноэкранных модальных окон */
+/* ==================== СТИЛИ ДЛЯ ПОЛНОЭКРАННЫХ МОДАЛЬНЫХ ОКОН ==================== */
 .fullscreen-modal {
   position: fixed !important;
   top: 0 !important;
@@ -2142,19 +2143,19 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   width: calc(100% + 40px) !important;
 }
 
-/* КНОПКА ЗАКРЫТИЯ - ОПУЩЕНА НА 2 СМ ВНИЗ */
+/* КНОПКА ЗАКРЫТИЯ - ОПУЩЕНА НА 2 СМ ВНИЗ (40px) */
 .fullscreen-close-btn {
   position: absolute !important;
-  top: 55px !important; /* Было 35px, опущено на 2 см (20px) вниз */
+  top: calc(60px + 40px) !important; /* Опущена на 40px (2 см) вниз от заголовка */
   right: 15px !important;
   z-index: 11 !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 45px !important;
+  height: 45px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 1.2rem !important;
+  font-size: 1.3rem !important;
   font-weight: bold !important;
   background: var(--bg) !important;
   box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light) !important;
@@ -2285,9 +2286,9 @@ body.dark .fullscreen-close-btn {
     width: calc(100% + 30px) !important;
   }
   
-  /* КНОПКА ЗАКРЫТИЯ ДЛЯ МОБИЛЬНЫХ - ОПУЩЕНА НА 2 СМ */
+  /* КНОПКА ЗАКРЫТИЯ ДЛЯ МОБИЛЬНЫХ - ОПУЩЕНА НА 2 СМ (40px) */
   .fullscreen-close-btn {
-    top: 50px !important; /* Было 30px, опущено на 2 см (20px) вниз */
+    top: calc(50px + 40px) !important; /* Опущена на 40px (2 см) вниз от заголовка */
     right: 10px !important;
     width: 35px !important;
     height: 35px !important;
@@ -2308,10 +2309,13 @@ body.dark .fullscreen-close-btn {
     width: calc(100% + 50px) !important;
   }
   
-  /* КНОПКА ЗАКРЫТИЯ ДЛЯ ПЛАНШЕТОВ - ОПУЩЕНА НА 2 СМ */
+  /* КНОПКА ЗАКРЫТИЯ ДЛЯ ПЛАНШЕТОВ - ОПУЩЕНА НА 2 СМ (40px) */
   .fullscreen-close-btn {
-    top: 60px !important; /* Было 40px, опущено на 2 см (20px) вниз */
+    top: calc(70px + 40px) !important; /* Опущена на 40px (2 см) вниз от заголовка */
     right: 20px !important;
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.4rem !important;
   }
   
   .fullscreen-modal .modal-header h3 {
