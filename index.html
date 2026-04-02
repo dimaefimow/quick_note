@@ -273,28 +273,27 @@
           <button id="reset-btn" class="neumorphic-btn danger">Сброс</button>
         </div>
         
-        <!-- Модальное окно переноса данных (улучшенное) -->
+        <!-- УПРОЩЁННОЕ МОДАЛЬНОЕ ОКНО ПЕРЕНОСА ДАННЫХ -->
         <div id="transfer-data-modal" class="neumorphic-menu fullscreen-modal">
           <div class="modal-header">
             <h3>Перенос данных</h3>
             <button id="close-transfer-data" class="neumorphic-btn small fullscreen-close-btn">×</button>
           </div>
           
-          <div class="transfer-options">
+          <div class="transfer-container">
+            <!-- Экспорт данных -->
             <div class="export-section">
-              <h4>📤 Экспорт данных</h4>
-              <p>Сохраните все данные в файл для резервного копирования или переноса</p>
+              <h4>📤 Сохранить резервную копию</h4>
+              <p>Экспортируйте все данные в текстовый файл для безопасного хранения или переноса на другое устройство</p>
               <button id="export-file-btn" class="neumorphic-btn primary">
-                💾 Экспортировать в файл
-              </button>
-              <button id="export-clipboard-btn" class="neumorphic-btn">
-                📋 Скопировать в буфер
+                💾 Скачать файл (.txt)
               </button>
             </div>
             
+            <!-- Импорт данных -->
             <div class="import-section">
-              <h4>📥 Импорт данных</h4>
-              <p>Загрузите файл с данными или вставьте текст</p>
+              <h4>📥 Восстановить из резервной копии</h4>
+              <p>Загрузите ранее сохранённый файл с данными</p>
               
               <div class="file-upload-area">
                 <div class="file-input-wrapper">
@@ -308,16 +307,7 @@
                 </div>
                 
                 <button id="import-file-btn" class="neumorphic-btn primary" disabled>
-                  📥 Импортировать файл
-                </button>
-              </div>
-              
-              <div class="text-import-area">
-                <p>Или вставьте данные вручную:</p>
-                <textarea id="import-data-input" class="neumorphic-input" 
-                          placeholder="Вставьте текст с данными..." rows="5"></textarea>
-                <button id="import-text-btn" class="neumorphic-btn primary">
-                  📝 Импортировать текст
+                  📥 Восстановить из файла
                 </button>
               </div>
             </div>
