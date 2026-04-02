@@ -710,10 +710,8 @@ document.addEventListener('DOMContentLoaded', function() {
     transferDataBtn: document.getElementById('transfer-data-btn'),
     transferDataModal: document.getElementById('transfer-data-modal'),
     closeTransferData: document.getElementById('close-transfer-data'),
-    exportDataBtn: document.getElementById('export-data-btn'),
-    importDataBtn: document.getElementById('import-data-btn'),
     importDataInput: document.getElementById('import-data-input'),
-    // Новые элементы для улучшенного переноса данных
+    // Элементы для упрощённого модуля переноса данных
     exportFileBtn: null,
     importFileBtn: null,
     fileInput: null,
@@ -722,9 +720,9 @@ document.addEventListener('DOMContentLoaded', function() {
     resetSliderValue: 0
   };
 
-  // ==================== УЛУЧШЕННЫЙ МОДУЛЬ ПЕРЕНОСА ДАННЫХ ====================
+  // ==================== УПРОЩЁННЫЙ МОДУЛЬ ПЕРЕНОСА ДАННЫХ ====================
 
-  // Инициализация улучшенного модуля переноса данных
+  // Инициализация упрощённого модуля переноса данных
   function initTransferDataModule() {
     // Обновляем HTML модального окна переноса данных
     elements.transferDataModal.innerHTML = `
@@ -732,21 +730,21 @@ document.addEventListener('DOMContentLoaded', function() {
         <h3>Перенос данных</h3>
         <button id="close-transfer-data" class="neumorphic-btn small fullscreen-close-btn">×</button>
       </div>
-      <div class="transfer-options">
+      
+      <div class="transfer-container">
+        <!-- Экспорт данных -->
         <div class="export-section">
-          <h4>📤 Экспорт данных</h4>
-          <p>Сохраните все данные в файл для резервного копирования или переноса</p>
+          <h4>📤 Сохранить резервную копию</h4>
+          <p>Экспортируйте все данные в текстовый файл для безопасного хранения или переноса на другое устройство</p>
           <button id="export-file-btn" class="neumorphic-btn primary">
-            💾 Экспортировать в файл
-          </button>
-          <button id="export-clipboard-btn" class="neumorphic-btn">
-            📋 Скопировать в буфер
+            💾 Скачать файл (.txt)
           </button>
         </div>
         
+        <!-- Импорт данных -->
         <div class="import-section">
-          <h4>📥 Импорт данных</h4>
-          <p>Загрузите файл с данными или вставьте текст</p>
+          <h4>📥 Восстановить из резервной копии</h4>
+          <p>Загрузите ранее сохранённый файл с данными</p>
           
           <div class="file-upload-area">
             <div class="file-input-wrapper">
@@ -760,16 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             
             <button id="import-file-btn" class="neumorphic-btn primary" disabled>
-              📥 Импортировать файл
-            </button>
-          </div>
-          
-          <div class="text-import-area">
-            <p>Или вставьте данные вручную:</p>
-            <textarea id="import-data-input" class="neumorphic-input" 
-                      placeholder="Вставьте текст с данными..." rows="5"></textarea>
-            <button id="import-text-btn" class="neumorphic-btn primary">
-              📝 Импортировать текст
+              📥 Восстановить из файла
             </button>
           </div>
         </div>
@@ -783,28 +772,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Обновляем ссылки на элементы
     elements.exportFileBtn = document.getElementById('export-file-btn');
-    elements.exportClipboardBtn = document.getElementById('export-clipboard-btn');
     elements.importFileBtn = document.getElementById('import-file-btn');
-    elements.importTextBtn = document.getElementById('import-text-btn');
     elements.fileInput = document.getElementById('file-input');
     elements.selectedFileName = document.getElementById('selected-file-name');
     elements.closeTransferData = document.getElementById('close-transfer-data');
-    elements.importDataInput = document.getElementById('import-data-input');
     
     // Настройка обработчиков событий
     setupTransferDataHandlers();
-    
-    // Добавляем стили
-    addTransferDataStyles();
   }
 
   // Настройка обработчиков для переноса данных
   function setupTransferDataHandlers() {
     // Экспорт в файл
     elements.exportFileBtn.addEventListener('click', exportDataToFile);
-    
-    // Экспорт в буфер обмена
-    elements.exportClipboardBtn.addEventListener('click', exportDataToClipboard);
     
     // Выбор файла для импорта
     elements.fileInput.addEventListener('change', handleFileSelect);
@@ -816,23 +796,20 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    // Импорт из текста
-    elements.importTextBtn.addEventListener('click', importDataFromText);
-    
     // Закрытие модального окна
     elements.closeTransferData.addEventListener('click', () => {
       elements.transferDataModal.classList.remove('show');
+      closeFullscreenModal();
       // Сбрасываем состояние
-      elements.fileInput.value = '';
-      elements.selectedFileName.textContent = 'Файл не выбран';
-      elements.importFileBtn.disabled = true;
-      elements.importDataInput.value = '';
+      resetFileInput();
     });
-    
-    // Автоматическая активация кнопки импорта при вводе текста
-    elements.importDataInput.addEventListener('input', function() {
-      elements.importTextBtn.disabled = this.value.trim().length === 0;
-    });
+  }
+
+  // Сброс состояния файлового инпута
+  function resetFileInput() {
+    elements.fileInput.value = '';
+    elements.selectedFileName.textContent = 'Файл не выбран';
+    elements.importFileBtn.disabled = true;
   }
 
   // Обработчик выбора файла
@@ -844,9 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.importFileBtn.disabled = false;
       } else {
         alert('Пожалуйста, выберите текстовый файл с расширением .txt');
-        elements.fileInput.value = '';
-        elements.selectedFileName.textContent = 'Файл не выбран';
-        elements.importFileBtn.disabled = true;
+        resetFileInput();
       }
     }
   }
@@ -866,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dataStr = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([dataStr], { type: 'text/plain;charset=utf-8' });
     const timestamp = new Date().getTime();
-    const fileName = `finance_data_${currentYear}_${timestamp}.txt`;
+    const fileName = `finance_backup_${timestamp}.txt`;
     
     // Для iOS используем Share API
     if ((isIOS || isTelegramIOS) && navigator.share) {
@@ -876,10 +851,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: 'Экспорт финансовых данных',
-            text: 'Сохраните этот файл в приложении "Файлы"'
+            title: 'Резервная копия финансовых данных',
+            text: 'Сохраните этот файл для восстановления'
           });
-          showSuccessMessage('Файл отправлен! Сохраните в "Файлы".');
+          showSuccessMessage('Файл сохранён!');
           return;
         }
       } catch (error) {
@@ -901,60 +876,12 @@ document.addEventListener('DOMContentLoaded', function() {
       URL.revokeObjectURL(url);
     }, 100);
     
-    if (isIOS || isTelegramIOS) {
-      showIOSInstructions();
-    } else {
-      showSuccessMessage('Файл создан! Сохраните его на устройстве.');
-    }
-  }
-
-  // Экспорт данных в буфер обмена
-  async function exportDataToClipboard() {
-    const dataToExport = {
-      financeData,
-      budgetData,
-      savingsWidgets,
-      fundWidgets,
-      achievementsData,
-      exportDate: new Date().toISOString(),
-      appVersion: '2.0'
-    };
-    
-    const dataStr = JSON.stringify(dataToExport, null, 2);
-    
-    try {
-      await navigator.clipboard.writeText(dataStr);
-      showSuccessMessage('Данные скопированы в буфер обмена!');
-    } catch (err) {
-      console.error('Ошибка копирования в буфер:', err);
-      
-      // Запасной вариант для старых браузеров
-      const textArea = document.createElement('textarea');
-      textArea.value = dataStr;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      showSuccessMessage('Данные скопированы в буфер обмена!');
-    }
+    showSuccessMessage('Файл создан!');
   }
 
   // Импорт данных из файла
   function importDataFromFile(file) {
-    if (!file) {
-      alert('Выберите файл для импорта');
-      return;
-    }
-    
-    // Проверяем расширение файла
-    if (!file.name.toLowerCase().endsWith('.txt')) {
-      alert('Пожалуйста, выберите текстовый файл (.txt)');
-      elements.fileInput.value = '';
-      elements.selectedFileName.textContent = 'Файл не выбран';
-      elements.importFileBtn.disabled = true;
-      return;
-    }
+    if (!file) return;
     
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -964,31 +891,16 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (error) {
         alert('Ошибка при чтении файла: ' + error.message);
         console.error('Import error:', error);
+        resetFileInput();
       }
     };
     
     reader.onerror = function() {
       alert('Ошибка при чтении файла');
+      resetFileInput();
     };
     
     reader.readAsText(file);
-  }
-
-  // Импорт данных из текста
-  function importDataFromText() {
-    const dataStr = elements.importDataInput.value.trim();
-    if (!dataStr) {
-      alert('Вставьте данные для импорта');
-      return;
-    }
-    
-    try {
-      const importedData = JSON.parse(dataStr);
-      processImportedData(importedData);
-    } catch (error) {
-      alert('Ошибка при разборе данных: ' + error.message);
-      console.error('Import error:', error);
-    }
   }
 
   // Обработка импортированных данных
@@ -999,6 +911,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!isValid) {
       alert('Некорректный формат данных. Убедитесь, что это данные из этого приложения.');
+      resetFileInput();
       return;
     }
     
@@ -1023,15 +936,14 @@ document.addEventListener('DOMContentLoaded', function() {
       markDataChanged();
       updateUI();
       
-      // Сбрасываем форму
-      elements.fileInput.value = '';
-      elements.selectedFileName.textContent = 'Файл не выбран';
-      elements.importFileBtn.disabled = true;
-      elements.importDataInput.value = '';
-      elements.importTextBtn.disabled = true;
+      // Сбрасываем форму и закрываем модальное окно
+      resetFileInput();
       elements.transferDataModal.classList.remove('show');
+      closeFullscreenModal();
       
-      showSuccessMessage('Данные успешно импортированы!');
+      showSuccessMessage('Данные успешно восстановлены!');
+    } else {
+      resetFileInput();
     }
   }
 
@@ -1066,198 +978,6 @@ document.addEventListener('DOMContentLoaded', function() {
     modal.querySelector('.close-instructions-btn').addEventListener('click', function() {
       document.body.removeChild(modal);
     });
-  }
-
-  // Добавить стили для улучшенного модуля переноса данных
-  function addTransferDataStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-      .transfer-options {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-        margin: 20px 0;
-      }
-      
-      .export-section, .import-section {
-        background: var(--bg);
-        border-radius: var(--border-radius);
-        padding: 20px;
-        box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-      }
-      
-      .export-section h4, .import-section h4 {
-        margin: 0 0 10px 0;
-        color: var(--primary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      
-      .export-section p, .import-section p {
-        margin: 0 0 15px 0;
-        color: var(--text);
-        opacity: 0.8;
-        font-size: 0.9rem;
-      }
-      
-      .export-section .neumorphic-btn,
-      .import-section .neumorphic-btn {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-      }
-      
-      .file-upload-area {
-        margin: 20px 0;
-        padding: 15px;
-        background: rgba(0,0,0,0.03);
-        border-radius: var(--border-radius);
-      }
-      
-      body.dark .file-upload-area {
-        background: rgba(255,255,255,0.05);
-      }
-      
-      .file-input-wrapper {
-        margin-bottom: 15px;
-      }
-      
-      .file-input-label {
-        display: block;
-        padding: 15px;
-        text-align: center;
-        background: var(--bg);
-        border-radius: var(--border-radius);
-        box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-        cursor: pointer;
-        transition: var(--transition);
-        font-weight: 600;
-        margin-bottom: 10px;
-      }
-      
-      .file-input-label:hover {
-        background: var(--primary);
-        color: white;
-        transform: translateY(-2px);
-      }
-      
-      .selected-file-name {
-        text-align: center;
-        padding: 10px;
-        color: var(--text);
-        opacity: 0.7;
-        font-size: 0.9rem;
-      }
-      
-      .text-import-area {
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(0,0,0,0.1);
-      }
-      
-      body.dark .text-import-area {
-        border-top: 1px solid rgba(255,255,255,0.1);
-      }
-      
-      .data-info {
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(52, 152, 219, 0.1);
-        border-radius: var(--border-radius);
-      }
-      
-      .data-info p {
-        margin: 5px 0;
-        font-size: 0.85rem;
-        opacity: 0.8;
-      }
-      
-      .data-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 3000;
-      }
-      
-      .data-modal-content {
-        background: var(--bg);
-        padding: 25px;
-        border-radius: var(--border-radius);
-        max-width: 500px;
-        width: 90%;
-        box-shadow: 8px 8px 20px var(--shadow-dark), -8px -8px 20px var(--shadow-light);
-      }
-      
-      .data-modal-content h3 {
-        margin: 0 0 20px 0;
-        text-align: center;
-        color: var(--primary);
-      }
-      
-      .ios-instructions {
-        margin: 20px 0;
-      }
-      
-      .ios-instructions h4 {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 0 0 15px 0;
-      }
-      
-      .ios-instructions ol {
-        margin: 0;
-        padding-left: 20px;
-        text-align: left;
-      }
-      
-      .ios-instructions li {
-        margin-bottom: 10px;
-        line-height: 1.4;
-      }
-      
-      .tip-box {
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(46, 204, 113, 0.1);
-        border-radius: var(--border-radius);
-      }
-      
-      .tip-box p {
-        margin: 0;
-        font-size: 0.9rem;
-      }
-      
-      .hidden {
-        display: none !important;
-      }
-      
-      @media (max-width: 480px) {
-        .export-section, .import-section {
-          padding: 15px;
-        }
-        
-        .file-input-label {
-          padding: 12px;
-          font-size: 0.9rem;
-        }
-        
-        .data-modal-content {
-          padding: 20px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
   }
 
   // ==================== ПРОДОЛЖЕНИЕ ОСНОВНОГО КОДА ====================
@@ -3270,7 +2990,7 @@ document.addEventListener('DOMContentLoaded', function() {
       showResetSlider();
     });
 
-    // Перенос данных - улучшенная версия
+    // Перенос данных - упрощённая версия
     elements.transferDataBtn.addEventListener('click', () => {
       elements.moreMenu.classList.remove('show');
       openFullscreenModal(elements.transferDataModal);
@@ -3359,8 +3079,7 @@ document.addEventListener('DOMContentLoaded', function() {
       { element: elements.savingsName, handler: elements.saveSavingsBtn },
       { element: elements.savingsGoal, handler: elements.saveSavingsBtn },
       { element: elements.fundName, handler: elements.saveFundBtn },
-      { element: elements.fundAmount, handler: elements.saveFundBtn },
-      { element: elements.importDataInput, handler: elements.importTextBtn }
+      { element: elements.fundAmount, handler: elements.saveFundBtn }
     ];
 
     enterHandlers.forEach(item => {
@@ -3395,7 +3114,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function initializeApp() {
     console.log('🚀 Инициализация приложения...');
     
-    // Инициализация улучшенного модуля переноса данных
+    // Инициализация упрощённого модуля переноса данных
     initTransferDataModule();
     
     // Установка активного месяца
